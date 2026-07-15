@@ -4,7 +4,8 @@
   "private": true,
   "main": "./src/index.ts",
   "dependencies": {
-    "@casl/ability": "^6.7.1"
+    "@casl/ability": "^6.7.1",
+    "@lpg/types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.2.2"

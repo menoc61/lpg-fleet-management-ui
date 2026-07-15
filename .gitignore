@@ -26,7 +26,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+.agents
+.tanstack
+.turbo
+skills-lock.json
 # Test coverage
 /coverage
 
