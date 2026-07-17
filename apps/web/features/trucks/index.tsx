@@ -26,15 +26,16 @@ import { Switch } from '@lpg/ui'
 import {
   siteTypeLabels,
   siteTypeOptions,
-  sites,
+  type Site,
   type SiteType,
 } from '@/features/sites/sites'
 import { TruckDetailsSheet } from './truck-details-sheet'
 import { TrucksMap } from './trucks-map'
 import { TrucksTable } from './trucks-table'
+import { trucksHooks, sitesHooks } from '@/lib/api/use-resources'
+import { mapSite } from '@/lib/api/mappers'
 import {
   getTruckTelemetry,
-  trucks,
   type Truck,
   type TruckStatus,
 } from './trucks'
@@ -60,9 +61,25 @@ export function TrucksPage() {
   const [showRoutes, setShowRoutes] = useState(true)
   const [showSites, setShowSites] = useState(true)
   const [siteFilter, setSiteFilter] = useState<SiteFilter>('all')
-  const [activeTruckId, setActiveTruckId] = useState(trucks[0].id)
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
   const { resolvedTheme } = useTheme()
+
+  const {
+    data: trucksResult,
+    isPending: trucksPending,
+    isError: trucksError,
+    error: trucksErr,
+    refetch: refetchTrucks,
+  } = trucksHooks.useList({ page: 1, limite: 100 })
+
+  const { data: sitesResult } = sitesHooks.useList({ page: 1, limite: 100 })
+
+  const trucks: Truck[] = (trucksResult?.data ?? []) as Truck[]
+  const sites: Site[] = ((sitesResult?.data ?? []) as unknown as import('@lpg/types').Site[]).map(
+    mapSite
+  )
+
+  const [activeTruckId, setActiveTruckId] = useState<string | null>(null)
 
   const handleViewDetails = useCallback((truck: Truck) => {
     setActiveTruckId(truck.id)
@@ -101,19 +118,21 @@ export function TrucksPage() {
 
       return matchesStatus && matchesSearch
     })
-  }, [search, statusFilter])
+  }, [trucks, search, statusFilter])
 
   const selectedTruck =
-    filteredTrucks.find((truck) => truck.id === activeTruckId) ??
-    filteredTrucks[0] ??
-    trucks[0]
+    (activeTruckId &&
+      (filteredTrucks.find((truck) => truck.id === activeTruckId) ??
+        filteredTrucks[0])) ||
+    filteredTrucks[0] ||
+    null
   const filteredSites = useMemo(() => {
     if (!showSites) return []
 
     return sites.filter((site) => {
       return siteFilter === 'all' ? true : site.type === siteFilter
     })
-  }, [showSites, siteFilter])
+  }, [sites, showSites, siteFilter])
 
   const totals = useMemo(() => {
     return {
@@ -125,7 +144,7 @@ export function TrucksPage() {
         .length,
       inactive: trucks.filter((truck) => truck.status === 'inactive').length,
     }
-  }, [])
+  }, [trucks])
 
   const dateText = useMemo(() => {
     return new Intl.DateTimeFormat('fr-FR', {
@@ -141,8 +160,8 @@ export function TrucksPage() {
     const sum = list.reduce((acc, truck) => {
       return acc + getTruckTelemetry(truck.id).lpgLevelPercent
     }, 0)
-    return Math.round(sum / list.length)
-  }, [filteredTrucks])
+    return list.length === 0 ? 0 : Math.round(sum / list.length)
+  }, [filteredTrucks, trucks])
 
   const activeTrucks = totals.available + totals.in_transit
   const etaRate = 94
@@ -159,7 +178,7 @@ export function TrucksPage() {
         (site) => site.type === 'delivery-point'
       ).length,
     } satisfies Record<SiteFilter, number>
-  }, [])
+  }, [sites])
   const siteFilters = [
     { label: 'Tous sites', value: 'all' as const },
     ...siteTypeOptions.map((option) => ({
@@ -322,14 +341,24 @@ export function TrucksPage() {
       </section>
 
       <section className='relative overflow-hidden rounded-2xl border-transparent bg-muted/70 shadow-sm'>
-        <TrucksMap
-          sites={filteredSites}
-          trucks={filteredTrucks}
-          selectedTruck={selectedTruck}
-          mapTheme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-          showRoutes={showRoutes}
-          onSelectTruck={handleSelectTruck}
-        />
+        {selectedTruck ? (
+          <TrucksMap
+            sites={filteredSites}
+            trucks={filteredTrucks}
+            selectedTruck={selectedTruck}
+            mapTheme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+            showRoutes={showRoutes}
+            onSelectTruck={handleSelectTruck}
+          />
+        ) : (
+          <div className='flex h-72 items-center justify-center text-sm text-muted-foreground'>
+            {trucksPending
+              ? 'Chargement de la flotte...'
+              : trucksError
+                ? 'Donnees indisponibles.'
+                : 'Aucun camion a afficher.'}
+          </div>
+        )}
       </section>
 
       <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
@@ -343,19 +372,39 @@ export function TrucksPage() {
               colonnes a afficher.
             </p>
           </div>
-          <Badge
-            variant='outline'
-            className='border-transparent bg-muted/35 text-foreground'
-          >
-            {trucks.length} camions
-          </Badge>
+          {trucksError ? (
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => refetchTrucks()}
+              className='h-9 w-fit gap-2'
+            >
+              Reessayer
+            </Button>
+          ) : (
+            <Badge
+              variant='outline'
+              className='border-transparent bg-muted/35 text-foreground'
+            >
+              {trucks.length} camions
+            </Badge>
+          )}
         </div>
-        <TrucksTable
-          data={trucks}
-          search={tableSearch}
-          navigate={navigate}
-          onViewDetails={handleViewDetails}
-        />
+        {trucksError ? (
+          <div className='rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive'>
+            <p>Impossible de charger les camions.</p>
+            <p className='mt-1 text-xs opacity-80'>
+              {String(trucksErr?.message ?? '')}
+            </p>
+          </div>
+        ) : (
+          <TrucksTable
+            data={trucks}
+            search={tableSearch}
+            navigate={navigate}
+            onViewDetails={handleViewDetails}
+          />
+        )}
       </section>
 
       <TruckDetailsSheet

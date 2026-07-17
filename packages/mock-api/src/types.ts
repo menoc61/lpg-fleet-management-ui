@@ -1,8 +1,11 @@
 import type {
   Role,
   OrgType,
-  SiteClassification,
+  SiteType,
+  SiteStatus,
   TruckStatus,
+  ContractTier,
+  TruckRiskLevel,
   TransporterStatus,
 } from '@lpg/types'
 
@@ -38,20 +41,52 @@ export interface Transporter {
 export interface Site {
   id: string
   name: string
-  classification: SiteClassification
-  organizationId: string
+  type: SiteType
   city: string
+  region: string
+  operator: string
   lat: number
   lng: number
+  status: SiteStatus
+  description: string
+  isKeySite?: boolean
+  organizationId?: string
 }
 
 export interface Truck {
   id: string
-  plate: string
+  plateNumber: string
+  tenantName: string
+  marketer: string
   status: TruckStatus
-  organizationId: string
-  capacityKg: number
-  lastSeen: string
+  tankCapacityLiters: number
+  compartments: number
+  fuelType: 'GPL'
+  makeModel: string
+  year: number
+  gpsImei: string
+  assignedDriver: string
+  driverPhone: string
+  fleetManager: string
+  operatingRegion: string
+  homeDepot: string
+  currentLocation: string
+  latitude: number
+  longitude: number
+  destination: string
+  destinationLatitude: number
+  destinationLongitude: number
+  assignedRoute: string
+  odometerKm: number
+  nextServiceKm: number
+  lastServiceDate: string
+  insuranceExpiry: string
+  technicalVisitExpiry: string
+  permitExpiry: string
+  lastPing: string
+  contractTier: ContractTier
+  riskLevel: TruckRiskLevel
+  organizationId?: string
 }
 
 export interface Tour {

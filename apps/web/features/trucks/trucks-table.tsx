@@ -127,12 +127,12 @@ export function TrucksTable({
           {
             columnId: 'tenantName',
             title: 'Entreprise',
-            options: truckTenantOptions,
+            options: truckTenantOptions(data),
           },
           {
             columnId: 'marketer',
             title: 'Site',
-            options: truckMarketerOptions,
+            options: truckMarketerOptions(data),
           },
           {
             columnId: 'contractTier',

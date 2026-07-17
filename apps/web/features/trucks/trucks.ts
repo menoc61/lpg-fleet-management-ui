@@ -8,40 +8,8 @@ export type ContractTier = 'Starter' | 'Growth' | 'Enterprise'
 
 export type TruckRiskLevel = 'low' | 'medium' | 'high'
 
-export type Truck = {
-  id: string
-  plateNumber: string
-  tenantName: string
-  marketer: string
-  status: TruckStatus
-  tankCapacityLiters: number
-  compartments: number
-  fuelType: 'GPL'
-  makeModel: string
-  year: number
-  gpsImei: string
-  assignedDriver: string
-  driverPhone: string
-  fleetManager: string
-  operatingRegion: string
-  homeDepot: string
-  currentLocation: string
-  latitude: number
-  longitude: number
-  destination: string
-  destinationLatitude: number
-  destinationLongitude: number
-  assignedRoute: string
-  odometerKm: number
-  nextServiceKm: number
-  lastServiceDate: string
-  insuranceExpiry: string
-  technicalVisitExpiry: string
-  permitExpiry: string
-  lastPing: string
-  contractTier: ContractTier
-  riskLevel: TruckRiskLevel
-}
+// The operational Truck contract is the shared backend contract in @lpg/types.
+export type Truck = import('@lpg/types').Truck
 
 export type TruckTelemetry = {
   speedKmh: number
@@ -303,81 +271,38 @@ export const trucks: Truck[] = [
   },
 ]
 
-export const trucksTelemetryById: Record<string, TruckTelemetry> = {
-  'TRX-CM-001': {
-    speedKmh: 100,
-    lpgLevelPercent: 72,
-    etaText: '1h 08m',
-    distanceKm: 72.9,
-    routeProgress: 74,
-    pressureBar: 11.7,
-    temperatureCelsius: 29,
-  },
-  'TTC-CM-002': {
-    speedKmh: 82,
-    lpgLevelPercent: 66,
-    etaText: '54m',
-    distanceKm: 49.4,
-    routeProgress: 79,
-    pressureBar: 10.8,
-    temperatureCelsius: 31,
-  },
-  'CEX-CM-003': {
-    speedKmh: 0,
-    lpgLevelPercent: 34,
-    etaText: '--',
-    distanceKm: 0,
-    routeProgress: 0,
-    pressureBar: 6.4,
-    temperatureCelsius: 26,
-  },
-  'MKT-CM-004': {
-    speedKmh: 0,
-    lpgLevelPercent: 19,
-    etaText: '--',
-    distanceKm: 0,
-    routeProgress: 0,
-    pressureBar: 5.1,
-    temperatureCelsius: 25,
-  },
-  'TRX-CM-005': {
-    speedKmh: 94,
-    lpgLevelPercent: 78,
-    etaText: '1h 46m',
-    distanceKm: 131.2,
-    routeProgress: 53,
-    pressureBar: 12.1,
-    temperatureCelsius: 30,
-  },
-  'TTC-CM-006': {
-    speedKmh: 67,
-    lpgLevelPercent: 62,
-    etaText: '2h 03m',
-    distanceKm: 170.9,
-    routeProgress: 35,
-    pressureBar: 9.9,
-    temperatureCelsius: 28,
-  },
+export const truckTenantOptions = (list: Truck[] = trucks) =>
+  Array.from(new Set(list.map((truck) => truck.tenantName))).map(
+    (tenantName) => ({ label: tenantName, value: tenantName })
+  )
+
+export const truckMarketerOptions = (list: Truck[] = trucks) =>
+  Array.from(new Set(list.map((truck) => truck.marketer))).map(
+    (marketer) => ({ label: marketer, value: marketer })
+  )
+
+/**
+ * Telemetry is derived deterministically from the truck id so it works for both
+ * the live API dataset and any static fallback without a brittle static map.
+ */
+function hashId(id: string): number {
+  let h = 0
+  for (let i = 0; i < id.length; i++) {
+    h = (h * 31 + id.charCodeAt(i)) >>> 0
+  }
+  return h
 }
 
-export const truckTenantOptions = Array.from(
-  new Set(trucks.map((truck) => truck.tenantName))
-).map((tenantName) => ({ label: tenantName, value: tenantName }))
-
-export const truckMarketerOptions = Array.from(
-  new Set(trucks.map((truck) => truck.marketer))
-).map((marketer) => ({ label: marketer, value: marketer }))
-
-export function getTruckTelemetry(truckId: string) {
-  return (
-    trucksTelemetryById[truckId] ?? {
-      speedKmh: 0,
-      lpgLevelPercent: 0,
-      etaText: '--',
-      distanceKm: 0,
-      routeProgress: 0,
-      pressureBar: 0,
-      temperatureCelsius: 0,
-    }
-  )
+export function getTruckTelemetry(truckId: string): TruckTelemetry {
+  const h = hashId(truckId)
+  const inTransit = h % 5 !== 0
+  return {
+    speedKmh: inTransit ? 60 + (h % 60) : 0,
+    lpgLevelPercent: 20 + (h % 70),
+    etaText: inTransit ? `${h % 3}h ${10 + (h % 50)}m` : '--',
+    distanceKm: inTransit ? 20 + (h % 160) : 0,
+    routeProgress: inTransit ? 10 + (h % 85) : 0,
+    pressureBar: 5 + (h % 8) + (h % 10) / 10,
+    temperatureCelsius: 25 + (h % 8),
+  }
 }
