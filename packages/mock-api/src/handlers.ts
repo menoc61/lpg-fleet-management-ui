@@ -82,6 +82,7 @@ function resourceRouter(): Router {
     'reports',
     'pda',
     'infra',
+    'transporters',
   ]
 
   for (const name of names) {

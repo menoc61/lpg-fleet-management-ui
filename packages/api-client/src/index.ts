@@ -1,7 +1,7 @@
 import { apiAdapter } from './http-adapter.ts'
 import { createApi } from './api.ts'
 
-export type { ApiAdapter, AuthResult, AuthUser, Credentials, ListResponse, ApiPagination } from './adapter.ts'
+export type { ApiAdapter, AuthResult, AuthUser, Credentials, ListResponse, ListResult, ApiPagination } from './adapter.ts'
 export { apiAdapter } from './http-adapter.ts'
 export { createApi } from './api.ts'
 

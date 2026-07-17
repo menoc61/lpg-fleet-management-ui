@@ -3,6 +3,7 @@ import type {
   OrgType,
   SiteClassification,
   TruckStatus,
+  TransporterStatus,
 } from '@lpg/types'
 
 export interface Organization {
@@ -22,6 +23,16 @@ export interface AppUser {
   role: Role
   organizationId: string
   active: boolean
+}
+
+export interface Transporter {
+  id: string
+  name: string
+  status: TransporterStatus
+  region: string
+  contactEmail: string
+  contactPhone: string
+  fleetSize: number
 }
 
 export interface Site {
@@ -110,6 +121,7 @@ export type EntityName =
   | 'reports'
   | 'pda'
   | 'infra'
+  | 'transporters'
 
 export type EntityMap = {
   organizations: Organization
@@ -122,4 +134,5 @@ export type EntityMap = {
   reports: Report
   pda: PdaDevice
   infra: InfraMetric
+  transporters: Transporter
 }

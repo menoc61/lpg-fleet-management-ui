@@ -9,6 +9,7 @@ import type {
   Report,
   PdaDevice,
   InfraMetric,
+  Transporter,
 } from '@lpg/types'
 import type { ApiAdapter, AuthResult, AuthUser, Credentials } from './adapter.ts'
 import { createResourceService } from './resource.ts'
@@ -42,6 +43,7 @@ export function createApi(adapter: ApiAdapter) {
     reports: createResourceService<Report>(adapter, 'reports'),
     pda: createResourceService<PdaDevice>(adapter, 'pda'),
     infra: createResourceService<InfraMetric>(adapter, 'infra'),
+    transporters: createResourceService<Transporter>(adapter, 'transporters'),
   }
 }
 

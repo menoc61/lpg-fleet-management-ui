@@ -49,6 +49,16 @@ export interface AppUser {
   active: boolean
 }
 
+export interface Transporter {
+  id: string
+  name: string
+  status: TransporterStatus
+  region: string
+  contactEmail: string
+  contactPhone: string
+  fleetSize: number
+}
+
 export interface Site {
   id: string
   name: string

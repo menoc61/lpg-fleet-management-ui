@@ -9,7 +9,7 @@ export function createResourceService<T extends { id: string }>(adapter: ApiAdap
             .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
             .join('&')
         : ''
-      return adapter.request<ListResponse<T>>(`/${name}${qs}`)
+      return adapter.requestList<T>(`/${name}${qs}`)
     },
     getById(id: string): Promise<T> {
       return adapter.request<T>(`/${name}/${id}`)

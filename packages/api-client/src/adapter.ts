@@ -36,9 +36,16 @@ export interface RequestOptions {
   headers?: Record<string, string>
 }
 
+/** A paginated list payload, normalized for the UI layer. */
+export interface ListResult<T> {
+  data: T[]
+  pagination: ApiPagination
+}
+
 /** The single seam between the app and any backend (mock or real). */
 export interface ApiAdapter {
   request<T>(path: string, init?: RequestOptions): Promise<T>
+  requestList<T>(path: string, init?: RequestOptions): Promise<ListResult<T>>
   login(creds: Credentials): Promise<AuthResult>
   refresh(refreshToken: string): Promise<AuthResult>
   setAccessTokenGetter(getter: () => string | null): void

@@ -8,6 +8,7 @@ import anomalies from './seed/anomalies.json'
 import reports from './seed/reports.json'
 import pda from './seed/pda.json'
 import infra from './seed/infra.json'
+import transporters from './seed/transporters.json'
 import { AUTH_FIXTURES } from './fixtures/auth.ts'
 import type { EntityMap, EntityName } from './types.ts'
 
@@ -29,6 +30,7 @@ export const collections: Collections = {
   reports: reports as EntityMap['reports'][],
   pda: pda as EntityMap['pda'][],
   infra: infra as EntityMap['infra'][],
+  transporters: transporters as EntityMap['transporters'][],
 }
 
 export interface ListResult<T> {
