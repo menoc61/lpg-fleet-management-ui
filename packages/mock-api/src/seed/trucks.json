@@ -1,0 +1,8 @@
+[
+  { "id": "truck-1", "plate": "LT-001-A", "status": "available", "organizationId": "org-4", "capacityKg": 25000, "lastSeen": "2026-07-15T08:12:00Z" },
+  { "id": "truck-2", "plate": "LT-002-B", "status": "in_transit", "organizationId": "org-4", "capacityKg": 25000, "lastSeen": "2026-07-15T09:40:00Z" },
+  { "id": "truck-3", "plate": "LT-003-C", "status": "maintenance", "organizationId": "org-4", "capacityKg": 30000, "lastSeen": "2026-07-14T17:05:00Z" },
+  { "id": "truck-4", "plate": "LT-004-D", "status": "available", "organizationId": "org-5", "capacityKg": 12000, "lastSeen": "2026-07-15T07:55:00Z" },
+  { "id": "truck-5", "plate": "CT-010-A", "status": "in_transit", "organizationId": "org-2", "capacityKg": 20000, "lastSeen": "2026-07-15T10:01:00Z" },
+  { "id": "truck-6", "plate": "CT-011-B", "status": "inactive", "organizationId": "org-3", "capacityKg": 60000, "lastSeen": "2026-07-10T12:00:00Z" }
+]

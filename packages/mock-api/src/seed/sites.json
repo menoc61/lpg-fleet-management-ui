@@ -1,0 +1,8 @@
+[
+  { "id": "site-1", "name": "Centre Emplisseur SCDP Bonaberie", "classification": "centre_emplisseur", "organizationId": "org-2", "city": "Douala", "lat": 4.0677, "lng": 9.6817 },
+  { "id": "site-2", "name": "Centre Emplisseur AZA Afrigas Mvan", "classification": "centre_emplisseur", "organizationId": "org-1", "city": "Yaounde", "lat": 3.8480, "lng": 11.5021 },
+  { "id": "site-3", "name": "Centre Emplisseur BOCOM Bonaberi", "classification": "centre_emplisseur", "organizationId": "org-4", "city": "Douala", "lat": 4.0672, "lng": 9.6819 },
+  { "id": "site-4", "name": "Depot SNH BIPAGA", "classification": "depot", "organizationId": "org-3", "city": "Kribi", "lat": 2.9350, "lng": 9.9100 },
+  { "id": "site-5", "name": "Point Approvisionnement PetroPlus Dakar", "classification": "point_approvisionnement", "organizationId": "org-4", "city": "Dakar", "lat": 14.7167, "lng": -17.4677 },
+  { "id": "site-6", "name": "Client Industriel SCTM Bonaberi", "classification": "client", "organizationId": "org-4", "city": "Douala", "lat": 4.0677, "lng": 9.6817 }
+]

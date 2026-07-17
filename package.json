@@ -1,10 +1,11 @@
-{
+﻿{
   "name": "lpg-fleet-platform",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "mock": "turbo run dev --filter @lpg/mock-api",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
