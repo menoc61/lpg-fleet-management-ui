@@ -1,38 +1,42 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { usePermissions } from '@/context/PermissionsProvider'
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@lpg/ui'
+import { useAuthStore } from '@/store/auth-store'
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@lpg/ui'
 import csphLogo from '@/assets/logo-csph-small.png'
-import { Role } from '@lpg/permissions'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
 })
 
-const MOCK_PROFILES = [
-  { id: 'csph-superadmin', role: 'CSPH', orgName: 'CSPH', subRole: 'Superadmin' },
-  { id: 'csph-admin-info', role: 'CSPH', orgName: 'CSPH', subRole: 'Admin Info' },
-  { id: 'csph-admin-tech', role: 'CSPH', orgName: 'CSPH', subRole: 'Admin Tech' },
-  { id: 'csph-superviseur', role: 'CSPH', orgName: 'CSPH', subRole: 'Superviseur' },
-  { id: 'marketer-total', role: 'MARKETER', orgName: 'TotalEnergies' },
-  { id: 'transporter-translog', role: 'TRANSPORTER', orgName: 'TRANSLOG CAMEROUN' },
+// One-click presets for the mock/dev backend (credentials from mock-api fixtures).
+const DEMO_ACCOUNTS = [
+  { label: 'Super Admin', email: 'superadmin@lpg.cm' },
+  { label: 'Admin', email: 'admin@lpg.cm' },
+  { label: 'Superviseur', email: 'supervisor@lpg.cm' },
+  { label: 'Intégrateur', email: 'integrateur@lpg.cm' },
+  { label: 'Agent', email: 'agent@lpg.cm' },
+  { label: 'Marketeur', email: 'marketeur@lpg.cm' },
+  { label: 'Livreur', email: 'livreur@lpg.cm' },
 ]
 
 function LoginPage() {
-  const { setSession } = usePermissions()
+  const login = useAuthStore((s) => s.login)
   const navigate = useNavigate()
-  const [selectedProfileId, setSelectedProfileId] = useState<string>('csph-superadmin')
+  const [email, setEmail] = useState('superadmin@lpg.cm')
+  const [password, setPassword] = useState('password')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const profile = MOCK_PROFILES.find((p) => p.id === selectedProfileId)
-    if (profile) {
-      setSession({
-        role: profile.role as Role,
-        orgName: profile.orgName,
-        subRole: profile.subRole,
-      })
+    setSubmitting(true)
+    try {
+      await login(email, password)
       navigate({ to: '/' })
+    } catch (err) {
+      toast.error('Échec de la connexion. Vérifiez vos identifiants.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -44,54 +48,52 @@ function LoginPage() {
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold tracking-tight">Bienvenue</CardTitle>
             <CardDescription>
-              Sélectionnez un profil pour vous connecter
+              Connectez-vous à la console LPG Fleet
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  placeholder="contact@lpg-fleet.com"
-                  type="email"
-                  disabled
-                  value="mock-user@lpg-fleet.com"
-                />
-                <p className="text-xs text-muted-foreground mt-1">L'email est désactivé pour la simulation.</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <a href="#" className="text-sm font-medium text-primary hover:underline" onClick={(e) => e.preventDefault()}>
-                    Mot de passe oublié ?
-                  </a>
-                </div>
-                <Input id="password" type="password" disabled value="********" />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-              <div className="space-y-2 pt-2">
-                <Label htmlFor="profile">Profil de simulation (Mock)</Label>
-                <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
-                  <SelectTrigger id="profile">
-                    <SelectValue placeholder="Choisir un rôle" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_PROFILES.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.subRole ? `${p.orgName} - ${p.subRole}` : p.orgName} ({p.role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <Button type="submit" className="w-full h-11 text-base font-medium" disabled={submitting}>
+              {submitting ? 'Connexion...' : 'Se connecter'}
+            </Button>
+
+            <div className="pt-2">
+              <p className="text-xs text-muted-foreground mb-2">Comptes de démonstration (mock) :</p>
+              <div className="flex flex-wrap gap-2">
+                {DEMO_ACCOUNTS.map((a) => (
+                  <button
+                    type="button"
+                    key={a.email}
+                    onClick={() => { setEmail(a.email); setPassword('password') }}
+                    className="text-xs rounded-full border px-3 py-1 hover:bg-accent transition-colors"
+                  >
+                    {a.label}
+                  </button>
+                ))}
               </div>
             </div>
-            
-            <Button type="submit" className="w-full h-11 text-base font-medium">
-              Se connecter
-            </Button>
           </form>
         </CardContent>
       </Card>
