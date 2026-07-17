@@ -30,10 +30,12 @@ Every UI change that lands on `develop` (or its feature branches) must be review
 
 - The data layer talks to a backend through `packages/api-client` (`HttpAdapter` + `ApiAdapter`).
 - `VITE_API_MODE` controls the backend:
-  - `mock` → local Express mock server at `http://localhost:8787` (run `pnpm mock`).
+  - `fake` → **in-browser fixture data**, no server. Login just selects a demo profile (password ignored), all resources served from bundled `@lpg/mock-data` seeds. This is the mode used on Vercel/static hosts where the Express server cannot run.
+  - `mock` → local Express mock server at `http://localhost:8787/api/v1` (run `pnpm mock`). Realistic HTTP + fake-JWT auth, for local dev.
   - `dev` / `production` → real API at `VITE_API_BASE_URL` (default `/api/v1`).
-- For local development, always run the mock server (`pnpm mock`) so the app is fully functional without a real backend. This is the intended path for frontend work and for validating before swapping to a real API.
-- Keep the mock contract (`packages/mock-api`) aligned with `@lpg/types` so swapping `VITE_API_MODE` to a real backend is a one-flag change.
+- The shared seed contract lives in `@lpg/mock-data` and is consumed by BOTH the Express server (`@lpg/mock-api`) and the browser fake adapter (`@lpg/api-client/src/fake-adapter.ts`), so they never drift apart.
+- For local development, run `pnpm mock` and use `VITE_API_MODE=mock`. To preview the Vercel experience locally, set `VITE_API_MODE=fake` (no server needed).
+- Swapping to a real backend is a one-flag change (`VITE_API_MODE=production` + `VITE_API_BASE_URL`).
 
 ## Dependency management (pnpm 9)
 

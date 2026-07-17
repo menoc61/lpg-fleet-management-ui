@@ -1,7 +1,7 @@
 import type { Request, Response, Router } from 'express'
 import { Router as makeRouter } from 'express'
 import { signToken, verifyToken } from './jwt.ts'
-import { AUTH_FIXTURES } from './fixtures/auth.ts'
+import { AUTH_FIXTURES } from '@lpg/mock-data'
 import { listEntities, getEntity, createEntity, updateEntity, deleteEntity } from './db.ts'
 import type { EntityName } from './types.ts'
 

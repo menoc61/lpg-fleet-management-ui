@@ -1,36 +1,25 @@
-import organizations from './seed/organizations.json'
-import usersSeed from './seed/users.json'
-import sites from './seed/sites.json'
-import trucks from './seed/trucks.json'
-import tours from './seed/tours.json'
-import declarations from './seed/declarations.json'
-import anomalies from './seed/anomalies.json'
-import reports from './seed/reports.json'
-import pda from './seed/pda.json'
-import infra from './seed/infra.json'
-import transporters from './seed/transporters.json'
-import { AUTH_FIXTURES } from './fixtures/auth.ts'
+import { seeds, AUTH_FIXTURES } from '@lpg/mock-data'
 import type { EntityMap, EntityName } from './types.ts'
 
 type Collections = { [K in EntityName]: EntityMap[K][] }
 
-const users = usersSeed.map((u) => {
+const users = (seeds.users as any[]).map((u) => {
   const fixture = AUTH_FIXTURES.find((f) => f.id === u.id)!
   return { ...u, password: fixture.password }
 })
 
 export const collections: Collections = {
-  organizations: organizations as EntityMap['organizations'][],
+  organizations: seeds.organizations as EntityMap['organizations'][],
   users: users as EntityMap['users'][],
-  sites: sites as EntityMap['sites'][],
-  trucks: trucks as EntityMap['trucks'][],
-  tours: tours as EntityMap['tours'][],
-  declarations: declarations as EntityMap['declarations'][],
-  anomalies: anomalies as EntityMap['anomalies'][],
-  reports: reports as EntityMap['reports'][],
-  pda: pda as EntityMap['pda'][],
-  infra: infra as EntityMap['infra'][],
-  transporters: transporters as EntityMap['transporters'][],
+  sites: seeds.sites as EntityMap['sites'][],
+  trucks: seeds.trucks as EntityMap['trucks'][],
+  tours: seeds.tours as EntityMap['tours'][],
+  declarations: seeds.declarations as EntityMap['declarations'][],
+  anomalies: seeds.anomalies as EntityMap['anomalies'][],
+  reports: seeds.reports as EntityMap['reports'][],
+  pda: seeds.pda as EntityMap['pda'][],
+  infra: seeds.infra as EntityMap['infra'][],
+  transporters: seeds.transporters as EntityMap['transporters'][],
 }
 
 export interface ListResult<T> {

@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAuthStore } from '@/store/auth-store'
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label } from '@lpg/ui'
+import { PasswordInput } from '@/components/password-input'
 import csphLogo from '@/assets/logo-csph-small.png'
 import { toast } from 'sonner'
 
@@ -44,11 +45,13 @@ function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4">
       <Card className="w-full max-w-md shadow-lg border-0">
         <CardHeader className="space-y-4 text-center items-center pb-6">
-          <img src={csphLogo} alt="CSPH Logo" className="h-16 w-auto mb-2" />
+          <div className="flex w-full justify-center">
+            <img src={csphLogo} alt="CSPH Logo" className="h-20 w-auto" />
+          </div>
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold tracking-tight">Bienvenue</CardTitle>
+            <CardTitle className="text-2xl font-bold tracking-tight">CSPH</CardTitle>
             <CardDescription>
-              Connectez-vous à la console LPG Fleet
+              Connectez-vous à la console de gestion de flotte
             </CardDescription>
           </div>
         </CardHeader>
@@ -66,9 +69,8 @@ function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

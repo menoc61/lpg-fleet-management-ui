@@ -9,6 +9,7 @@
     "start": "tsx src/server.ts"
   },
   "dependencies": {
+    "@lpg/mock-data": "workspace:*",
     "@lpg/types": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.21.2",

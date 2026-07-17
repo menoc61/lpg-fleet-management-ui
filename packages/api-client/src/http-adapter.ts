@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from 'axios'
 import type { ApiEnvelope } from '@lpg/types'
 import type { ApiAdapter, AuthResult, Credentials } from './adapter.ts'
+import { fakeAdapter } from './fake-adapter.ts'
 
 type AccessTokenGetter = () => string | null
 type UnauthorizedHandler = () => void
@@ -15,7 +16,7 @@ type UnauthorizedHandler = () => void
 function resolveBaseURL(override?: string): string {
   if (override) return override
   const mode = import.meta.env.VITE_API_MODE
-  if (mode === 'mock') return 'http://localhost:8787'
+  if (mode === 'mock') return 'http://localhost:8787/api/v1'
   return import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 }
 
@@ -124,3 +125,18 @@ export function createHttpAdapter(baseURL?: string): ApiAdapter {
 
 /** App-wide singleton adapter. */
 export const apiAdapter = createHttpAdapter()
+
+/**
+ * Mode-aware adapter selection. The same UI/feature code runs against any
+ * backend — only the adapter changes:
+ *  - fake:        in-browser fixture data, no server (used on static hosts like Vercel)
+ *  - mock:        local Express mock server at http://localhost:8787/api/v1 (local dev)
+ *  - dev/production: real backend at VITE_API_BASE_URL (default /api/v1)
+ */
+export function createApiAdapter(): ApiAdapter {
+  const mode = import.meta.env.VITE_API_MODE
+  if (mode === 'fake') {
+    return fakeAdapter
+  }
+  return createHttpAdapter()
+}

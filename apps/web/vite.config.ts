@@ -21,9 +21,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'lpg.svg'],
       manifest: {
-        name: 'LPG Fleet Management',
-        short_name: 'LPG Fleet',
-        description: 'Console de gestion de flotte GPL',
+        name: 'CSPH — Gestion de flotte',
+        short_name: 'CSPH',
+        description: 'Console de gestion de flotte CSPH',
         theme_color: '#0f766e',
         background_color: '#ffffff',
         display: 'standalone',
