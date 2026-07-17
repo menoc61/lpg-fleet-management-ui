@@ -15,8 +15,8 @@ export function sleep(ms: number): Promise<void> {
 export function getPageNumbers(
   currentPage: number,
   totalPages: number,
-): (number | 'ellipsis')[] {
-  const pages: (number | 'ellipsis')[] = []
+): (number | '...')[] {
+  const pages: (number | '...')[] = []
   const maxVisible = 5
 
   if (totalPages <= maxVisible + 2) {
@@ -28,9 +28,9 @@ export function getPageNumbers(
   const start = Math.max(2, currentPage - 1)
   const end = Math.min(totalPages - 1, currentPage + 1)
 
-  if (start > 2) pages.push('ellipsis')
+  if (start > 2) pages.push('...')
   for (let i = start; i <= end; i++) pages.push(i)
-  if (end < totalPages - 1) pages.push('ellipsis')
+  if (end < totalPages - 1) pages.push('...')
   pages.push(totalPages)
 
   return pages

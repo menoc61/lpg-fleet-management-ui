@@ -36,3 +36,6 @@ skills-lock.json
 # Vitest artifacts (browser screenshots/attachments)
 **/__screenshots__/
 .vitest-attachments/
+
+# TypeScript build info
+*.tsbuildinfo

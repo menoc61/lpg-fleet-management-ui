@@ -45,9 +45,7 @@ describe('PasswordInput', () => {
     await userEvent.click(hidePasswordButton)
 
     await expect.element(passwordInput).toHaveAttribute('type', 'password')
-    await expect
-      .element(getByRole('button', { name: /show password/i }))
-      .toBeInTheDocument()
+    await expect.element(getByRole('button', { name: /show password/i })).toBeInTheDocument()
   })
 
   it('disables the show password button when the password input is disabled', async () => {

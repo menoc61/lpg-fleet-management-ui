@@ -16,18 +16,10 @@ describe('ConfirmDialog', () => {
       />
     )
 
-    await expect
-      .element(getByRole('heading', { name: 'Delete item' }))
-      .toBeInTheDocument()
-    await expect
-      .element(getByText('This action cannot be undone.'))
-      .toBeInTheDocument()
-    await expect
-      .element(getByRole('button', { name: 'Cancel' }))
-      .toBeInTheDocument()
-    await expect
-      .element(getByRole('button', { name: 'Continue' }))
-      .toBeInTheDocument()
+    await expect.element(getByRole('heading', { name: 'Delete item' })).toBeInTheDocument()
+    await expect.element(getByText('This action cannot be undone.')).toBeInTheDocument()
+    await expect.element(getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    await expect.element(getByRole('button', { name: 'Continue' })).toBeInTheDocument()
   })
 
   it('calls handleConfirm when the confirm button is clicked', async () => {
@@ -79,9 +71,7 @@ describe('ConfirmDialog', () => {
     )
 
     await expect.element(getByRole('button', { name: 'Cancel' })).toBeDisabled()
-    await expect
-      .element(getByRole('button', { name: 'Continue' }))
-      .toBeDisabled()
+    await expect.element(getByRole('button', { name: 'Continue' })).toBeDisabled()
   })
 
   it('supports custom button texts', async () => {
@@ -97,12 +87,8 @@ describe('ConfirmDialog', () => {
       />
     )
 
-    await expect
-      .element(getByRole('button', { name: 'No' }))
-      .toBeInTheDocument()
-    await expect
-      .element(getByRole('button', { name: 'Yes' }))
-      .toBeInTheDocument()
+    await expect.element(getByRole('button', { name: 'No' })).toBeInTheDocument()
+    await expect.element(getByRole('button', { name: 'Yes' })).toBeInTheDocument()
   })
 
   it('renders confirm as submit button linked to desc form when `form` is set', async () => {
@@ -124,9 +110,7 @@ describe('ConfirmDialog', () => {
 
     const deleteBtn = getByRole('button', { name: 'Delete' })
     await expect.element(deleteBtn).toHaveAttribute('type', 'submit')
-    await expect
-      .element(deleteBtn)
-      .toHaveAttribute('form', 'tasks-multi-delete-form')
+    await expect.element(deleteBtn).toHaveAttribute('form', 'tasks-multi-delete-form')
   })
 
   it('submits the desc form when confirm is clicked (form prop, no handleConfirm)', async () => {

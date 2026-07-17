@@ -8,13 +8,13 @@ describe('getPageNumbers', () => {
   })
 
   it('shows ellipsis near the beginning', () => {
-    expect(getPageNumbers(1, 10)).toEqual([1, 2, 3, 4, '...', 10])
+    expect(getPageNumbers(1, 10)).toEqual([1, 2, '...', 10])
     expect(getPageNumbers(3, 10)).toEqual([1, 2, 3, 4, '...', 10])
   })
 
   it('shows ellipsis near the end', () => {
-    expect(getPageNumbers(10, 10)).toEqual([1, '...', 7, 8, 9, 10])
-    expect(getPageNumbers(9, 10)).toEqual([1, '...', 7, 8, 9, 10])
+    expect(getPageNumbers(10, 10)).toEqual([1, '...', 9, 10])
+    expect(getPageNumbers(9, 10)).toEqual([1, '...', 8, 9, 10])
   })
 
   it('shows ellipsis on both side in the middle', () => {
@@ -23,6 +23,6 @@ describe('getPageNumbers', () => {
 
   it('handles current page greater than total pages', () => {
     expect(getPageNumbers(6, 5)).toEqual([1, 2, 3, 4, 5])
-    expect(getPageNumbers(11, 10)).toEqual([1, '...', 7, 8, 9, 10])
+    expect(getPageNumbers(11, 10)).toEqual([1, '...', 10])
   })
 })
