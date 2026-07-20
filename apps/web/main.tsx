@@ -13,6 +13,7 @@ import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
 import { ThemeProvider } from './context/theme-provider'
 import { PermissionsProvider } from './context/PermissionsProvider'
+import { useAuthStore } from './store/auth-store'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 // Styles
@@ -53,6 +54,7 @@ const queryClient = new QueryClient({
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           toast.error('Session expired.')
+          useAuthStore.getState().logout()
           router.navigate({ to: '/login' })
         }
         if (error.response?.status === 500) {
