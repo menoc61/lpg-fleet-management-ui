@@ -14,7 +14,7 @@ export function AppSidebar() {
   const activeRole = useRoleStore((s) => s.activeRole)
   const sidebarData = getSidebarData(activeRole)
   return (
-    <Sidebar collapsible='icon' variant='inset'>
+    <Sidebar collapsible='icon' variant='sidebar'>
       <SidebarHeader>
         <AppTitle subtitle={ROLE_LABELS[activeRole]} href={`/${roleSlug(activeRole)}`} />
       </SidebarHeader>
