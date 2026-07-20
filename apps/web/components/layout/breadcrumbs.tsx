@@ -7,7 +7,7 @@ export function Breadcrumbs({ pathname }: { pathname: string }) {
   const crumbs = generateBreadcrumbs(pathname)
   if (crumbs.length === 0) return null
   return (
-    <nav aria-label='Fil d'ariane' className='hidden items-center gap-1 text-sm text-muted-foreground md:flex'>
+    <nav aria-label="Fil d'ariane" className='hidden items-center gap-1 text-sm text-muted-foreground md:flex'>
       {crumbs.map((c, i) => {
         const last = i === crumbs.length - 1
         return (

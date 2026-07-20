@@ -8,7 +8,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  cn,
 } from '@lpg/ui'
 import {
   LayoutDashboard,

@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@lpg/ui'
 import { Header } from './header'
 import { Breadcrumbs } from '@/components/layout/breadcrumbs'
