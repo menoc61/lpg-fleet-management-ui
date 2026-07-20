@@ -38,6 +38,7 @@ export * from './components/ui/table'
 export * from './components/ui/tabs'
 export * from './components/ui/textarea'
 export * from './components/ui/tooltip'
+export { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './components/ui/command'
 
 // data-table
 export * from './components/data-table/index'
