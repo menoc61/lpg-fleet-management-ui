@@ -16,7 +16,9 @@ type UnauthorizedHandler = () => void
 function resolveBaseURL(override?: string): string {
   if (override) return override
   const mode = import.meta.env.VITE_API_MODE
-  if (mode === 'mock') return 'http://localhost:8787/api/v1'
+  // Unset (plain `turbo run dev`) defaults to the local mock server so the
+  // app works out-of-the-box. dev/production use a relative /api base (proxied).
+  if (mode === 'mock' || !mode) return 'http://localhost:8787/api/v1'
   return import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 }
 

@@ -48,12 +48,17 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    proxy: API_MODE === 'mock' ? undefined : {
-      '/api': {
-        target: process.env.VITE_API_URL ?? 'http://localhost:8787',
-        changeOrigin: true,
-      },
-    },
+    // Proxy only when the app talks to a relative /api base (default/dev/prod).
+    // mock (direct :8787) and fake (in-browser) need no proxy.
+    proxy:
+      API_MODE === 'mock' || API_MODE === 'fake'
+        ? undefined
+        : {
+            '/api': {
+              target: process.env.VITE_API_URL ?? 'http://localhost:8787',
+              changeOrigin: true,
+            },
+          },
   },
   test: {
     browser: {
