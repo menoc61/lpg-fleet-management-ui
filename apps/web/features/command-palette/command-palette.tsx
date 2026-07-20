@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
+  Button,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
+  cn,
 } from '@lpg/ui'
 import {
   LayoutDashboard,
+  Search,
   Truck,
   Fuel,
   Wrench,
@@ -62,22 +65,37 @@ export function CommandPalette() {
   )
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder='Rechercher une page…' />
-      <CommandList>
-        <CommandEmpty>Aucun résultat.</CommandEmpty>
-        <CommandGroup heading='Navigation'>
-          {COMMANDS.map((c) => {
-            const Icon = c.icon
-            return (
-              <CommandItem key={c.to} value={c.title} onSelect={() => run(c.to)}>
-                <Icon className='size-4' />
-                {c.title}
-              </CommandItem>
-            )
-          })}
-        </CommandGroup>
-      </CommandList>
-    </CommandDialog>
+    <>
+      <Button
+        type='button'
+        variant='outline'
+        onClick={() => setOpen(true)}
+        className='h-9 w-9 justify-start gap-2 rounded-full px-3 text-muted-foreground sm:w-64 sm:px-3'
+        aria-label='Rechercher'
+      >
+        <Search className='size-4' />
+        <span className='hidden flex-1 text-left text-sm sm:inline'>Rechercher…</span>
+        <kbd className='hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:inline-flex'>
+          ⌘K
+        </kbd>
+      </Button>
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput placeholder='Rechercher une page…' />
+        <CommandList>
+          <CommandEmpty>Aucun résultat.</CommandEmpty>
+          <CommandGroup heading='Navigation'>
+            {COMMANDS.map((c) => {
+              const Icon = c.icon
+              return (
+                <CommandItem key={c.to} value={c.title} onSelect={() => run(c.to)}>
+                  <Icon className='size-4' />
+                  {c.title}
+                </CommandItem>
+              )
+            })}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+    </>
   )
 }

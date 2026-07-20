@@ -4,7 +4,6 @@ import { cn, SidebarInset, SidebarProvider } from '@lpg/ui'
 import { AppHeader } from '@/components/layout/app-header'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SkipToMain } from '@/components/skip-to-main'
-import { CommandPalette } from '@/features/command-palette/command-palette'
 
 type AuthenticatedLayoutProps = {
   children?: React.ReactNode
@@ -15,7 +14,6 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <SkipToMain />
-      <CommandPalette />
       <AppSidebar />
       <SidebarInset
         className={cn(
