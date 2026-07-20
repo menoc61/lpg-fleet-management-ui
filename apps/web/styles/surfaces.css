@@ -69,3 +69,6 @@
 [data-sonner-toast][data-type='warning'] {
   border-color: color-mix(in oklch, var(--accent) 60%, var(--border));
 }
+[data-sonner-toast][data-type='warning'] [data-icon] {
+  color: var(--accent);
+}
