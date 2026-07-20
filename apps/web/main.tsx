@@ -7,7 +7,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { toast } from 'sonner'
+import { toastError } from '@/lib/toast'
 import { handleServerError } from '@/lib/handle-server-error'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
@@ -43,7 +43,7 @@ const queryClient = new QueryClient({
 
         if (error instanceof AxiosError) {
           if (error.response?.status === 304) {
-            toast.error('Content not modified!')
+            toastError('Content not modified!')
           }
         }
       },
@@ -53,12 +53,12 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast.error('Session expired.')
+          toastError('Session expired.')
           useAuthStore.getState().logout()
           router.navigate({ to: '/login' })
         }
         if (error.response?.status === 500) {
-          toast.error('Internal server error.')
+          toastError('Internal server error.')
         }
       }
     },

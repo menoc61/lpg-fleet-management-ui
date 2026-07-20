@@ -4,12 +4,14 @@ export function Toaster({ theme, ...props }: ToasterProps) {
   return (
     <Sonner
       theme={theme ?? 'system'}
-      className='toaster group [&_div[data-content]]:w-full'
+      richColors={false}
+      className='toaster group'
       style={
         {
           '--normal-bg': 'var(--popover)',
-          '--normal-text': 'var(--popover-foreground)',
+          '--normal-text': 'var(--foreground)',
           '--normal-border': 'var(--border)',
+          '--border-radius': 'var(--radius)',
         } as React.CSSProperties
       }
       {...props}
