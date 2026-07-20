@@ -1,4 +1,4 @@
-import { Bell, LogOut, Moon, Search, Sun } from 'lucide-react'
+import { LogOut, Moon, Search, Sun } from 'lucide-react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from '@/context/theme-provider'
@@ -18,6 +18,7 @@ import { Header } from './header'
 import { RoleSwitcher } from './role-switcher'
 import csphLogo from '@/assets/logo-csph-small.png'
 import { useAuthStore } from '@/store/auth-store'
+import { NotificationCenter } from '@/features/notifications/notification-center'
 
 export function AppHeader() {
   const { resolvedTheme, setTheme } = useTheme()
@@ -52,16 +53,7 @@ export function AppHeader() {
 
         <div className='flex flex-1 items-center justify-end gap-2'>
           <RoleSwitcher />
-          <Button
-            type='button'
-            variant='ghost'
-            size='icon'
-            className='relative rounded-full text-muted-foreground'
-            aria-label='Notifications'
-          >
-            <Bell className='size-4' />
-            <span className='absolute top-2 right-2 size-1.5 rounded-full bg-rose-500' />
-          </Button>
+          <NotificationCenter />
 
           <Button
             type='button'
