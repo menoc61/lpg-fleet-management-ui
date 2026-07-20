@@ -1,5 +1,5 @@
 import { LogOut, Moon, Sun } from 'lucide-react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from '@/context/theme-provider'
 import {
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
 } from '@lpg/ui'
 import { Header } from './header'
+import { Breadcrumbs } from '@/components/layout/breadcrumbs'
 import { RoleSwitcher } from './role-switcher'
 import csphLogo from '@/assets/logo-csph-small.png'
 import { useAuthStore } from '@/store/auth-store'
@@ -26,6 +27,7 @@ export function AppHeader() {
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const { pathname } = useLocation()
 
   const handleLogout = () => {
     logout()
@@ -38,7 +40,9 @@ export function AppHeader() {
       <div className='flex flex-1 items-center justify-between gap-3'>
         <div className='hidden flex-1 items-center gap-3 md:flex'>
           <CommandPalette />
+          <Breadcrumbs pathname={pathname} />
         </div>
+
 
         <div className='flex flex-1 items-center justify-end gap-2'>
           <RoleSwitcher />
