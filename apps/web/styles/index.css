@@ -1,8 +1,15 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './theme.css';
+@import './surfaces.css';
 
 @custom-variant dark (&:is(.dark *));
+
+@layer base {
+  .bg-sidebar {
+    background-color: var(--sidebar);
+  }
+}
 
 @layer base {
   * {
