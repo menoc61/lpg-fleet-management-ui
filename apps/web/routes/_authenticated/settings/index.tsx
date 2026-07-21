@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@lpg/ui'
+import { Card, CardDescription, CardHeader, CardTitle } from '@lpg/ui'
 import { useRoleStore } from '@/store/role-store'
 import { ROLE_LABELS } from '@/config/rbac/roles'
 import {
@@ -7,7 +7,7 @@ import {
   Shield,
   Settings,
   Truck,
-  Route,
+  Map as RouteIcon,
   Smartphone,
   Bell,
   Wrench,
@@ -66,7 +66,7 @@ const ROLE_SETTINGS: Record<string, SettingCard[]> = {
     { to: '/settings/profile', icon: User, title: 'Profil', description: 'Gérer vos informations personnelles.' },
     { to: '/settings', icon: Palette, title: 'Apparence', description: 'Thème, police et préférences d’affichage.' },
     { to: '/settings', icon: Truck, title: 'Paramètres flotte', description: 'Configuration des camions et transporteurs.' },
-    { to: '/settings', icon: Route, title: 'Règles de tournée', description: 'Définir quotas, horaires et zones de livraison.' },
+    { to: '/settings', icon: RouteIcon, title: 'Règles de tournée', description: 'Définir quotas, horaires et zones de livraison.' },
   ],
   LIVREUR: [
     { to: '/settings/profile', icon: User, title: 'Profil', description: 'Gérer vos informations personnelles.' },

@@ -16,7 +16,6 @@ import {
 } from '@lpg/ui'
 import {
   useNotificationsStore,
-  selectUnreadCount,
   getNotificationsForRole,
   type NotificationLevel,
 } from './notifications-store'
