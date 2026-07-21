@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { ChevronsUpDown, Shield } from 'lucide-react'
 import {
   DropdownMenu,

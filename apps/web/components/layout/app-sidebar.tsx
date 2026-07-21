@@ -25,11 +25,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <NavMain
             key={group.title}
             label={group.title}
-            items={group.items.map((item) => ({
-              ...item,
-              icon: item.icon as never,
-              items: item.items as never,
-            }))}
+            items={group.items
+              .filter((item) => item.url != null)
+              .map((item) => ({
+                title: item.title,
+                url: item.url!,
+                icon: item.icon as never,
+                badge: item.badge as number | string | undefined,
+                items: (item as any).items as any[] | undefined,
+              }))}
           />
         ))}
       </SidebarContent>
