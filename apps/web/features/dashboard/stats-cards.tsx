@@ -19,7 +19,7 @@ export function StatsOverviewCards() {
 
   const stats: StatCard[] = useMemo(() => {
     const trucksData = trucksResult?.data ?? []
-    const toursData = (toursResult?.data ?? []) as Array<{ status?: string }>
+    const toursData = (toursResult?.data ?? []) as unknown as Array<{ status?: string }>
     const sitesData = sitesResult?.data ?? []
     const declarationsData = declarationsResult?.data ?? []
 

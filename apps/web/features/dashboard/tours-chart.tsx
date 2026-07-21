@@ -24,7 +24,7 @@ export function ToursChart() {
   const { data: toursResult, isPending } = toursHooks.useList({ page: 1, limite: 100 })
 
   const data = useMemo(() => {
-    const tours = (toursResult?.data ?? []) as Array<{ status: string }>
+    const tours = (toursResult?.data ?? []) as unknown as Array<{ status: string }>
     const counts: Record<string, number> = {
       planned: 0,
       in_progress: 0,

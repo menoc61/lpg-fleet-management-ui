@@ -31,7 +31,7 @@ export function FleetStatusChart() {
   const { data: trucksResult, isPending } = trucksHooks.useList({ page: 1, limite: 100 })
 
   const data = useMemo(() => {
-    const trucks = (trucksResult?.data as Array<{ status: string }> | undefined) ?? []
+    const trucks = (trucksResult?.data as unknown as Array<{ status: string }> | undefined) ?? []
     const counts: Record<string, number> = {
       available: 0,
       in_transit: 0,
