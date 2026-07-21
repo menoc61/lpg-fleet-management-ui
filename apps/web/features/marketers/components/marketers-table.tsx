@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -7,13 +7,12 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  type ColumnFiltersState,
-  type PaginationState,
   type SortingState,
   type VisibilityState,
   useReactTable,
 } from '@tanstack/react-table'
 import { cn } from '@lpg/ui'
+import { type NavigateFn, useTableUrlState } from '@lpg/ui'
 import {
   Table,
   TableBody,
@@ -23,45 +22,47 @@ import {
   TableRow,
 } from '@lpg/ui'
 import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
-import {
-  routeAttentionOptions,
-  routeStatusOptions,
-  type RouteTripView,
-} from './routes'
-import { getRoutesColumns } from './routes-columns'
-import { RoutesBulkActions } from './routes-bulk-actions'
+import { marketerStatusOptions, type Marketer } from '../marketers'
+import { getMarketersColumns } from './marketers-columns'
+import { MarketersBulkActions } from './marketers-bulk-actions'
 
-type RoutesTableProps = {
-  data: RouteTripView[]
-  customerOptions: { label: string; value: string }[]
-  selectedTripId: string | null
-  onOpenDetails: (routeId: string) => void
+type MarketersTableProps = {
+  data: Marketer[]
+  search: Record<string, unknown>
+  navigate: NavigateFn
+  onViewDetails: (marketer: Marketer) => void
 }
 
-export function RoutesTable({
+export function MarketersTable({
   data,
-  customerOptions,
-  selectedTripId,
-  onOpenDetails,
-}: RoutesTableProps) {
+  search,
+  navigate,
+  onViewDetails,
+}: MarketersTableProps) {
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    progressPercent: false,
-    lpgLevel: false,
-    attentionLevel: false,
-    lastUpdatedAt: false,
-  })
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
-
   const columns = useMemo(
-    () => getRoutesColumns({ onOpenDetails }),
-    [onOpenDetails]
+    () => getMarketersColumns({ onViewDetails }),
+    [onViewDetails]
   )
+
+  const {
+    columnFilters,
+    onColumnFiltersChange,
+    pagination,
+    onPaginationChange,
+    ensurePageInRange,
+  } = useTableUrlState({
+    search,
+    navigate,
+    pagination: { defaultPage: 1, defaultPageSize: 10 },
+    globalFilter: { enabled: false },
+    columnFilters: [
+      { columnId: 'name', searchKey: 'q', type: 'string' },
+      { columnId: 'status', searchKey: 'status', type: 'array' },
+    ],
+  })
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -75,8 +76,8 @@ export function RoutesTable({
       columnVisibility,
     },
     enableRowSelection: true,
-    onPaginationChange: setPagination,
-    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange,
+    onColumnFiltersChange,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
@@ -88,6 +89,10 @@ export function RoutesTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  useEffect(() => {
+    ensurePageInRange(table.getPageCount())
+  }, [table, ensurePageInRange])
+
   return (
     <div
       className={cn(
@@ -97,23 +102,13 @@ export function RoutesTable({
     >
       <DataTableToolbar
         table={table}
-        searchPlaceholder='Rechercher tournée, client, camion...'
-        searchKey='reference'
+        searchPlaceholder='Rechercher marketer...'
+        searchKey='name'
         filters={[
           {
             columnId: 'status',
             title: 'Statut',
-            options: [...routeStatusOptions],
-          },
-          {
-            columnId: 'customerName',
-            title: 'Client',
-            options: customerOptions,
-          },
-          {
-            columnId: 'attentionLevel',
-            title: 'Attention',
-            options: [...routeAttentionOptions],
+            options: marketerStatusOptions,
           },
         ]}
       />
@@ -149,13 +144,9 @@ export function RoutesTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={
-                    row.original.id === selectedTripId || row.getIsSelected()
-                      ? 'selected'
-                      : undefined
-                  }
-                  className='group/row cursor-pointer'
-                  onClick={() => onOpenDetails(row.original.id)}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className='group/row'
+                  onDoubleClick={() => onViewDetails(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -180,15 +171,16 @@ export function RoutesTable({
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  Aucune tournée ne correspond aux filtres.
+                  Aucun resultat.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} className='mt-auto' />
-      <RoutesBulkActions table={table} />
+
+      <DataTablePagination table={table} />
+      <MarketersBulkActions table={table} />
     </div>
   )
 }
