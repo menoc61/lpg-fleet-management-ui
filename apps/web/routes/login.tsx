@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useAuthStore } from '@/store/auth-store'
 import { Button, Card, CardContent, CardFooter, Input, Label, Checkbox } from '@lpg/ui'
@@ -86,12 +86,12 @@ function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Link
-                    to="/forgot-password"
+                  <a
+                    href="/forgot-password"
                     className="text-sm text-primary underline underline-offset-4 hover:text-primary/80"
                   >
                     Mot de passe oublié ?
-                  </Link>
+                  </a>
                 </div>
                 <PasswordInput
                   id="password"
@@ -125,19 +125,19 @@ function LoginPage() {
                 className="text-xs text-muted-foreground leading-relaxed"
               >
                 J'accepte les{' '}
-                <Link
-                  to="/terms"
+                <a
+                  href="/terms"
                   className="text-primary underline underline-offset-4 hover:text-primary/80"
                 >
                   conditions d'utilisation
-                </Link>{' '}
+                </a>{' '}
                 et la{' '}
-                <Link
-                  to="/terms"
+                <a
+                  href="/terms"
                   className="text-primary underline underline-offset-4 hover:text-primary/80"
                 >
                   politique de confidentialité
-                </Link>
+                </a>
               </Label>
             </div>
           </CardFooter>
