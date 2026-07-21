@@ -78,6 +78,7 @@ export type DataTableProps<TData> = {
   searchState: Record<string, unknown>
   navigate: NavigateFn
   onRowClick?: (row: TData) => void
+  renderBulkActions?: (props: { table: ReturnType<typeof useReactTable<TData>> }) => React.ReactNode
 }
 
 export function DataTable<TData>({
@@ -92,6 +93,7 @@ export function DataTable<TData>({
   searchState,
   navigate,
   onRowClick,
+  renderBulkActions,
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -368,6 +370,8 @@ export function DataTable<TData>({
       </div>
 
       <DataTablePagination table={table} />
+
+      {renderBulkActions?.({ table })}
     </div>
   )
 }

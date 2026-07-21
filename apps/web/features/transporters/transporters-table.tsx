@@ -24,6 +24,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { transporterStatusOptions, type Transporter } from './transporters'
 import { getTransportersColumns } from './transporters-columns'
+import { TransportersBulkActions } from './transporters-bulk-actions'
 
 type TransportersTableProps = {
   data: Transporter[]
@@ -179,6 +180,8 @@ export function TransportersTable({
       </div>
 
       <DataTablePagination table={table} />
+
+      <TransportersBulkActions table={table} />
     </div>
   )
 }

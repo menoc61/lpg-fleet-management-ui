@@ -7,6 +7,8 @@ import { buildColumns } from '@/module/build-columns'
 import { generateMockRows } from '@/module/mock-data'
 import { DataTable, type FacetedFilterConfig } from '@lpg/ui'
 import { PageHeader } from '@/components/layout/page-header'
+import { EmptyState, PageShell, SectionCard } from '@/components/layout/page'
+import { ModuleBulkActions } from '@/module/module-bulk-actions'
 
 export function ModuleScreen({ role, module }: { role: Role; module: string }) {
   const route = getRouteApi('/_authenticated/$role/$module')
@@ -34,22 +36,20 @@ export function ModuleScreen({ role, module }: { role: Role; module: string }) {
 
   if (!def) {
     return (
-      <main id='main-content' className='flex-1 space-y-4 p-4 sm:p-6'>
+      <PageShell>
         <PageHeader title={module} description='Module non configuré.' />
-        <p className='text-sm text-muted-foreground'>
-          Aucune définition de table pour ce module.
-        </p>
-      </main>
+        <EmptyState
+          title='Aucune définition de table'
+          description='Aucune définition de table pour ce module.'
+        />
+      </PageShell>
     )
   }
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
+    <PageShell>
       <PageHeader title={def.title} description={def.description} />
-      <section className='rounded-2xl border-transparent bg-background/88 p-3 shadow-sm backdrop-blur-sm sm:p-4'>
+      <SectionCard>
         <DataTable
           data={data}
           columns={columns}
@@ -70,8 +70,11 @@ export function ModuleScreen({ role, module }: { role: Role; module: string }) {
           filename={module}
           searchState={search}
           navigate={navigate}
+          renderBulkActions={({ table }) => (
+            <ModuleBulkActions table={table} entityName='élément' />
+          )}
         />
-      </section>
-    </main>
+      </SectionCard>
+    </PageShell>
   )
 }
