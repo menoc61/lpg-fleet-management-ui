@@ -30,7 +30,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@lpg/ui'
-import { Main } from '@/components/layout/main'
+import { FleetStatusChart } from './fleet-status-chart'
+import { RecentActivity } from './recent-activity'
+import { StatsOverviewCards } from './stats-cards'
+import { ToursChart } from './tours-chart'
+import { PageShell } from '@/components/layout/page'
+import { Link } from '@tanstack/react-router'
 import {
   buildDashboardView,
   type DashboardActivityStatus,
@@ -85,7 +90,7 @@ export function DashboardPage() {
   const dailyAlerts = dashboard.trendByPeriod.daily
 
   return (
-    <Main fluid className='space-y-6 bg-muted/20'>
+    <PageShell fluid>
       <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
         <div className='space-y-1'>
           <h1 className='font-manrope text-3xl font-semibold tracking-tight'>
@@ -111,6 +116,14 @@ export function DashboardPage() {
             <span className='sr-only'>Exporter</span>
           </Button>
         </div>
+      </section>
+
+      <StatsOverviewCards />
+
+      <section className='grid gap-4 lg:grid-cols-2 xl:grid-cols-4'>
+        <FleetStatusChart />
+        <ToursChart />
+        <RecentActivity />
       </section>
 
       <section className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
@@ -160,7 +173,7 @@ export function DashboardPage() {
       <section>
         <FleetPerformanceCard fleets={dashboard.fleets} />
       </section>
-    </Main>
+    </PageShell>
   )
 }
 
@@ -332,7 +345,13 @@ function CarrierSummaryList({ fleets }: { fleets: DashboardFleetSummary[] }) {
                   className='size-2.5 shrink-0 rounded-full'
                   style={{ backgroundColor: fleet.color }}
                 />
-                <span className='truncate font-medium'>{fleet.fleetName}</span>
+                <Link
+                  to='/dashboard/fleets/$fleetName'
+                  params={{ fleetName: encodeURIComponent(fleet.fleetName) }}
+                  className='truncate font-medium text-primary underline-offset-4 hover:underline'
+                >
+                  {fleet.fleetName}
+                </Link>
               </div>
               <span className='text-muted-foreground'>
                 {fleet.sharePercent}%
@@ -385,7 +404,7 @@ function RouteContributionTable({
   return (
     <div className='overflow-x-auto rounded-xl border border-border/60'>
       <table className='w-full min-w-[760px] text-sm'>
-        <thead className='bg-muted/30 text-xs text-muted-foreground'>
+            <thead className='surface-sunken text-xs text-muted-foreground'>
           <tr>
             <th className='px-4 py-3 text-left font-medium'>Mission</th>
             <th className='px-4 py-3 text-left font-medium'>Transporteur</th>
@@ -467,7 +486,7 @@ function ReserveDetailTable({ sites }: { sites: DashboardReserveSite[] }) {
   return (
     <div className='overflow-x-auto rounded-xl border border-border/60'>
       <table className='w-full min-w-[720px] text-sm'>
-        <thead className='bg-muted/30 text-xs text-muted-foreground'>
+            <thead className='surface-sunken text-xs text-muted-foreground'>
           <tr>
             <th className='px-4 py-3 text-left font-medium'>Site</th>
             <th className='px-4 py-3 text-left font-medium'>Opérateur</th>
@@ -480,7 +499,13 @@ function ReserveDetailTable({ sites }: { sites: DashboardReserveSite[] }) {
           {sites.map((site) => (
             <tr key={site.siteId} className='bg-background'>
               <td className='px-4 py-3'>
-                <p className='font-medium'>{site.siteName}</p>
+                <Link
+                  to='/dashboard/sites/$siteId'
+                  params={{ siteId: site.siteId }}
+                  className='font-medium text-primary underline-offset-4 hover:underline'
+                >
+                  {site.siteName}
+                </Link>
                 <p className='text-xs text-muted-foreground'>{site.city}</p>
               </td>
               <td className='px-4 py-3'>
@@ -839,7 +864,7 @@ function ReserveSummaryCard({
           {summary.map((item) => (
             <div
               key={item.id}
-              className='flex items-center justify-between gap-3 rounded-xl bg-muted/25 px-3 py-3 text-sm'
+              className='surface-sunken flex items-center justify-between gap-3 px-3 py-3 text-sm'
             >
               <div className='flex items-center gap-2'>
                 <span
@@ -933,15 +958,21 @@ function ReserveSitesCard({ sites }: { sites: DashboardReserveSite[] }) {
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4'>
-        {sites.map((site) => (
-          <div
-            key={site.siteId}
-            className='rounded-2xl border border-border/60 bg-background px-4 py-4'
-          >
-            <div className='flex items-start justify-between gap-3'>
-              <div className='space-y-1'>
-                <div className='flex flex-wrap items-center gap-2'>
-                  <p className='font-medium'>{site.siteName}</p>
+            {sites.map((site) => (
+              <div
+                key={site.siteId}
+                className='rounded-2xl border border-border/60 bg-background px-4 py-4'
+              >
+                <div className='flex items-start justify-between gap-3'>
+                  <div className='space-y-1'>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <Link
+                        to='/dashboard/sites/$siteId'
+                        params={{ siteId: site.siteId }}
+                        className='font-medium text-primary underline-offset-4 hover:underline'
+                      >
+                        {site.siteName}
+                      </Link>
                   <Badge className={reserveStatusClasses[site.status]}>
                     {site.status === 'critical'
                       ? 'Critique'
@@ -1061,7 +1092,7 @@ function FleetPerformanceCard({ fleets }: { fleets: DashboardFleetSummary[] }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className='rounded-xl bg-muted/25 px-3 py-3 text-sm'>
+    <div className='surface-sunken px-3 py-3 text-sm'>
       <p className='text-xs tracking-[0.16em] text-muted-foreground uppercase'>
         {label}
       </p>
