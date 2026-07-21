@@ -16,6 +16,7 @@ function LoginPage() {
   const [email, setEmail] = useState('superadmin@lpg.cm')
   const [password, setPassword] = useState('password')
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsVisited, setTermsVisited] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -104,7 +105,7 @@ function LoginPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={submitting || !termsAccepted}
+                disabled={submitting || !termsAccepted || !termsVisited}
               >
                 {submitting ? 'Connexion...' : 'Se connecter'}
               </Button>
@@ -116,6 +117,7 @@ function LoginPage() {
               <Checkbox
                 id="terms"
                 checked={termsAccepted}
+                disabled={!termsVisited}
                 onCheckedChange={(checked) =>
                   setTermsAccepted(checked as boolean)
                 }
@@ -127,18 +129,29 @@ function LoginPage() {
                 J'accepte les{' '}
                 <a
                   href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  onClick={() => setTermsVisited(true)}
                 >
                   conditions d'utilisation
                 </a>{' '}
                 et la{' '}
                 <a
                   href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  onClick={() => setTermsVisited(true)}
                 >
                   politique de confidentialité
                 </a>
               </Label>
+              {!termsVisited && (
+                <p className="text-xs text-muted-foreground">
+                  Veuillez d'abord lire les conditions d'utilisation
+                </p>
+              )}
             </div>
           </CardFooter>
         </Card>
