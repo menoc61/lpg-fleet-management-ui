@@ -20,7 +20,11 @@ export function RecentActivity() {
   const { data: declarationsResult, isPending } = declarationsHooks.useList({ page: 1, limite: 100 })
 
   const declarations = useMemo(() => {
-    const items = declarationsResult?.data ?? []
+    const items = (declarationsResult?.data ?? []) as Array<{
+      reference: string
+      status: string
+      declaredAt: string
+    }>
     return [...items]
       .sort((a, b) => new Date(b.declaredAt).getTime() - new Date(a.declaredAt).getTime())
       .slice(0, 3)
