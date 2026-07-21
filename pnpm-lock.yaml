@@ -23,9 +23,6 @@ importers:
       '@casl/react':
         specifier: 3.1.1
         version: 3.1.1(@casl/ability@6.8.1)(react@19.2.5)
-      '@fontsource/outfit':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@lpg/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
@@ -1115,9 +1112,6 @@ packages:
 
   '@foliojs-fork/restructure@2.0.2':
     resolution: {integrity: sha512-59SgoZ3EXbkfSX7b63tsou/SDGzwUEK6MuB5sKqgVK1/XE0fxmpsOb9DQI8LXW3KfGnAjImCGhhEb7uPPAUVNA==}
-
-  '@fontsource/outfit@5.3.0':
-    resolution: {integrity: sha512-0AVHzTTVJSxWDOxPKSfMeHhZeBFDU3cmgrcOb76ZEyhGo0+xgyG3GsLF3h9+X8w0IX7G4jzjJgFQEBiWdX6VgA==}
 
   '@interactjs/types@1.10.27':
     resolution: {integrity: sha512-BUdv0cvs4H5ODuwft2Xp4eL8Vmi3LcihK42z0Ft/FbVJZoRioBsxH+LlsBdK4tAie7PqlKGy+1oyOncu1nQ6eA==}
@@ -5708,8 +5702,6 @@ snapshots:
       png-js: 1.1.0
 
   '@foliojs-fork/restructure@2.0.2': {}
-
-  '@fontsource/outfit@5.3.0': {}
 
   '@interactjs/types@1.10.27': {}
 

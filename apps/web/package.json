@@ -14,7 +14,6 @@
   "dependencies": {
     "@arcgis/core": "5.0.18",
     "@casl/react": "3.1.1",
-    "@fontsource/outfit": "^5.3.0",
     "@lpg/api-client": "workspace:*",
     "@lpg/config": "workspace:*",
     "@lpg/permissions": "workspace:*",
