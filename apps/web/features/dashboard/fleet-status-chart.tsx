@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Cell, Pie, PieChart } from 'recharts'
 import {
   Card,
@@ -8,7 +9,9 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  Skeleton,
 } from '@lpg/ui'
+import { trucksHooks } from '@/lib/api/use-resources'
 
 const chartConfig = {
   available: { label: 'Disponible', color: 'var(--chart-1)' },
@@ -17,14 +20,49 @@ const chartConfig = {
   inactive: { label: 'Inactif', color: 'var(--chart-4)' },
 } satisfies ChartConfig
 
-const data = [
-  { status: 'available', count: 3, fill: 'var(--color-available)' },
-  { status: 'in_transit', count: 2, fill: 'var(--color-in_transit)' },
-  { status: 'maintenance', count: 2, fill: 'var(--color-maintenance)' },
-  { status: 'inactive', count: 1, fill: 'var(--color-inactive)' },
-]
+const statusFillMap: Record<string, string> = {
+  available: 'var(--color-available)',
+  in_transit: 'var(--color-in_transit)',
+  maintenance: 'var(--color-maintenance)',
+  inactive: 'var(--color-inactive)',
+}
 
 export function FleetStatusChart() {
+  const { data: trucksResult, isPending } = trucksHooks.useList({ page: 1, limite: 100 })
+
+  const data = useMemo(() => {
+    const trucks = trucksResult?.data ?? []
+    const counts: Record<string, number> = {
+      available: 0,
+      in_transit: 0,
+      maintenance: 0,
+      inactive: 0,
+    }
+    for (const t of trucks) {
+      if (counts[t.status] !== undefined) {
+        counts[t.status]++
+      }
+    }
+    return Object.entries(counts).map(([status, count]) => ({
+      status,
+      count,
+      fill: statusFillMap[status] ?? 'var(--color-available)',
+    }))
+  }, [trucksResult])
+
+  if (isPending) {
+    return (
+      <Card className='rounded-2xl border-border/60 shadow-none'>
+        <CardHeader>
+          <CardTitle>État de la flotte</CardTitle>
+        </CardHeader>
+        <CardContent className='flex items-center justify-center'>
+          <Skeleton className='size-[220px] rounded-full' />
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className='rounded-2xl border-border/60 shadow-none'>
       <CardHeader>

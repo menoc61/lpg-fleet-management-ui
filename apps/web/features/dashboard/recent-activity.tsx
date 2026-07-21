@@ -1,22 +1,6 @@
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
-
-const declarations = [
-  {
-    reference: 'DEC-2026-0001',
-    status: 'submitted',
-    date: '2026-07-15',
-  },
-  {
-    reference: 'DEC-2026-0002',
-    status: 'validated',
-    date: '2026-07-14',
-  },
-  {
-    reference: 'DEC-2026-0005',
-    status: 'submitted',
-    date: '2026-07-15',
-  },
-] as const
+import { useMemo } from 'react'
+import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@lpg/ui'
+import { declarationsHooks } from '@/lib/api/use-resources'
 
 const statusLabels: Record<string, string> = {
   draft: 'Brouillon',
@@ -33,6 +17,30 @@ const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | '
 }
 
 export function RecentActivity() {
+  const { data: declarationsResult, isPending } = declarationsHooks.useList({ page: 1, limite: 100 })
+
+  const declarations = useMemo(() => {
+    const items = declarationsResult?.data ?? []
+    return [...items]
+      .sort((a, b) => new Date(b.declaredAt).getTime() - new Date(a.declaredAt).getTime())
+      .slice(0, 3)
+  }, [declarationsResult])
+
+  if (isPending) {
+    return (
+      <Card className='rounded-2xl border-border/60 shadow-none'>
+        <CardHeader>
+          <CardTitle>Activité récente</CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className='h-[66px] w-full rounded-xl' />
+          ))}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className='rounded-2xl border-border/60 shadow-none'>
       <CardHeader>
@@ -51,7 +59,7 @@ export function RecentActivity() {
                   day: '2-digit',
                   month: 'short',
                   year: 'numeric',
-                }).format(new Date(declaration.date))}
+                }).format(new Date(declaration.declaredAt))}
               </p>
             </div>
             <Badge variant={statusVariants[declaration.status] ?? 'outline'}>

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 import {
   Card,
@@ -8,7 +9,9 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  Skeleton,
 } from '@lpg/ui'
+import { toursHooks } from '@/lib/api/use-resources'
 
 const chartConfig = {
   planned: { label: 'Planifiée', color: 'var(--chart-1)' },
@@ -17,14 +20,43 @@ const chartConfig = {
   cancelled: { label: 'Annulée', color: 'var(--chart-4)' },
 } satisfies ChartConfig
 
-const data = [
-  { status: 'planned', count: 2 },
-  { status: 'in_progress', count: 1 },
-  { status: 'completed', count: 1 },
-  { status: 'cancelled', count: 1 },
-]
-
 export function ToursChart() {
+  const { data: toursResult, isPending } = toursHooks.useList({ page: 1, limite: 100 })
+
+  const data = useMemo(() => {
+    const tours = toursResult?.data ?? []
+    const counts: Record<string, number> = {
+      planned: 0,
+      in_progress: 0,
+      completed: 0,
+      cancelled: 0,
+    }
+    for (const t of tours) {
+      if (counts[t.status] !== undefined) {
+        counts[t.status]++
+      }
+    }
+    return Object.entries(counts).map(([status, count]) => ({
+      status,
+      count,
+    }))
+  }, [toursResult])
+
+  if (isPending) {
+    return (
+      <Card className='rounded-2xl border-border/60 shadow-none'>
+        <CardHeader>
+          <CardTitle>Tournées par statut</CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className='h-10 w-full rounded-lg' />
+          ))}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className='rounded-2xl border-border/60 shadow-none'>
       <CardHeader>
