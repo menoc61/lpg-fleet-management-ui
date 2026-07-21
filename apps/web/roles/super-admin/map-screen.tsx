@@ -287,7 +287,7 @@ export function SuperAdminMapScreen() {
       </div>
 
       <div className='grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[20rem_1fr]'>
-        <ScrollArea className='rounded-2xl border bg-background/80 p-3 backdrop-blur-sm'>
+        <ScrollArea className='surface-card p-3'>
           <div className='space-y-4'>
             <section>
               <h2 className='mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
@@ -463,7 +463,7 @@ function createTruckGraphic(truck: Truck, mapTheme: MapTheme) {
     attributes: { kind: 'truck', truckId: truck.id },
     popupTemplate: {
       title: `${truck.id} — ${truck.plateNumber}`,
-      content: `<div><p><strong>Chauffeur</strong> ${truck.assignedDriver}</p><p><strong>Statut</strong> ${statusLabels[truck.status]}</p><p><strong>Position</strong> ${truck.currentLocation}</p><p><strong>Niveau GPL</strong> ${telemetry.lpgLevelPercent}%</p><p><strong>Pression</strong> ${telemetry.pressureBar.toFixed(1)} bar</p></div>`,
+      content: `<div><p><strong>Chauffeur</strong> ${truck.assignedDriver}</p><p><strong>Statut</strong> ${statusLabels[truck.status]}</p><p><strong>Position</strong> ${truck.currentLocation}</p><p><strong>Niveau GPL</strong> ${telemetry.lpgLevelPercent}%</p></div>`,
     },
   })
 }

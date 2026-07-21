@@ -49,7 +49,6 @@ export type RouteTelemetryPoint = {
   latitude: number
   longitude: number
   lpgLevelPercent: number
-  pressureBar: number
   estimatedVolumeKg: number
 }
 
@@ -78,7 +77,6 @@ export type RouteTripView = RouteTrip & {
   deliveredPercent: number
   remainingPercent: number
   lpgDropPercent: number
-  pressureDeltaBar: number
   unaccountedKg: number
   attentionLevel: RouteEventSeverity
 }
@@ -332,7 +330,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.09783,
       longitude: 9.98989,
       lpgLevelPercent: 100,
-      pressureBar: 12.4,
       estimatedVolumeKg: 18500,
     },
     {
@@ -342,17 +339,15 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.245,
       longitude: 10.004,
       lpgLevelPercent: 95,
-      pressureBar: 12.2,
       estimatedVolumeKg: 17600,
     },
     {
       id: 'trip-2401-tel-3',
-      routeTripId: 'route-trip-bipaga-bonaberi',
+       routeTripId: 'route-trip-bipaga-bonaberi',
       recordedAt: '2026-04-24T08:00:00+01:00',
       latitude: 3.43,
       longitude: 10.002,
       lpgLevelPercent: 88,
-      pressureBar: 12,
       estimatedVolumeKg: 16280,
     },
     {
@@ -362,7 +357,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.6312,
       longitude: 10.0454,
       lpgLevelPercent: 79,
-      pressureBar: 11.8,
       estimatedVolumeKg: 14615,
     },
     {
@@ -372,7 +366,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.04902,
       longitude: 9.7198,
       lpgLevelPercent: 72,
-      pressureBar: 11.6,
       estimatedVolumeKg: 13320,
     },
     {
@@ -382,7 +375,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.061,
       longitude: 9.698,
       lpgLevelPercent: 67,
-      pressureBar: 11.5,
       estimatedVolumeKg: 12450,
     },
   ],
@@ -394,7 +386,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.8398,
       longitude: 11.51372,
       lpgLevelPercent: 100,
-      pressureBar: 11.8,
       estimatedVolumeKg: 14000,
     },
     {
@@ -404,7 +395,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.771,
       longitude: 11.519,
       lpgLevelPercent: 99,
-      pressureBar: 11.7,
       estimatedVolumeKg: 13860,
     },
     {
@@ -414,7 +404,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.712,
       longitude: 11.518,
       lpgLevelPercent: 96,
-      pressureBar: 11.4,
       estimatedVolumeKg: 13440,
     },
     {
@@ -424,7 +413,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.6828,
       longitude: 11.5156,
       lpgLevelPercent: 92,
-      pressureBar: 10.8,
       estimatedVolumeKg: 12880,
     },
     {
@@ -434,7 +422,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.541,
       longitude: 11.468,
       lpgLevelPercent: 89,
-      pressureBar: 10.1,
       estimatedVolumeKg: 12460,
     },
     {
@@ -444,7 +431,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 3.41,
       longitude: 11.398,
       lpgLevelPercent: 87,
-      pressureBar: 9.5,
       estimatedVolumeKg: 12150,
     },
   ],
@@ -456,7 +442,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.07142,
       longitude: 9.68177,
       lpgLevelPercent: 100,
-      pressureBar: 12.1,
       estimatedVolumeKg: 9500,
     },
     {
@@ -466,7 +451,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.061,
       longitude: 9.71,
       lpgLevelPercent: 100,
-      pressureBar: 12.1,
       estimatedVolumeKg: 9500,
     },
     {
@@ -476,7 +460,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.0498,
       longitude: 9.7679,
       lpgLevelPercent: 100,
-      pressureBar: 12.1,
       estimatedVolumeKg: 9500,
     },
   ],
@@ -488,7 +471,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.04902,
       longitude: 9.7198,
       lpgLevelPercent: 100,
-      pressureBar: 11.5,
       estimatedVolumeKg: 11200,
     },
     {
@@ -498,7 +480,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.059,
       longitude: 9.723,
       lpgLevelPercent: 78,
-      pressureBar: 11.1,
       estimatedVolumeKg: 8735,
     },
     {
@@ -508,7 +489,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.068,
       longitude: 9.729,
       lpgLevelPercent: 51,
-      pressureBar: 10.6,
       estimatedVolumeKg: 5712,
     },
     {
@@ -518,7 +498,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.078,
       longitude: 9.735,
       lpgLevelPercent: 24,
-      pressureBar: 10,
       estimatedVolumeKg: 2688,
     },
     {
@@ -528,7 +507,6 @@ const routeTelemetryByTripId: Record<string, RouteTelemetryPoint[]> = {
       latitude: 4.0912,
       longitude: 9.7411,
       lpgLevelPercent: 1,
-      pressureBar: 9.4,
       estimatedVolumeKg: 150,
     },
   ],
@@ -544,15 +522,6 @@ const routeEventsByTripId: Record<string, RouteEvent[]> = {
       title: 'Fenêtre Bonaberi resserrée',
       description:
         'Le centre emplisseur demande un repositionnement de quai dans les 20 prochaines minutes.',
-    },
-    {
-      id: 'trip-2401-event-2',
-      routeTripId: 'route-trip-bipaga-bonaberi',
-      occurredAt: '2026-04-24T10:05:00+01:00',
-      severity: 'low',
-      title: 'Contrôle pression stable',
-      description:
-        'La pression reste dans la zone nominale après le drop intermediaire SCDP.',
     },
   ],
   'route-trip-nsam-ebolowa': [
@@ -653,7 +622,6 @@ export function getRouteTripsView(): RouteTripView[] {
         lpgLevelPercent: Math.round(
           (trip.remainingQuantityKg / trip.loadedQuantityKg) * 100
         ),
-        pressureBar: 0,
         estimatedVolumeKg: trip.remainingQuantityKg,
       }
       const firstTelemetry = telemetry[0] ?? latestTelemetry
@@ -688,12 +656,6 @@ export function getRouteTripsView(): RouteTripView[] {
         lpgDropPercent: Math.max(
           firstTelemetry.lpgLevelPercent - latestTelemetry.lpgLevelPercent,
           0
-        ),
-        pressureDeltaBar: Number(
-          Math.max(
-            firstTelemetry.pressureBar - latestTelemetry.pressureBar,
-            0
-          ).toFixed(1)
         ),
         unaccountedKg,
         attentionLevel: getHighestSeverity(events),

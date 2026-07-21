@@ -22,6 +22,7 @@ import {
   Gauge,
   Wallet,
   ListChecks,
+  Bell,
 } from 'lucide-react'
 import { type SidebarData } from '@/components/layout/types'
 import { type Role } from './roles'
@@ -57,6 +58,11 @@ function item(role: Role, module: string, title: string, icon?: React.ElementTyp
   return { title, url: `/${roleSlug(role)}/${module}`, icon, badge }
 }
 
+/** A direct link to a top-level static feature page (e.g. /dashboard, /routes). */
+function staticLink(url: string, title: string, icon?: React.ElementType, badge?: string): Item {
+  return { title, url, icon, badge }
+}
+
 const GROUPS: Record<Role, SidebarData> = {
   SUPER_ADMIN: {
     navGroups: [
@@ -75,6 +81,18 @@ const GROUPS: Record<Role, SidebarData> = {
           item('SUPER_ADMIN', 'users', 'Utilisateurs (RBAC)', Users),
           item('SUPER_ADMIN', 'anomalies', 'Anomalies & fraude', AlertTriangle, '!'),
           item('SUPER_ADMIN', 'reports', 'Rapports & exports', FileBarChart),
+          staticLink('/settings/notification-groups', 'Groupes de notification', Bell),
+        ],
+      },
+      {
+        title: 'Applications métier',
+        items: [
+          staticLink('/dashboard', 'Tableau de bord', LayoutDashboard),
+          staticLink('/routes', 'Tournées', Route),
+          staticLink('/activity/trip-tracking', 'Suivi camions', RadioTower),
+          staticLink('/trucks', 'Camions', Truck),
+          staticLink('/transporters', 'Transporteurs', Building2),
+          staticLink('/marketers', 'Marketeurs', Handshake),
         ],
       },
     ],

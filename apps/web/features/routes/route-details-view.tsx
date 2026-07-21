@@ -5,7 +5,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
-  Gauge,
   MapPinned,
   Package,
   Truck,
@@ -72,7 +71,7 @@ export function RouteDetailsView({
 
   return (
     <div className='space-y-4'>
-      <Card className='border-transparent bg-background/80 shadow-sm'>
+      <Card className='surface-card'>
         <CardContent className='flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between'>
           <div className='space-y-1'>
             <p className='text-sm font-medium'>Tournée active</p>
@@ -203,12 +202,6 @@ export function RouteDetailsView({
 
             <div className='grid gap-3 md:grid-cols-3'>
               <DetailSignal
-                icon={Gauge}
-                label='Pression'
-                value={`${trip.latestTelemetry.pressureBar.toFixed(1)} bar`}
-                hint={`-${trip.pressureDeltaBar.toFixed(1)} bar`}
-              />
-              <DetailSignal
                 icon={Package}
                 label='Volume restant'
                 value={formatKg(trip.remainingQuantityKg)}
@@ -223,7 +216,7 @@ export function RouteDetailsView({
             </div>
           </div>
 
-          <div className='rounded-2xl bg-muted/30 p-4 shadow-xs'>
+          <div className='surface-sunken p-4'>
             <p className='text-sm font-medium'>Equipe engagée</p>
             <div className='mt-4 space-y-3 text-sm'>
               <InfoRow
@@ -294,7 +287,7 @@ export function RouteDetailsView({
                     ) : null}
                   </div>
 
-                  <div className='flex-1 rounded-2xl bg-muted/20 px-4 py-4 shadow-xs'>
+                  <div className='flex-1 surface-sunken px-4 py-4'>
                     <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
                       <div>
                         <div className='flex flex-wrap items-center gap-2'>
@@ -393,7 +386,7 @@ export function RouteDetailsView({
               {trip.events.map((event) => (
                 <div
                   key={event.id}
-                  className='rounded-2xl bg-muted/25 px-4 py-4 shadow-xs'
+                    className='surface-sunken px-4 py-4'
                 >
                   <div className='flex items-start justify-between gap-3'>
                     <div>
@@ -440,7 +433,7 @@ function DetailSignal({
   hint: string
 }) {
   return (
-    <div className='rounded-2xl bg-muted/30 px-4 py-4 shadow-xs'>
+            <div className='surface-sunken px-4 py-4'>
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         <Icon className='size-3.5' />
         {label}
@@ -475,7 +468,7 @@ function InfoRow({
 
 function TripListMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className='rounded-xl bg-muted/25 px-3 py-2.5'>
+    <div className='surface-sunken px-3 py-2.5'>
       <p className='text-[11px] tracking-wide text-muted-foreground uppercase'>
         {label}
       </p>

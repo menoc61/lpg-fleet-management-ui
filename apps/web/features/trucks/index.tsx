@@ -32,6 +32,7 @@ import {
 import { TruckDetailsSheet } from './truck-details-sheet'
 import { TrucksMap } from './trucks-map'
 import { TrucksTable } from './trucks-table'
+import { PageShell } from '@/components/layout/page'
 import { trucksHooks, sitesHooks } from '@/lib/api/use-resources'
 import { mapSite } from '@/lib/api/mappers'
 import {
@@ -190,11 +191,8 @@ export function TrucksPage() {
     siteFilter === 'all' ? 'Tous sites' : siteTypeLabels[siteFilter]
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
-      <section className='rounded-2xl border-transparent bg-background/88 p-3 shadow-sm backdrop-blur-sm sm:p-4'>
+    <PageShell>
+      <section className='surface-card p-3 sm:p-4'>
         <div className='flex flex-col gap-3'>
           <div className='flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between'>
             <div className='flex flex-wrap items-center gap-2'>
@@ -252,7 +250,7 @@ export function TrucksPage() {
         </div>
       </section>
 
-      <section className='rounded-2xl border-transparent bg-background/88 p-4 shadow-sm backdrop-blur-sm'>
+      <section className='surface-card p-4'>
         <div className='grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_280px_minmax(0,0.95fr)]'>
           <ToolbarGroup
             icon={TruckIcon}
@@ -307,7 +305,7 @@ export function TrucksPage() {
                   value={siteFilter}
                   onValueChange={(value) => setSiteFilter(value as SiteFilter)}
                 >
-                  <SelectTrigger className='h-10 w-full rounded-xl border-transparent bg-background/80 shadow-xs'>
+                  <SelectTrigger className='h-10 w-full rounded-xl border-transparent bg-background shadow-xs'>
                     <SelectValue placeholder={selectedSiteFilterLabel} />
                   </SelectTrigger>
                   <SelectContent>
@@ -331,7 +329,7 @@ export function TrucksPage() {
                 </p>
               </div>
             ) : (
-              <div className='rounded-xl bg-muted/25 px-3 py-3 text-sm text-muted-foreground'>
+              <div className='surface-sunken px-3 py-3 text-sm text-muted-foreground'>
                 Active l'affichage des sites pour filtrer les dépôts, sites SCDP
                 et centres emplisseurs.
               </div>
@@ -361,7 +359,7 @@ export function TrucksPage() {
         )}
       </section>
 
-      <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
+      <section className='surface-card space-y-4 p-4'>
         <div className='flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
           <div>
             <h2 className='text-xl font-semibold tracking-tight'>
@@ -414,7 +412,7 @@ export function TrucksPage() {
           if (!open) setDetailsTruck(null)
         }}
       />
-    </main>
+    </PageShell>
   )
 }
 
@@ -512,7 +510,7 @@ function ToggleCard({
   onChange: (value: boolean) => void
 }) {
   return (
-    <label className='flex items-center justify-between gap-3 rounded-xl bg-muted/35 px-3 py-2.5 text-sm shadow-xs'>
+    <label className='surface-sunken flex items-center justify-between gap-3 px-3 py-2.5 text-sm'>
       <span className='text-muted-foreground'>{label}</span>
       <Switch checked={value} onCheckedChange={onChange} />
     </label>

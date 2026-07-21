@@ -17,7 +17,6 @@ export type TruckTelemetry = {
   etaText: string
   distanceKm: number
   routeProgress: number
-  pressureBar: number
   temperatureCelsius: number
 }
 
@@ -302,7 +301,6 @@ export function getTruckTelemetry(truckId: string): TruckTelemetry {
     etaText: inTransit ? `${h % 3}h ${10 + (h % 50)}m` : '--',
     distanceKm: inTransit ? 20 + (h % 160) : 0,
     routeProgress: inTransit ? 10 + (h % 85) : 0,
-    pressureBar: 5 + (h % 8) + (h % 10) / 10,
     temperatureCelsius: 25 + (h % 8),
   }
 }

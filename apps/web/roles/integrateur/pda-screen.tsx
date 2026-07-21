@@ -92,7 +92,7 @@ export function IntegrateurPdaScreen() {
         ))}
       </div>
 
-      <ScrollArea className='rounded-2xl border bg-background/80 p-2 backdrop-blur-sm'>
+      <ScrollArea className='surface-card p-2'>
         <div className='space-y-2'>
           {filtered.map((d) => (
             <div

@@ -28,10 +28,10 @@ export function AppHeader() {
   return (
     <header
       className={cn(
-        'flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height,border-color,background-color,box-shadow] duration-200 ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12',
+        'flex h-16 shrink-0 items-center gap-2 border-b bg-background transition-[border-color,background-color,box-shadow] duration-200 ease-linear sticky top-0 z-40',
         scrolled
-          ? 'border-border bg-background/90 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/80'
-          : 'border-transparent bg-background'
+          ? 'border-border shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/80'
+          : 'border-transparent'
       )}
     >
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">

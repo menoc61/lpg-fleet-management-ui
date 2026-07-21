@@ -16,12 +16,14 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTrucksIndexRouteImport } from './routes/_authenticated/trucks/index'
 import { Route as AuthenticatedTransportersIndexRouteImport } from './routes/_authenticated/transporters/index'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenticated/routes/index'
 import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
 import { Route as AuthenticatedRoleIndexRouteImport } from './routes/_authenticated/$role/index'
 import { Route as AuthenticatedTrucksTruckIdRouteImport } from './routes/_authenticated/trucks/$truckId'
 import { Route as AuthenticatedTransportersTransporterIdRouteImport } from './routes/_authenticated/transporters/$transporterId'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile'
+import { Route as AuthenticatedSettingsNotificationGroupsRouteImport } from './routes/_authenticated/settings/notification-groups'
 import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
 import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
 import { Route as AuthenticatedRoleModuleRouteImport } from './routes/_authenticated/$role/$module'
@@ -64,6 +66,12 @@ const AuthenticatedTransportersIndexRoute =
     path: '/transporters/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedRoutesIndexRoute =
   AuthenticatedRoutesIndexRouteImport.update({
     id: '/routes/',
@@ -97,6 +105,12 @@ const AuthenticatedSettingsProfileRoute =
   AuthenticatedSettingsProfileRouteImport.update({
     id: '/settings/profile',
     path: '/settings/profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsNotificationGroupsRoute =
+  AuthenticatedSettingsNotificationGroupsRouteImport.update({
+    id: '/settings/notification-groups',
+    path: '/settings/notification-groups',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMarketersMarketerIdRoute =
@@ -137,12 +151,14 @@ export interface FileRoutesByFullPath {
   '/$role/$module': typeof AuthenticatedRoleModuleRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
+  '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/$role/': typeof AuthenticatedRoleIndexRoute
   '/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/routes/': typeof AuthenticatedRoutesIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/transporters/': typeof AuthenticatedTransportersIndexRoute
   '/trucks/': typeof AuthenticatedTrucksIndexRoute
   '/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
@@ -156,12 +172,14 @@ export interface FileRoutesByTo {
   '/$role/$module': typeof AuthenticatedRoleModuleRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
+  '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/$role': typeof AuthenticatedRoleIndexRoute
   '/marketers': typeof AuthenticatedMarketersIndexRoute
   '/routes': typeof AuthenticatedRoutesIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
   '/transporters': typeof AuthenticatedTransportersIndexRoute
   '/trucks': typeof AuthenticatedTrucksIndexRoute
   '/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
@@ -177,12 +195,14 @@ export interface FileRoutesById {
   '/_authenticated/$role/$module': typeof AuthenticatedRoleModuleRoute
   '/_authenticated/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/_authenticated/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
+  '/_authenticated/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/_authenticated/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/_authenticated/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/_authenticated/$role/': typeof AuthenticatedRoleIndexRoute
   '/_authenticated/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/_authenticated/routes/': typeof AuthenticatedRoutesIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/transporters/': typeof AuthenticatedTransportersIndexRoute
   '/_authenticated/trucks/': typeof AuthenticatedTrucksIndexRoute
   '/_authenticated/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
@@ -198,12 +218,14 @@ export interface FileRouteTypes {
     | '/$role/$module'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
+    | '/settings/notification-groups'
     | '/settings/profile'
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
     | '/$role/'
     | '/marketers/'
     | '/routes/'
+    | '/settings/'
     | '/transporters/'
     | '/trucks/'
     | '/dashboard/fleets/$fleetName'
@@ -217,12 +239,14 @@ export interface FileRouteTypes {
     | '/$role/$module'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
+    | '/settings/notification-groups'
     | '/settings/profile'
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
     | '/$role'
     | '/marketers'
     | '/routes'
+    | '/settings'
     | '/transporters'
     | '/trucks'
     | '/dashboard/fleets/$fleetName'
@@ -237,12 +261,14 @@ export interface FileRouteTypes {
     | '/_authenticated/$role/$module'
     | '/_authenticated/activity/trip-tracking'
     | '/_authenticated/marketers/$marketerId'
+    | '/_authenticated/settings/notification-groups'
     | '/_authenticated/settings/profile'
     | '/_authenticated/transporters/$transporterId'
     | '/_authenticated/trucks/$truckId'
     | '/_authenticated/$role/'
     | '/_authenticated/marketers/'
     | '/_authenticated/routes/'
+    | '/_authenticated/settings/'
     | '/_authenticated/transporters/'
     | '/_authenticated/trucks/'
     | '/_authenticated/dashboard/fleets/$fleetName'
@@ -306,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransportersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/routes/': {
       id: '/_authenticated/routes/'
       path: '/routes'
@@ -346,6 +379,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/notification-groups': {
+      id: '/_authenticated/settings/notification-groups'
+      path: '/settings/notification-groups'
+      fullPath: '/settings/notification-groups'
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationGroupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/marketers/$marketerId': {
@@ -410,12 +450,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRoleModuleRoute: typeof AuthenticatedRoleModuleRoute
   AuthenticatedActivityTripTrackingRoute: typeof AuthenticatedActivityTripTrackingRoute
   AuthenticatedMarketersMarketerIdRoute: typeof AuthenticatedMarketersMarketerIdRoute
+  AuthenticatedSettingsNotificationGroupsRoute: typeof AuthenticatedSettingsNotificationGroupsRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
   AuthenticatedTransportersTransporterIdRoute: typeof AuthenticatedTransportersTransporterIdRoute
   AuthenticatedTrucksTruckIdRoute: typeof AuthenticatedTrucksTruckIdRoute
   AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
   AuthenticatedMarketersIndexRoute: typeof AuthenticatedMarketersIndexRoute
   AuthenticatedRoutesIndexRoute: typeof AuthenticatedRoutesIndexRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedTransportersIndexRoute: typeof AuthenticatedTransportersIndexRoute
   AuthenticatedTrucksIndexRoute: typeof AuthenticatedTrucksIndexRoute
 }
@@ -427,6 +469,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityTripTrackingRoute:
     AuthenticatedActivityTripTrackingRoute,
   AuthenticatedMarketersMarketerIdRoute: AuthenticatedMarketersMarketerIdRoute,
+  AuthenticatedSettingsNotificationGroupsRoute:
+    AuthenticatedSettingsNotificationGroupsRoute,
   AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
   AuthenticatedTransportersTransporterIdRoute:
     AuthenticatedTransportersTransporterIdRoute,
@@ -434,6 +478,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
   AuthenticatedMarketersIndexRoute: AuthenticatedMarketersIndexRoute,
   AuthenticatedRoutesIndexRoute: AuthenticatedRoutesIndexRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedTransportersIndexRoute: AuthenticatedTransportersIndexRoute,
   AuthenticatedTrucksIndexRoute: AuthenticatedTrucksIndexRoute,
 }

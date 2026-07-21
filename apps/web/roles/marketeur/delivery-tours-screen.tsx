@@ -37,7 +37,7 @@ export function MarketeurDeliveryToursScreen() {
       />
 
       <div className='grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[22rem_1fr]'>
-        <ScrollArea className='rounded-2xl border bg-background/80 p-2 backdrop-blur-sm'>
+        <ScrollArea className='surface-card p-2'>
           <div className='space-y-2'>
             {trips.map((t) => (
               <button
@@ -162,7 +162,7 @@ function Stat({
   value: string
 }) {
   return (
-    <div className='rounded-xl border bg-muted/30 p-3'>
+    <div className='surface-sunken p-3'>
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         <Icon className='size-4' />
         {label}

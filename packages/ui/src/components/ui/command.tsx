@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Command as CommandPrimitive } from 'cmdk'
 import { Search } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { Dialog, DialogContent } from './dialog'
 
 export const Command = CommandPrimitive
 export const CommandInput = React.forwardRef<
@@ -93,7 +94,14 @@ export const CommandDialog = ({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) => (
-  <CommandPrimitive.Dialog open={open} onOpenChange={onOpenChange} label='Command Palette'>
-    {children}
-  </CommandPrimitive.Dialog>
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent
+      showCloseButton={false}
+      className="overflow-hidden p-0 shadow-lg sm:max-w-[520px] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
+    >
+      <CommandPrimitive className="[[--cmdk-navigation-icons]:size-5]">
+        {children}
+      </CommandPrimitive>
+    </DialogContent>
+  </Dialog>
 )

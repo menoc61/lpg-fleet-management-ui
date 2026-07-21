@@ -64,7 +64,7 @@ export function TransporterHistory({ transporter }: { transporter: Transporter }
         {/* Desktop: table */}
         <div className='hidden sm:block overflow-x-auto rounded-md border'>
           <table className='w-full text-sm text-left'>
-            <thead className='bg-muted/50 text-muted-foreground'>
+            <thead className='surface-sunken text-muted-foreground'>
               <tr>
                 <th className='p-3 font-medium whitespace-nowrap'>ID</th>
                 <th className='p-3 font-medium'>Date</th>

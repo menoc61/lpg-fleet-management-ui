@@ -526,7 +526,6 @@ function createTruckPopupContent(
       ${popupLine('Destination', truck.destination)}
       ${popupLine('Niveau GPL', `${telemetry.lpgLevelPercent}%`)}
       ${popupLine('Charge GPL', `${loadedLiters.toLocaleString('fr-FR')} L`)}
-      ${popupLine('Pression', `${telemetry.pressureBar.toFixed(1)} bar`)}
       ${popupLine('ETA', telemetry.etaText)}
     </div>
   `

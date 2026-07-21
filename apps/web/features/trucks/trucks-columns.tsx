@@ -1,4 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { Link } from '@tanstack/react-router'
 import { Badge, Checkbox, cn } from '@lpg/ui'
 import { DataTableColumnHeader } from '@lpg/ui'
 import { LongText } from '@/components/long-text'
@@ -53,13 +54,14 @@ export function getTrucksColumns({
         <DataTableColumnHeader column={column} title='Truck ID' />
       ),
       cell: ({ row }) => (
-        <button
-          type='button'
+        <Link
+          to='/trucks/$truckId'
+          params={{ truckId: row.original.id }}
           onClick={() => onViewDetails(row.original)}
           className='ps-3 text-left font-medium text-primary underline-offset-4 hover:underline'
         >
           {row.original.id}
-        </button>
+        </Link>
       ),
       filterFn: (row, _id, value) => {
         const query = String(value ?? '')

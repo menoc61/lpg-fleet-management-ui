@@ -125,7 +125,7 @@ export function SupervisorInfraScreen() {
         </CardHeader>
         <CardContent className='space-y-2 text-sm'>
           {[
-            { s: 'critique' as Health, t: 'Défaillance de connexion GPS — PDA #PDA-2291' },
+            { s: 'critical' as Health, t: 'Défaillance de connexion GPS — PDA #PDA-2291' },
             { s: 'degraded' as Health, t: 'Kafka lag > 1800 msg sur le topic tracking' },
             { s: 'degraded' as Health, t: 'Batterie faible — 11 équipements IoT' },
           ].map((a, i) => (

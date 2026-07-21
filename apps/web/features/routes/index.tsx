@@ -1,7 +1,7 @@
 import { type ElementType, startTransition, useMemo, useState } from 'react'
 import { Clock3, Package, ShieldAlert, Truck } from 'lucide-react'
 import { Card, CardContent, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
-import { Main } from '@/components/layout/main'
+import { PageShell } from '@/components/layout/page'
 import { RouteDetailsView } from './route-details-view'
 import { RoutesTable } from './routes-table'
 import {
@@ -36,11 +36,8 @@ export function RoutesPage() {
   }
 
   return (
-    <Main
-      fluid
-      className='space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
-      <section className='rounded-2xl border-transparent bg-background/88 p-4 shadow-sm backdrop-blur-sm'>
+    <PageShell fluid>
+      <section className='surface-card p-4'>
         <div className='flex flex-col gap-4'>
           <div className='flex flex-wrap items-center gap-2'>
             <HeaderPill
@@ -91,7 +88,7 @@ export function RoutesPage() {
             <TabsTrigger value='details'>Détails</TabsTrigger>
           </TabsList>
 
-          <Card className='border-transparent bg-muted/30 shadow-none'>
+          <Card className='surface-sunken'>
             <CardContent className='flex items-center gap-3 p-3 text-sm'>
               <span className='font-medium'>
                 Sélection courante: {selectedTrip?.reference ?? '--'}
@@ -122,7 +119,7 @@ export function RoutesPage() {
           />
         </TabsContent>
       </Tabs>
-    </Main>
+    </PageShell>
   )
 }
 

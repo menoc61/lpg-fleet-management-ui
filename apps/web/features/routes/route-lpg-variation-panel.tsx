@@ -168,7 +168,7 @@ function StageCard({
       : `${stage.deltaKg > 0 ? '+' : '-'}${formatKg(Math.abs(stage.deltaKg))}`
 
   return (
-    <div className='min-w-0 flex-1 rounded-2xl bg-muted/30 p-4 shadow-xs'>
+    <div className='min-w-0 flex-1 surface-sunken p-4'>
       <div className='flex items-start justify-between gap-3'>
         <div>
           <p className='text-sm font-medium'>{stage.label}</p>
@@ -204,7 +204,7 @@ function FlowConnector({
   label: string
 }) {
   return (
-    <div className='flex flex-row items-center justify-center gap-2 rounded-2xl bg-muted/20 px-3 py-2 text-center text-xs text-muted-foreground shadow-xs xl:w-28 xl:flex-col'>
+    <div className='flex flex-row items-center justify-center gap-2 surface-sunken px-3 py-2 text-center text-xs text-muted-foreground xl:w-28 xl:flex-col'>
       <ArrowRight className='size-4 text-foreground/70' />
       <div className='space-y-0.5'>
         <p className='font-medium text-foreground'>{value}</p>
@@ -226,7 +226,7 @@ function MetricTile({
   hint: string
 }) {
   return (
-    <div className='rounded-xl bg-muted/30 px-4 py-3 shadow-xs'>
+    <div className='surface-sunken px-4 py-3'>
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         <Icon className='size-3.5' />
         {label}

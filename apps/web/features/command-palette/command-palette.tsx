@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
   Button,
@@ -9,40 +9,28 @@ import {
   CommandItem,
   CommandList,
 } from '@lpg/ui'
-import {
-  LayoutDashboard,
-  Search,
-  Truck,
-  Fuel,
-  Wrench,
-  Map,
-  Users,
-  FileText,
-  Settings,
-  User,
-} from 'lucide-react'
-
-type CommandItemDef = {
-  title: string
-  to: string
-  icon: typeof LayoutDashboard
-}
-
-const COMMANDS: CommandItemDef[] = [
-  { title: 'Tableau de bord', to: '/dashboard', icon: LayoutDashboard },
-  { title: 'Véhicules', to: '/vehicles', icon: Truck },
-  { title: 'Citernes', to: '/cylinders', icon: Fuel },
-  { title: 'Entretien', to: '/maintenance', icon: Wrench },
-  { title: 'Suivi en temps réel', to: '/tracking', icon: Map },
-  { title: 'Chauffeurs', to: '/drivers', icon: Users },
-  { title: 'Rapports', to: '/reports', icon: FileText },
-  { title: 'Paramètres', to: '/settings', icon: Settings },
-  { title: 'Profil', to: '/settings/profile', icon: User },
-]
+import { Search } from 'lucide-react'
+import { useRoleStore } from '@/store/role-store'
+import { getSidebarData } from '@/config/rbac/sidebar-by-role'
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const activeRole = useRoleStore((s) => s.activeRole)
+  const sidebarData = getSidebarData(activeRole)
+
+  const commands = useMemo(() => {
+    return sidebarData.navGroups.flatMap((group) =>
+      group.items
+        .filter((item) => item.url != null)
+        .map((item) => ({
+          title: item.title,
+          to: item.url!,
+          icon: item.icon,
+          group: group.title,
+        }))
+    )
+  }, [sidebarData])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -66,29 +54,30 @@ export function CommandPalette() {
   return (
     <>
       <Button
-        type='button'
-        variant='outline'
+        type="button"
+        variant="outline"
         onClick={() => setOpen(true)}
-        className='h-9 w-9 justify-start gap-2 rounded-full px-3 text-muted-foreground sm:w-64 sm:px-3'
-        aria-label='Rechercher'
+        className="h-9 w-9 justify-start gap-2 rounded-xl px-3 text-muted-foreground sm:w-64"
+        aria-label="Rechercher"
       >
-        <Search className='size-4' />
-        <span className='hidden flex-1 text-left text-sm sm:inline'>Rechercher…</span>
-        <kbd className='hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:inline-flex'>
-          ⌘K
+        <Search className="size-4 shrink-0" />
+        <span className="hidden flex-1 text-left text-sm sm:inline">Rechercher...</span>
+        <kbd className="hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:inline-flex">
+          <span className="text-xs">Ctrl</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder='Rechercher une page…' />
+        <CommandInput placeholder="Rechercher une page..." />
         <CommandList>
-          <CommandEmpty>Aucun résultat.</CommandEmpty>
-          <CommandGroup heading='Navigation'>
-            {COMMANDS.map((c) => {
+          <CommandEmpty>Aucun resultat.</CommandEmpty>
+          <CommandGroup heading="Navigation">
+            {commands.map((c) => {
               const Icon = c.icon
               return (
-                <CommandItem key={c.to} value={c.title} onSelect={() => run(c.to)}>
-                  <Icon className='size-4' />
-                  {c.title}
+                <CommandItem key={`${c.group}-${c.title}`} value={c.title} onSelect={() => run(c.to)}>
+                  {Icon && <Icon className="size-4" />}
+                  <span>{c.title}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{c.group}</span>
                 </CommandItem>
               )
             })}

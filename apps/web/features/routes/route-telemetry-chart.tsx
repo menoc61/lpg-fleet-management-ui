@@ -1,5 +1,5 @@
 import { type ElementType } from 'react'
-import { Activity, Gauge, Package } from 'lucide-react'
+import { Activity, Package } from 'lucide-react'
 import {
   Area,
   CartesianGrid,
@@ -33,7 +33,6 @@ export function RouteTelemetryChart({
   const chartData = trip.telemetry.map((point) => ({
     timeLabel: formatShortTime(point.recordedAt),
     lpgLevelPercent: point.lpgLevelPercent,
-    pressureBar: point.pressureBar,
     estimatedVolumeKg: point.estimatedVolumeKg,
   }))
 
@@ -42,12 +41,12 @@ export function RouteTelemetryChart({
       <CardHeader className='border-b bg-muted/20'>
         <CardTitle>Télémétrie GPL</CardTitle>
         <CardDescription>
-          Évolution du niveau GPL, de la pression et du volume estime pendant la
+          Évolution du niveau GPL et du volume estimé pendant la
           tournée.
         </CardDescription>
       </CardHeader>
       <CardContent className='space-y-4 p-4'>
-        <div className='h-[320px] rounded-2xl bg-muted/25 px-2 py-4 shadow-inner'>
+        <div className='surface-sunken h-[320px] px-2 py-4'>
           <ResponsiveContainer width='100%' height='100%'>
             <ComposedChart data={chartData}>
               <defs>
@@ -83,26 +82,12 @@ export function RouteTelemetryChart({
                 fontSize={12}
                 width={40}
               />
-              <YAxis
-                yAxisId='pressure'
-                orientation='right'
-                domain={[8, 13]}
-                stroke='rgba(56, 189, 248, 0.85)'
-                tickFormatter={(value) => `${value}b`}
-                tickLine={false}
-                axisLine={false}
-                fontSize={12}
-                width={44}
-              />
               <Tooltip
                 content={({ active, label, payload }) => {
                   if (!active || !payload || payload.length === 0) return null
 
                   const lpgValue = payload.find(
                     (item) => item.name === 'GPL'
-                  )?.value
-                  const pressureValue = payload.find(
-                    (item) => item.name === 'Pression'
                   )?.value
                   const volumeValue = payload.find(
                     (item) => item.name === 'Volume'
@@ -116,9 +101,6 @@ export function RouteTelemetryChart({
                       <div className='mt-2 space-y-1 text-sm'>
                         <p className='text-emerald-600 dark:text-emerald-300'>
                           GPL: {lpgValue}%
-                        </p>
-                        <p className='text-sky-600 dark:text-sky-300'>
-                          Pression: {pressureValue} bar
                         </p>
                         <p className='text-foreground'>
                           Volume: {formatKg(Number(volumeValue ?? 0))}
@@ -138,15 +120,6 @@ export function RouteTelemetryChart({
                 type='monotone'
               />
               <Line
-                yAxisId='pressure'
-                dataKey='pressureBar'
-                name='Pression'
-                stroke='#38bdf8'
-                strokeWidth={3}
-                dot={{ fill: '#38bdf8', r: 4, strokeWidth: 0 }}
-                type='monotone'
-              />
-              <Line
                 yAxisId='lpg'
                 dataKey='estimatedVolumeKg'
                 hide
@@ -157,18 +130,12 @@ export function RouteTelemetryChart({
           </ResponsiveContainer>
         </div>
 
-        <div className='grid gap-3 sm:grid-cols-3'>
+        <div className='grid gap-3 sm:grid-cols-2'>
           <TelemetrySignal
             label='Niveau GPL'
             value={`${trip.latestTelemetry.lpgLevelPercent}%`}
             hint={`${trip.lpgDropPercent}% depuis le depart`}
             icon={Package}
-          />
-          <TelemetrySignal
-            label='Pression'
-            value={`${trip.latestTelemetry.pressureBar.toFixed(1)} bar`}
-            hint={`-${trip.pressureDeltaBar.toFixed(1)} bar`}
-            icon={Gauge}
           />
           <TelemetrySignal
             label='Volume estime'
@@ -198,7 +165,7 @@ function TelemetrySignal({
   hint: string
 }) {
   return (
-    <div className='rounded-xl bg-muted/30 px-4 py-3 shadow-xs'>
+    <div className='surface-sunken px-4 py-3'>
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         <Icon className='size-3.5' />
         {label}

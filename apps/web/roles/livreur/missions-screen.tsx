@@ -68,7 +68,7 @@ export function LivreurMissionsScreen() {
       />
 
       <div className='grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[22rem_1fr]'>
-        <ScrollArea className='rounded-2xl border bg-background/80 p-2 backdrop-blur-sm'>
+        <ScrollArea className='surface-card p-2'>
           <div className='space-y-2'>
             {missions.map((m) => (
               <button
@@ -119,7 +119,7 @@ export function LivreurMissionsScreen() {
                 <Tile icon={ListChecks} label='Bouteilles' value={selected.bottles} />
               </div>
 
-              <div className='rounded-xl border bg-muted/30 p-4'>
+              <div className='surface-sunken p-4'>
                 <p className='text-sm font-medium'>Détail commande</p>
                 <p className='mt-1 text-xs text-muted-foreground'>
                   Scanner les bouteilles pleines déposées (OUT) et vides récupérées (IN) au
@@ -162,7 +162,7 @@ function Tile({
   value: number
 }) {
   return (
-    <div className='rounded-xl border bg-muted/30 p-3'>
+    <div className='surface-sunken p-3'>
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         <Icon className='size-4' />
         {label}

@@ -1,5 +1,5 @@
 import { ChevronRight, type LucideIcon } from 'lucide-react'
-import { Link, useMatchRoute } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,14 +35,16 @@ interface NavGroup {
   items: NavItem[]
 }
 
-function NavGroupComponent({ group }: { group: NavGroup }) {
-  const matchRoute = useMatchRoute()
+function isActiveUrl(pathname: string, url: string): boolean {
+  return pathname === url || pathname.startsWith(url + '/')
+}
 
+function NavGroupComponent({ group, pathname }: { group: NavGroup; pathname: string }) {
   const isGroupActive = group.items.some((item) => {
     if (item.items && item.items.length > 0) {
-      return item.items.some((sub) => matchRoute({ to: sub.url, fuzzy: true }))
+      return item.items.some((sub) => isActiveUrl(pathname, sub.url))
     }
-    return matchRoute({ to: item.url, fuzzy: true })
+    return isActiveUrl(pathname, item.url)
   })
 
   return (
@@ -53,7 +55,7 @@ function NavGroupComponent({ group }: { group: NavGroup }) {
           const hasSub = item.items && item.items.length > 0
 
           if (!hasSub) {
-            const active = matchRoute({ to: item.url, fuzzy: true })
+            const active = isActiveUrl(pathname, item.url)
 
             return (
               <SidebarMenuItem key={item.title}>
@@ -94,7 +96,7 @@ function NavGroupComponent({ group }: { group: NavGroup }) {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items!.map((sub) => {
-                      const subActive = matchRoute({ to: sub.url, fuzzy: true })
+                      const subActive = isActiveUrl(pathname, sub.url)
 
                       return (
                         <SidebarMenuSubItem key={sub.title}>
@@ -118,10 +120,12 @@ function NavGroupComponent({ group }: { group: NavGroup }) {
 }
 
 export function NavMain({ groups }: { groups: NavGroup[] }) {
+  const { pathname } = useLocation()
+
   return (
     <>
       {groups.map((group) => (
-        <NavGroupComponent key={group.title} group={group} />
+        <NavGroupComponent key={group.title} group={group} pathname={pathname} />
       ))}
     </>
   )

@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react'
 import { type Role, ROLE_LABELS, ROLE_DESCRIPTIONS } from '@/config/rbac/roles'
 import { getSidebarData } from '@/config/rbac/sidebar-by-role'
 import { PageHeader } from '@/components/layout/page-header'
-import { Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
+import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
 
 type Kpi = { label: string; value: string; delta?: string; trend?: 'up' | 'down' }
 
@@ -57,10 +57,7 @@ export function RoleDashboard({ role }: { role: Role }) {
   const kpis = KPI_BY_ROLE[role]
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-6 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
+    <PageShell>
       <PageHeader
         title={`Tableau de bord — ${ROLE_LABELS[role]}`}
         description={ROLE_DESCRIPTIONS[role]}
@@ -68,53 +65,33 @@ export function RoleDashboard({ role }: { role: Role }) {
 
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardHeader className='pb-2'>
-              <CardTitle className='text-sm font-medium text-muted-foreground'>
-                {kpi.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold'>{kpi.value}</div>
-              {kpi.delta && (
-                <p
-                  className={
-                    'mt-1 text-xs ' +
-                    (kpi.trend === 'up' ? 'text-emerald-600' : 'text-rose-600')
-                  }
-                >
-                  {kpi.delta}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <KpiTile key={kpi.label} {...kpi} />
         ))}
       </div>
 
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
         {sidebar.navGroups.map((group) => (
-          <Card key={group.title}>
-            <CardHeader>
-              <CardTitle className='text-base'>{group.title}</CardTitle>
-            </CardHeader>
-            <CardContent className='grid gap-2'>
-              {group.items.map((item) => (
-                <Link
-                  key={item.title + item.url}
-                  to={item.url}
-                  className='group flex items-center justify-between rounded-lg border border-transparent px-3 py-2 hover:border-border hover:bg-muted/50'
-                >
-                  <span className='flex items-center gap-2 text-sm'>
-                    {item.icon && <item.icon className='size-4 text-muted-foreground' />}
-                    {item.title}
-                  </span>
-                  <ArrowRight className='size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100' />
-                </Link>
-              ))}
-            </CardContent>
-          </Card>
+          <SectionCard key={group.title} title={group.title}>
+            <div className='grid gap-2'>
+              {group.items
+                .filter((item) => !!item.url)
+                .map((item) => (
+                  <Link
+                    key={item.title + item.url}
+                    to={item.url as never}
+                    className='group flex items-center justify-between rounded-lg border border-transparent px-3 py-2 hover:border-border hover:bg-muted/50'
+                  >
+                    <span className='flex items-center gap-2 text-sm'>
+                      {item.icon && <item.icon className='size-4 text-muted-foreground' />}
+                      {item.title}
+                    </span>
+                    <ArrowRight className='size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100' />
+                  </Link>
+                ))}
+            </div>
+          </SectionCard>
         ))}
       </div>
-    </main>
+    </PageShell>
   )
 }

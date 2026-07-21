@@ -1,6 +1,5 @@
 import {
   CalendarDays,
-  Gauge,
   MapPin,
   Route,
   ShieldCheck,
@@ -24,6 +23,7 @@ import {
   statusClasses,
   statusLabels,
   type Truck,
+  type TruckTelemetry,
 } from './trucks'
 
 type TruckDetailsSheetProps = {
@@ -62,7 +62,24 @@ export function TruckDetailsSheet({
           </SheetHeader>
 
           <div className='space-y-4 px-4 pb-6'>
-            <div className='grid grid-cols-2 gap-3'>
+            <TruckDetailsBody truck={truck} telemetry={telemetry} />
+          </div>
+        </SheetContent>
+      ) : null}
+    </Sheet>
+  )
+}
+
+export function TruckDetailsBody({
+  truck,
+  telemetry,
+}: {
+  truck: Truck
+  telemetry: TruckTelemetry
+}) {
+  return (
+    <div className='space-y-4'>
+      <div className='grid grid-cols-2 gap-3'>
               <MetricCard
                 label='LPG'
                 value={`${telemetry.lpgLevelPercent}%`}
@@ -74,11 +91,6 @@ export function TruckDetailsSheet({
                 label='Vitesse'
                 value={`${telemetry.speedKmh} km/h`}
                 detail={`ETA ${telemetry.etaText}`}
-              />
-              <MetricCard
-                label='Pression'
-                value={`${telemetry.pressureBar.toFixed(1)} bar`}
-                detail={`${telemetry.temperatureCelsius} C reservoir`}
               />
               <MetricCard
                 label='Risque'
@@ -96,7 +108,7 @@ export function TruckDetailsSheet({
               </TabsList>
 
               <TabsContent value='resume' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
+                <Card className='surface-sunken'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='flex items-center gap-2 text-sm'>
                       <Route className='size-4 text-primary' />
@@ -131,7 +143,7 @@ export function TruckDetailsSheet({
                   </CardContent>
                 </Card>
 
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
+                <Card className='surface-sunken'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='flex items-center gap-2 text-sm'>
                       <UserRound className='size-4 text-primary' />
@@ -177,7 +189,7 @@ export function TruckDetailsSheet({
               </TabsContent>
 
               <TabsContent value='maintenance' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
+                <Card className='surface-sunken'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='flex items-center gap-2 text-sm'>
                       <Wrench className='size-4 text-primary' />
@@ -211,11 +223,6 @@ export function TruckDetailsSheet({
 
                 <div className='grid grid-cols-2 gap-3'>
                   <MiniSignal
-                    icon={<Gauge className='size-4' />}
-                    label='Pression'
-                    value={`${telemetry.pressureBar.toFixed(1)} bar`}
-                  />
-                  <MiniSignal
                     icon={<Thermometer className='size-4' />}
                     label='Temperature'
                     value={`${telemetry.temperatureCelsius} C`}
@@ -234,9 +241,6 @@ export function TruckDetailsSheet({
               </TabsContent>
             </Tabs>
           </div>
-        </SheetContent>
-      ) : null}
-    </Sheet>
   )
 }
 
@@ -252,7 +256,7 @@ function MetricCard({
   className?: string
 }) {
   return (
-    <div className={cn('rounded-lg bg-muted/25 p-3 shadow-xs', className)}>
+    <div className={cn('surface-sunken p-3', className)}>
       <p className='text-xs text-muted-foreground'>{label}</p>
       <p className='mt-1 text-lg leading-none font-semibold'>{value}</p>
       <p className='mt-1 text-xs text-muted-foreground'>{detail}</p>
@@ -284,7 +288,7 @@ function DocumentStatus({ label, value }: { label: string; value: string }) {
         : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
 
   return (
-    <div className='rounded-lg bg-muted/20 p-3 shadow-xs'>
+    <div className='surface-sunken p-3'>
       <div className='flex items-start justify-between gap-3'>
         <div className='flex items-start gap-2'>
           <ShieldCheck className='mt-0.5 size-4 text-primary' />
@@ -313,7 +317,7 @@ function MiniSignal({
   value: string
 }) {
   return (
-    <div className='rounded-lg bg-muted/20 p-3 shadow-xs'>
+    <div className='surface-sunken p-3'>
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         {icon}
         {label}

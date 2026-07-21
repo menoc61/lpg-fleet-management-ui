@@ -394,7 +394,7 @@ function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme) {
         },
         popupTemplate: {
           title: `Trace GPS ${trip.reference}`,
-          content: createTelemetryPopupContent(trip, point.recordedAt, point.lpgLevelPercent, point.pressureBar),
+          content: createTelemetryPopupContent(trip, point.recordedAt, point.lpgLevelPercent),
         },
       })
   )
@@ -486,7 +486,6 @@ function createCurrentTruckPopupContent(trip: RouteTripView) {
       ${popupLine('Position', trip.truck.currentLocation)}
       ${popupLine('GPL', `${trip.latestTelemetry.lpgLevelPercent}%`)}
       ${popupLine('Volume estime', formatKg(trip.latestTelemetry.estimatedVolumeKg))}
-      ${popupLine('Pression', `${trip.latestTelemetry.pressureBar.toFixed(1)} bar`)}
       ${popupLine('Dernier releve', new Intl.DateTimeFormat('fr-FR', {
         hour: '2-digit',
         minute: '2-digit',
@@ -500,8 +499,7 @@ function createCurrentTruckPopupContent(trip: RouteTripView) {
 function createTelemetryPopupContent(
   trip: RouteTripView,
   recordedAt: string,
-  lpgLevelPercent: number,
-  pressureBar: number
+  lpgLevelPercent: number
 ) {
   return `
     <div class="fleet-truck-popup">
@@ -513,7 +511,6 @@ function createTelemetryPopupContent(
         month: 'short',
       }).format(new Date(recordedAt)))}
       ${popupLine('GPL', `${lpgLevelPercent}%`)}
-      ${popupLine('Pression', `${pressureBar.toFixed(1)} bar`)}
     </div>
   `
 }

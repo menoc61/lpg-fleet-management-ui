@@ -58,30 +58,32 @@ export function LivreurScanScreen() {
         }
       />
 
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <ArrowUpFromLine className='size-4' /> Bouteilles OUT (plein)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='text-2xl font-bold'>{outCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <ArrowDownToLine className='size-4' /> Bouteilles IN (vide)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='text-2xl font-bold'>{inCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm text-muted-foreground'>Non synchronisées</CardTitle>
-          </CardHeader>
-          <CardContent className='text-2xl font-bold'>{pending}</CardContent>
-        </Card>
-      </div>
+       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+         <Card>
+           <CardHeader className='pb-2'>
+             <CardTitle className='flex items-center gap-2 text-sm text-muted-foreground'>
+               <ArrowUpFromLine className='size-4' /> Bouteilles OUT (plein)
+             </CardTitle>
+           </CardHeader>
+           <CardContent className='text-2xl font-bold'>{outCount}</CardContent>
+         </Card>
+         <Card>
+           <CardHeader className='pb-2'>
+             <CardTitle className='flex items-center gap-2 text-sm text-muted-foreground'>
+               <ArrowDownToLine className='size-4' /> Bouteilles IN (vide)
+             </CardTitle>
+           </CardHeader>
+           <CardContent className='text-2xl font-bold'>{inCount}</CardContent>
+         </Card>
+         <Card>
+           <CardHeader className='pb-2'>
+             <CardTitle className='flex items-center gap-2 text-sm text-muted-foreground'>
+               <WifiOff className='size-4' /> Non synchronisées
+             </CardTitle>
+           </CardHeader>
+           <CardContent className='text-2xl font-bold'>{pending}</CardContent>
+         </Card>
+       </div>
 
       <Tabs defaultValue='out'>
         <div className='flex flex-wrap items-center justify-between gap-2'>
@@ -108,7 +110,7 @@ export function LivreurScanScreen() {
                   .map((s) => (
                     <div key={s.id} className='flex items-center justify-between px-4 py-3'>
                       <div className='flex items-center gap-3'>
-                        <ScanLine className='size-4 text-muted-foreground' />
+                        <ScanLine className={`size-4 ${s.direction === 'in' ? 'text-blue-600' : 'text-orange-600'}`} />
                         <div>
                           <p className='text-sm font-medium'>{s.tag}</p>
                           <p className='text-xs text-muted-foreground'>
@@ -116,15 +118,23 @@ export function LivreurScanScreen() {
                           </p>
                         </div>
                       </div>
-                      <Badge
-                        className={
-                          s.synced
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-amber-500 text-white'
-                        }
-                      >
-                        {s.synced ? 'Synchronisé' : 'En attente'}
-                      </Badge>
+                      <div className='flex items-center gap-2'>
+                        <Badge
+                          variant={s.direction === 'in' ? 'default' : 'secondary'}
+                          className='text-xs'
+                        >
+                          {s.direction === 'in' ? 'IN' : 'OUT'}
+                        </Badge>
+                        <Badge
+                          className={
+                            s.synced
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-amber-500 text-white'
+                          }
+                        >
+                          {s.synced ? 'Synchronisé' : 'En attente'}
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 {scans.filter((s) => s.direction === dir).length === 0 && (
