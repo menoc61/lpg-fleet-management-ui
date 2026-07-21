@@ -17,8 +17,11 @@ import {
 import {
   useNotificationsStore,
   selectUnreadCount,
+  getNotificationsForRole,
   type NotificationLevel,
 } from './notifications-store'
+import { useRoleStore } from '@/store/role-store'
+import { ROLE_LABELS } from '@/config/rbac/roles'
 import { EmptyState } from '@/components/layout/page'
 
 const LEVEL_ICON: Record<NotificationLevel, typeof Info> = {
@@ -35,9 +38,17 @@ const LEVEL_CLASS: Record<NotificationLevel, string> = {
   error: 'text-rose-600',
 }
 
+const EMPTY_BY_ROLE: Record<string, string> = {
+  SUPER_ADMIN: 'Toutes les notifications système sont sous contrôle.',
+  ADMIN: 'Aucune notification administrative en attente.',
+  MARKETEUR: 'Aucune notification pour vos tournées.',
+  LIVREUR: 'Aucune notification de mission.',
+}
+
 export function NotificationCenter() {
-  const items = useNotificationsStore((s) => s.items)
-  const unread = useNotificationsStore(selectUnreadCount)
+  const activeRole = useRoleStore((s) => s.activeRole)
+  const filtered = getNotificationsForRole(activeRole)
+  const unread = filtered.filter((n) => !n.read).length
   const markRead = useNotificationsStore((s) => s.markRead)
   const markAllRead = useNotificationsStore((s) => s.markAllRead)
 
@@ -74,15 +85,18 @@ export function NotificationCenter() {
             Tout lire
           </Button>
         </div>
-        {items.length === 0 ? (
+        {filtered.length === 0 ? (
           <EmptyState
             title='Aucune notification'
-            description='Vous êtes à jour.'
+            description={
+              EMPTY_BY_ROLE[activeRole] ??
+              `Aucune notification pour ${ROLE_LABELS[activeRole as keyof typeof ROLE_LABELS] ?? 'votre rôle'}.`
+            }
           />
         ) : (
           <ScrollArea className='max-h-80'>
             <ul className='divide-y'>
-              {items.map((n) => {
+              {filtered.map((n) => {
                 const Icon = LEVEL_ICON[n.level]
                 return (
                   <li key={n.id}>

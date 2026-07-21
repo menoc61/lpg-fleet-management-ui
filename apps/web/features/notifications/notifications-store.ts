@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { Role } from '@/config/rbac/roles'
 
 const now = Date.now()
 
@@ -11,6 +12,7 @@ export type AppNotification = {
   ts: number
   level: NotificationLevel
   read: boolean
+  role?: Role
 }
 
 type NotificationsState = {
@@ -18,42 +20,46 @@ type NotificationsState = {
   markRead: (id: string) => void
   markAllRead: () => void
   addNotification: (
-    n: Omit<AppNotification, 'id' | 'read' | 'ts'> & { ts?: number }
+    n: Omit<AppNotification, 'id' | 'read' | 'ts' | 'role'> & { ts?: number; role?: Role }
   ) => void
 }
 
 const seed: AppNotification[] = [
   {
     id: 'n1',
-    title: 'Nouvelle tournée planifiée',
-    body: 'TRP-2404 ajoutée pour Tradex.',
+    title: 'Nouveau rapport de conformité',
+    body: 'Rapport mensuel de traçabilité disponible.',
     ts: now - 1000 * 60 * 5,
     level: 'info',
     read: false,
+    role: 'SUPER_ADMIN',
   },
   {
     id: 'n2',
-    title: 'Alerte réserve Bonabéri',
-    body: 'Niveau critique à 31% de capacité.',
+    title: 'Nouvel utilisateur en attente',
+    body: 'Un nouveau marketeur demande accès à la plateforme.',
     ts: now - 1000 * 60 * 42,
-    level: 'warning',
+    level: 'info',
     read: false,
+    role: 'ADMIN',
   },
   {
     id: 'n3',
-    title: 'Livraison terminée',
-    body: 'TRP-2398 livrée (11 050 kg).',
+    title: 'Nouvelle tournée assignée',
+    body: 'Tournée TRP-2404 planifiée pour Tradex.',
     ts: now - 1000 * 60 * 90,
-    level: 'success',
+    level: 'info',
     read: true,
+    role: 'MARKETEUR',
   },
   {
     id: 'n4',
-    title: 'Anomalie détectée',
-    body: 'Perte non comptabilisée sur TRP-2402.',
+    title: 'Mission de livraison prête',
+    body: '6 arrêts programmés pour aujourd\'hui.',
     ts: now - 1000 * 60 * 180,
-    level: 'error',
+    level: 'info',
     read: true,
+    role: 'LIVREUR',
   },
 ]
 
@@ -81,3 +87,9 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
 
 export const selectUnreadCount = (s: NotificationsState) =>
   s.items.filter((n) => !n.read).length
+
+export function getNotificationsForRole(role: string): AppNotification[] {
+  const items = useNotificationsStore.getState().items
+  if (role === 'SUPER_ADMIN') return items
+  return items.filter((n) => !n.role || n.role === role)
+}
