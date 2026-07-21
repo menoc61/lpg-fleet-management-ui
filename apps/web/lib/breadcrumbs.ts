@@ -8,18 +8,19 @@ const SEGMENT_LABELS: Record<string, string> = {
   trucks: 'Camions',
   transporters: 'Transporteurs',
   marketers: 'Marketeurs',
-  routes: 'Tournees',
-  activity: 'Activite',
+  routes: 'Tournées',
+  activity: 'Activité',
   'trip-tracking': 'Suivi camions',
-  settings: 'Parametres',
+  settings: 'Paramètres',
   profile: 'Profil',
   'notification-groups': 'Groupes de notification',
-  vehicles: 'Vehicules',
+  vehicles: 'Véhicules',
   cylinders: 'Citernes',
   maintenance: 'Entretien',
   tracking: 'Suivi',
   drivers: 'Chauffeurs',
   reports: 'Rapports',
+
 }
 
 function resolveSegmentLabel(segment: string): string {
