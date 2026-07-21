@@ -1,15 +1,34 @@
+import { ROLE_LABELS } from '@/config/rbac/roles'
+import { roleFromSlug } from '@/config/rbac/sidebar-by-role'
+
 export type Breadcrumb = { label: string; to: string }
 
-const LABELS: Record<string, string> = {
+const SEGMENT_LABELS: Record<string, string> = {
   dashboard: 'Tableau de bord',
-  vehicles: 'Véhicules',
+  trucks: 'Camions',
+  transporters: 'Transporteurs',
+  marketers: 'Marketeurs',
+  routes: 'Tournees',
+  activity: 'Activite',
+  'trip-tracking': 'Suivi camions',
+  settings: 'Parametres',
+  profile: 'Profil',
+  'notification-groups': 'Groupes de notification',
+  vehicles: 'Vehicules',
   cylinders: 'Citernes',
   maintenance: 'Entretien',
   tracking: 'Suivi',
   drivers: 'Chauffeurs',
   reports: 'Rapports',
-  settings: 'Paramètres',
-  profile: 'Profil',
+}
+
+function resolveSegmentLabel(segment: string): string {
+  if (SEGMENT_LABELS[segment]) return SEGMENT_LABELS[segment]
+
+  const role = roleFromSlug(segment)
+  if (role) return ROLE_LABELS[role] ?? segment
+
+  return segment
 }
 
 export function generateBreadcrumbs(pathname: string): Breadcrumb[] {
@@ -18,7 +37,7 @@ export function generateBreadcrumbs(pathname: string): Breadcrumb[] {
   let acc = ''
   for (const seg of segments) {
     acc += `/${seg}`
-    crumbs.push({ label: LABELS[seg] ?? seg, to: acc })
+    crumbs.push({ label: resolveSegmentLabel(seg), to: acc })
   }
   return crumbs
 }
