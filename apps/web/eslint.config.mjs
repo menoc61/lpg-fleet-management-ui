@@ -4,11 +4,16 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', 'node_modules', '*.gen.ts', '*.tsbuildinfo'] },
+  { ignores: ['dist', 'node_modules', '*.gen.ts', '*.tsbuildinfo', 'eslint.config.mjs'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: process.cwd(),
+      },
+    },
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
