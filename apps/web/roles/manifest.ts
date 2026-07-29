@@ -18,6 +18,8 @@ import { LivreurScanScreen } from '@/roles/livreur/scan-screen'
 import { MarketeurDeliveryToursScreen } from '@/roles/marketeur/delivery-tours-screen'
 import { MarketeurSupplyScreen } from '@/roles/marketeur/supply-screen'
 import { SuperAdminMapScreen } from '@/roles/super-admin/map-screen'
+import { SuperAdminRiskDashboardScreen } from '@/roles/super-admin/risk-dashboard-screen'
+import { SuperAdminCustomRolesScreen } from '@/roles/super-admin/custom-roles-screen'
 import { SupervisorInfraScreen } from '@/roles/supervisor/infra-screen'
 
 import { type CustomScreenComponent } from '@/module/custom-screens'
@@ -37,6 +39,16 @@ export const ROLE_MANIFEST: Record<Role, ScreenRegistration[]> = {
       file: 'roles/super-admin/map-screen.tsx',
       component: SuperAdminMapScreen,
       modules: ['map'],
+    },
+    {
+      file: 'roles/super-admin/risk-dashboard-screen.tsx',
+      component: SuperAdminRiskDashboardScreen,
+      modules: ['risks'],
+    },
+    {
+      file: 'roles/super-admin/custom-roles-screen.tsx',
+      component: SuperAdminCustomRolesScreen,
+      modules: ['custom-roles'],
     },
   ],
   ADMIN: [],

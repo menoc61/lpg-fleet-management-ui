@@ -19,6 +19,25 @@ export type Resource =
   | 'reports'
   | 'pda'
   | 'infra'
+  | 'risks'
+  | 'custom-roles'
+  | 'rfid-tags'
+  | 'pickups'
+  | 'checkpoints'
+  | 'scans'
+  | 'reconciliations'
+  | 'redressements'
+  | 'notification-groups'
+  | 'notification-rules'
+  | 'audit-logs'
+  | 'vehicle-types'
+  | 'delivery-types'
+  | 'tour-statuses'
+  | 'drivers'
+  | 'certificates'
+  | 'site-verification'
+  | 'deliveries'
+  | 'metrics'
 
 export type AppAbility = MongoAbility<[Action, Resource]>
 
@@ -37,6 +56,44 @@ export const ROLE_PERMISSIONS: Record<Role, Array<[Action, Resource]>> = {
     ['read', 'reports'],
     ['read', 'infra'],
     ['read', 'pda'],
+    ['read', 'risks'],
+    ['write', 'risks'],
+    ['read', 'custom-roles'],
+    ['write', 'custom-roles'],
+    ['read', 'rfid-tags'],
+    ['write', 'rfid-tags'],
+    ['read', 'pickups'],
+    ['write', 'pickups'],
+    ['read', 'checkpoints'],
+    ['write', 'checkpoints'],
+    ['read', 'scans'],
+    ['write', 'scans'],
+    ['read', 'reconciliations'],
+    ['write', 'reconciliations'],
+    ['read', 'redressements'],
+    ['write', 'redressements'],
+    ['read', 'notification-groups'],
+    ['write', 'notification-groups'],
+    ['read', 'notification-rules'],
+    ['write', 'notification-rules'],
+    ['read', 'audit-logs'],
+    ['write', 'audit-logs'],
+    ['read', 'vehicle-types'],
+    ['write', 'vehicle-types'],
+    ['read', 'delivery-types'],
+    ['write', 'delivery-types'],
+    ['read', 'tour-statuses'],
+    ['write', 'tour-statuses'],
+    ['read', 'drivers'],
+    ['write', 'drivers'],
+    ['read', 'certificates'],
+    ['write', 'certificates'],
+    ['read', 'site-verification'],
+    ['write', 'site-verification'],
+    ['read', 'deliveries'],
+    ['write', 'deliveries'],
+    ['read', 'metrics'],
+    ['write', 'metrics'],
   ],
   ADMIN: [
     ['read', 'users'],
@@ -47,17 +104,59 @@ export const ROLE_PERMISSIONS: Record<Role, Array<[Action, Resource]>> = {
     ['read', 'reports'],
     ['read', 'anomalies'],
     ['read', 'sites'],
+    ['read', 'risks'],
+    ['read', 'custom-roles'],
+    ['read', 'rfid-tags'],
+    ['write', 'rfid-tags'],
+    ['read', 'pickups'],
+    ['write', 'pickups'],
+    ['read', 'checkpoints'],
+    ['write', 'checkpoints'],
+    ['read', 'scans'],
+    ['write', 'scans'],
+    ['read', 'reconciliations'],
+    ['write', 'reconciliations'],
+    ['read', 'redressements'],
+    ['write', 'redressements'],
+    ['read', 'notification-groups'],
+    ['read', 'notification-rules'],
+    ['read', 'audit-logs'],
+    ['read', 'vehicle-types'],
+    ['write', 'vehicle-types'],
+    ['read', 'delivery-types'],
+    ['write', 'delivery-types'],
+    ['read', 'tour-statuses'],
+    ['write', 'tour-statuses'],
+    ['read', 'drivers'],
+    ['write', 'drivers'],
+    ['read', 'certificates'],
+    ['write', 'certificates'],
+    ['read', 'site-verification'],
+    ['write', 'site-verification'],
+    ['read', 'deliveries'],
+    ['write', 'deliveries'],
+    ['read', 'metrics'],
+    ['write', 'metrics'],
   ],
   SUPERVISOR: [
     ['read', 'infra'],
     ['read', 'pda'],
     ['read', 'trucks'],
     ['read', 'anomalies'],
+    ['read', 'risks'],
+    ['read', 'notification-groups'],
+    ['read', 'notification-rules'],
+    ['read', 'audit-logs'],
+    ['read', 'metrics'],
   ],
   INTEGRATEUR: [
     ['read', 'pda'],
     ['write', 'pda'],
     ['read', 'trucks'],
+    ['read', 'rfid-tags'],
+    ['write', 'rfid-tags'],
+    ['read', 'tour-statuses'],
+    ['read', 'delivery-types'],
   ],
   AGENT: [
     ['read', 'declarations'],
@@ -65,6 +164,11 @@ export const ROLE_PERMISSIONS: Record<Role, Array<[Action, Resource]>> = {
     ['reset', 'users'],
     ['read', 'users'],
     ['read', 'anomalies'],
+    ['write', 'declarations'],
+    ['read', 'reconciliations'],
+    ['write', 'reconciliations'],
+    ['read', 'risks'],
+    ['read', 'sites'],
   ],
   MARKETEUR: [
     ['read', 'trucks'],
@@ -72,11 +176,23 @@ export const ROLE_PERMISSIONS: Record<Role, Array<[Action, Resource]>> = {
     ['read', 'tours'],
     ['write', 'tours'],
     ['read', 'reports'],
+    ['read', 'pickups'],
+    ['write', 'pickups'],
+    ['read', 'deliveries'],
+    ['write', 'deliveries'],
+    ['read', 'declarations'],
+    ['write', 'declarations'],
+    ['read', 'drivers'],
   ],
   LIVREUR: [
     ['read', 'tours'],
     ['write', 'tours'],
     ['read', 'pda'],
+    ['read', 'scans'],
+    ['write', 'scans'],
+    ['read', 'checkpoints'],
+    ['write', 'checkpoints'],
+    ['read', 'rfid-tags'],
   ],
 }
 

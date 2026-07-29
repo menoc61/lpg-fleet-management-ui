@@ -38,10 +38,7 @@ export function LivreurScanScreen() {
   const pending = scans.filter((s) => !s.synced).length
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
+    <PageShell>
       <PageHeader
         title='Scan RFID (IN / OUT)'
         description='Scan des bouteilles vides récupérées (IN) et pleines déposées (OUT) — mode local-first.'
@@ -145,6 +142,7 @@ export function LivreurScanScreen() {
           </TabsContent>
         ))}
       </Tabs>
-    </main>
+    </PageShell>
   )
 }
+

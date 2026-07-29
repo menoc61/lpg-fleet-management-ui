@@ -1,7 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
-import { Main } from '@/components/layout/main'
+import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
 import { buildDashboardView } from './dashboard'
 
@@ -13,7 +13,7 @@ export function FleetDetailPage() {
   )
 
   return (
-    <Main fluid className='space-y-6 bg-muted/20'>
+    <PageShell fluid className='space-y-6 bg-muted/20'>
       <Link to='/dashboard' className='inline-flex w-fit'>
         <Button variant='outline' size='sm' className='gap-2'>
           <ArrowLeft className='size-4' />
@@ -65,7 +65,7 @@ export function FleetDetailPage() {
           </Card>
         </section>
       )}
-    </Main>
+    </PageShell>
   )
 }
 
@@ -75,7 +75,7 @@ export function ReserveSiteDetailPage() {
   const site = dashboard.reserveSites.find((candidate) => candidate.siteId === siteId)
 
   return (
-    <Main fluid className='space-y-6 bg-muted/20'>
+    <PageShell fluid className='space-y-6 bg-muted/20'>
       <Link to='/dashboard' className='inline-flex w-fit'>
         <Button variant='outline' size='sm' className='gap-2'>
           <ArrowLeft className='size-4' />
@@ -110,7 +110,7 @@ export function ReserveSiteDetailPage() {
           </Card>
         </section>
       )}
-    </Main>
+    </PageShell>
   )
 }
 
@@ -124,3 +124,4 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     </div>
   )
 }
+

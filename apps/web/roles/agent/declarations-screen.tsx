@@ -33,15 +33,12 @@ function buildRows(): Row[] {
 }
 
 export function AgentDeclarationsScreen() {
-  const rows = useMemo(buildRows, [])
+  const rows = useMemo(() => buildRows(), [])
   const fraud = rows.filter((r) => r.status === 'fraud').length
   const watch = rows.filter((r) => r.status === 'watch').length
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
+    <PageShell>
       <PageHeader
         title='Déclarations à valider'
         description='Confrontation automatique déclarations vs données PDA (preuve contradictoire).'
@@ -107,7 +104,7 @@ export function AgentDeclarationsScreen() {
           <CheckCircle2 className='size-4' /> Valider les déclarations conformes
         </Button>
       </div>
-    </main>
+    </PageShell>
   )
 }
 
@@ -134,3 +131,4 @@ function Bar({
     </div>
   )
 }
+

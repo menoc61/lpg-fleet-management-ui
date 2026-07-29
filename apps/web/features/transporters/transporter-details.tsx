@@ -1,6 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Truck as TruckIcon, ArrowLeft } from 'lucide-react'
 import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { PageShell } from '@/components/layout/page'
 import { getTransporterById } from './transporters'
 import { TransporterOverview } from './transporter-overview'
 import { TransporterTrucksList } from './transporter-trucks-list'
@@ -15,21 +16,21 @@ export function TransporterDetailsPage() {
 
   if (!transporter) {
     return (
-      <main className='flex-1 p-4 sm:p-6'>
+      <PageShell className='flex-1 p-4 sm:p-6'>
         <div className='flex flex-col items-center justify-center h-[50vh] space-y-4'>
           <h2 className='text-2xl font-bold'>Transporter non trouvé</h2>
           <Button variant='outline' onClick={() => navigate({ to: '/transporters' })}>
             Retour à la liste
           </Button>
         </div>
-      </main>
+      </PageShell>
     )
   }
 
   return (
-    <main
+    <PageShell
       id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
+      className='flex-1 space-y-6 p-4 sm:p-6 lg:p-8'
     >
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4'>
         <div className='flex items-center gap-3 min-w-0'>
@@ -73,6 +74,7 @@ export function TransporterDetailsPage() {
           </TabsContent>
         </div>
       </Tabs>
-    </main>
+    </PageShell>
   )
 }
+

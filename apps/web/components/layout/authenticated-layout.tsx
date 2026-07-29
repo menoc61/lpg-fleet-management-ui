@@ -15,7 +15,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
     <SidebarProvider defaultOpen={defaultOpen}>
       <SkipToMain />
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className='@container/content bg-muted/20'>
         <AppHeader />
         {children ?? <Outlet />}
       </SidebarInset>

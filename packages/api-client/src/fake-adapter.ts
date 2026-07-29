@@ -1,5 +1,5 @@
 import { seeds, fakeProfiles } from '@lpg/mock-data'
-import type { ApiAdapter, ApiPagination, AuthResult, Credentials, ListResult } from './adapter.ts'
+import type { ApiAdapter, AuthResult, Credentials, ListResult } from './adapter.ts'
 
 /**
  * In-browser fake backend. No network, no server: data comes from bundled seed
@@ -8,13 +8,14 @@ import type { ApiAdapter, ApiPagination, AuthResult, Credentials, ListResult } f
  * cannot run. Swap to a real backend = set VITE_API_MODE to dev/production.
  */
 
-function paginate<T>(items: T[], page = 1, limite = 20): ListResult<T> {
+function paginate<T>(items: T[], page = 1, limit = 20): ListResult<T> {
   const safePage = Math.max(1, page)
-  const safeLimite = Math.min(100, Math.max(1, limite))
-  const start = (safePage - 1) * safeLimite
+  const safeLimit = Math.min(100, Math.max(1, limit))
+  const start = (safePage - 1) * safeLimit
+  const total = items.length
   return {
-    data: items.slice(start, start + safeLimite),
-    pagination: { page: safePage, limite: safeLimite, total: items.length } as ApiPagination,
+    data: items.slice(start, start + safeLimit),
+    pagination: { page: safePage, limit: safeLimit, total, pages: Math.ceil(total / safeLimit) },
   }
 }
 
@@ -51,8 +52,8 @@ export function createFakeAdapter(): ApiAdapter {
       }
       const params = new URLSearchParams(path.includes('?') ? path.slice(path.indexOf('?') + 1) : '')
       const page = Number(params.get('page') ?? 1)
-      const limite = Number(params.get('limite') ?? 20)
-      return delay(paginate(seeds[name as keyof typeof seeds] as T[], page, limite))
+      const limit = Number(params.get('limit') ?? params.get('limite') ?? 20)
+      return delay(paginate(seeds[name as keyof typeof seeds] as T[], page, limit))
     },
 
     async login(creds: Credentials): Promise<AuthResult> {

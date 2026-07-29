@@ -6,12 +6,6 @@
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
-  .bg-sidebar {
-    background-color: var(--sidebar);
-  }
-}
-
-@layer base {
   * {
     @apply border-border outline-ring/50;
     scrollbar-width: thin;
@@ -90,121 +84,6 @@
   }
   to {
     height: 0;
-  }
-}
-
-/* LPG liquid gauge */
-.lpg-tank {
-  position: relative;
-  overflow: hidden;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
-  background:
-    radial-gradient(
-      circle at 30% 15%,
-      color-mix(in oklab, white 68%, transparent),
-      transparent 45%
-    ),
-    color-mix(in oklab, var(--muted) 92%, transparent);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--background) 42%, transparent),
-    inset 0 -8px 18px color-mix(in oklab, black 18%, transparent);
-}
-
-.lpg-liquid {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  transform: translateY(100%);
-  will-change: transform;
-}
-
-.lpg-fill-body {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, #fbbf24 0%, #f59e0b 56%, #d97706 100%),
-    linear-gradient(
-      110deg,
-      rgba(255, 255, 255, 0.08) 10%,
-      transparent 44%,
-      rgba(255, 255, 255, 0.12) 66%,
-      transparent 90%
-    );
-}
-
-.lpg-wave {
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  width: 200%;
-  height: 200%;
-  border-radius: 45%;
-  transform: translate(-50%, -75%) rotate(0deg);
-  will-change: transform;
-}
-
-.lpg-wave-back {
-  z-index: 2;
-  background: rgba(255, 255, 255, 0.52);
-  animation: lpg-wave-rotate-back 5.2s linear infinite;
-  animation-delay: -1.4s;
-  opacity: 0.9;
-}
-
-.lpg-wave-main {
-  z-index: 3;
-  background: rgba(136, 61, 12, 0.62);
-  animation: lpg-wave-rotate-main 3.6s linear infinite;
-  opacity: 0.92;
-}
-
-.lpg-wave-highlight {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.52) 0%,
-      rgba(255, 255, 255, 0.2) 8%,
-      transparent 14%
-    ),
-    radial-gradient(
-      circle at 24% 18%,
-      rgba(255, 255, 255, 0.22),
-      transparent 45%
-    ),
-    linear-gradient(
-      120deg,
-      transparent 16%,
-      rgba(255, 255, 255, 0.12) 38%,
-      transparent 61%
-    );
-  pointer-events: none;
-}
-
-@keyframes lpg-wave-rotate-main {
-  0% {
-    transform: translate(-50%, -82%) rotate(0deg);
-  }
-  50% {
-    transform: translate(-50%, -66%) rotate(180deg);
-  }
-  100% {
-    transform: translate(-50%, -82%) rotate(360deg);
-  }
-}
-
-@keyframes lpg-wave-rotate-back {
-  0% {
-    transform: translate(-50%, -67%) rotate(360deg);
-  }
-  50% {
-    transform: translate(-50%, -83%) rotate(180deg);
-  }
-  100% {
-    transform: translate(-50%, -67%) rotate(0deg);
   }
 }
 

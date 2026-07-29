@@ -47,10 +47,6 @@
   .data-value {
     @apply text-2xl font-semibold tracking-tight;
   }
-
-  .nav-active {
-    @apply bg-[var(--accent-soft)] text-foreground;
-  }
 }
 
 /* Sonner toasts — LPG accent */

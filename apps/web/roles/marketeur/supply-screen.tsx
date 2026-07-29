@@ -40,10 +40,7 @@ export function MarketeurSupplyScreen() {
     step === 4
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
+    <PageShell>
       <PageHeader
         title='Requête d’enlèvement (Gaz Vrac)'
         description='Assistant multi-étapes — calcul automatique du nombre de véhicules.'
@@ -189,6 +186,7 @@ export function MarketeurSupplyScreen() {
           </div>
         </CardContent>
       </Card>
-    </main>
+    </PageShell>
   )
 }
+

@@ -20,6 +20,9 @@ export function createResourceService<T extends { id: string }>(adapter: ApiAdap
     update(id: string, body: Partial<T>): Promise<T> {
       return adapter.request<T>(`/${name}/${id}`, { method: 'PUT', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
     },
+    patch(id: string, body: Partial<T>): Promise<T> {
+      return adapter.request<T>(`/${name}/${id}`, { method: 'PATCH', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+    },
     remove(id: string): Promise<void> {
       return adapter.request<void>(`/${name}/${id}`, { method: 'DELETE' })
     },

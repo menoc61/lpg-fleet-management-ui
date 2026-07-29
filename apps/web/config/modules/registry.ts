@@ -159,6 +159,119 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'generatedAt', header: 'Généré le', type: 'date' },
     ],
   },
+  'SUPER_ADMIN:custom-roles': {
+    title: 'Rôles personnalisés',
+    description: 'Gestion des rôles et permissions personnalisés.',
+    mockCount: 15,
+    fields: [
+      { key: 'name', header: 'Rôle', type: 'text', filterable: true },
+      { key: 'permissions', header: 'Permissions', type: 'number' },
+      { key: 'users', header: 'Utilisateurs', type: 'number' },
+      { key: 'createdAt', header: 'Créé le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:risks': {
+    title: 'Scores de risque',
+    description: 'Scoring par marketeur, transporteur et livreur.',
+    mockCount: 26,
+    fields: [
+      { key: 'entity', header: 'Entité', type: 'text', filterable: true },
+      {
+        key: 'kind',
+        header: 'Type',
+        type: 'badge',
+        options: [
+          { label: 'Marketeur', value: 'marketeur' },
+          { label: 'Transporteur', value: 'transporteur' },
+          { label: 'Livreur', value: 'livreur' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'score', header: 'Score', type: 'number' },
+      {
+        key: 'level',
+        header: 'Niveau',
+        type: 'status',
+        options: RISK,
+        filterable: true,
+      },
+      { key: 'calculatedAt', header: 'Calculé le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:audit-logs': {
+    title: "Journal d'audit",
+    description: 'Traçabilité des actions utilisateurs.',
+    mockCount: 50,
+    fields: [
+      { key: 'action', header: 'Action', type: 'text', filterable: true },
+      { key: 'user', header: 'Utilisateur', type: 'text', filterable: true },
+      {
+        key: 'resource',
+        header: 'Ressource',
+        type: 'badge',
+        options: [
+          { label: 'Utilisateur', value: 'user' },
+          { label: 'Organisation', value: 'org' },
+          { label: 'Déclaration', value: 'declaration' },
+          { label: 'Tournée', value: 'tour' },
+          { label: 'Rôle', value: 'role' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'timestamp', header: 'Horodatage', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:delivery-types': {
+    title: 'Types de livraison',
+    description: 'Configuration des modes de livraison.',
+    mockCount: 12,
+    fields: [
+      { key: 'name', header: 'Type', type: 'text', filterable: true },
+      { key: 'description', header: 'Description', type: 'text' },
+      {
+        key: 'active',
+        header: 'Actif',
+        type: 'badge',
+        options: [
+          { label: 'Oui', value: 'yes' },
+          { label: 'Non', value: 'no' },
+        ],
+        filterable: true,
+      },
+    ],
+  },
+  'SUPER_ADMIN:tour-statuses': {
+    title: 'Statuts de tournée',
+    description: 'Configuration des statuts de tournée.',
+    mockCount: 10,
+    fields: [
+      { key: 'name', header: 'Statut', type: 'text', filterable: true },
+      { key: 'description', header: 'Description', type: 'text' },
+      { key: 'order', header: 'Ordre', type: 'number' },
+      { key: 'color', header: 'Couleur', type: 'text' },
+    ],
+  },
+  'SUPER_ADMIN:vehicle-types': {
+    title: 'Types de véhicule',
+    description: 'Configuration des types de véhicules de la flotte.',
+    mockCount: 14,
+    fields: [
+      { key: 'name', header: 'Type', type: 'text', filterable: true },
+      { key: 'capacity', header: 'Capacité (kg)', type: 'number' },
+      {
+        key: 'active',
+        header: 'Actif',
+        type: 'badge',
+        options: [
+          { label: 'Oui', value: 'yes' },
+          { label: 'Non', value: 'no' },
+        ],
+        filterable: true,
+      },
+    ],
+  },
 
   // ---------- ADMIN ----------
   'ADMIN:users': {
@@ -444,6 +557,29 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         groupable: true,
       },
       { key: 'raisedAt', header: 'Déclenchée le', type: 'date' },
+    ],
+  },
+  'AGENT:site-verification': {
+    title: 'Vérification des Sites',
+    description: 'Validation terrain des sites de distribution.',
+    mockCount: 22,
+    fields: [
+      { key: 'site', header: 'Site', type: 'text', filterable: true },
+      { key: 'address', header: 'Adresse', type: 'text' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [
+          { label: 'Vérifié', value: 'verified' },
+          { label: 'En attente', value: 'pending' },
+          { label: 'Rejeté', value: 'rejected' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'verifiedBy', header: 'Vérifié par', type: 'text' },
+      { key: 'verifiedAt', header: 'Vérifié le', type: 'date' },
     ],
   },
 

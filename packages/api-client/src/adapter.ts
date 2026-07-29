@@ -21,8 +21,9 @@ export interface Credentials {
 
 export interface ApiPagination {
   page: number
-  limite: number
+  limit: number
   total: number
+  pages: number
 }
 
 export interface ListResponse<T> {

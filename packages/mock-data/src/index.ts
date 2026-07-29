@@ -10,6 +10,25 @@ import organizations from './seed/organizations.json'
 import users from './seed/users.json'
 import transporters from './seed/transporters.json'
 import { AUTH_FIXTURES } from './fixtures-auth.ts'
+import {
+  drivers,
+  rfidTags,
+  pickups,
+  checkpoints,
+  scans,
+  reconciliations,
+  redressements,
+  customRoles,
+  userAssignments,
+  userCustomRoles,
+  notificationGroups,
+  notificationRules,
+  risks,
+  auditLogs,
+  vehicleTypes,
+  deliveryTypes,
+  tourStatuses,
+} from './seed-extended.ts'
 
 export type SeedName =
   | 'sites'
@@ -23,9 +42,24 @@ export type SeedName =
   | 'organizations'
   | 'users'
   | 'transporters'
+  | 'drivers'
+  | 'rfid-tags'
+  | 'pickups'
+  | 'checkpoints'
+  | 'scans'
+  | 'reconciliations'
+  | 'redressements'
+  | 'custom-roles'
+  | 'user-assignments'
+  | 'user-custom-roles'
+  | 'notification-groups'
+  | 'notification-rules'
+  | 'risks'
+  | 'audit-logs'
+  | 'vehicle-types'
+  | 'delivery-types'
+  | 'tour-statuses'
 
-/** Raw seed arrays, keyed by resource name. Shared by the Express mock server
- *  and the in-browser fake adapter so both stay in lock-step with @lpg/types. */
 export const seeds: Record<SeedName, unknown[]> = {
   sites,
   trucks,
@@ -38,11 +72,27 @@ export const seeds: Record<SeedName, unknown[]> = {
   organizations,
   users,
   transporters,
+  drivers,
+  'rfid-tags': rfidTags,
+  pickups,
+  checkpoints,
+  scans,
+  reconciliations,
+  redressements,
+  'custom-roles': customRoles,
+  'user-assignments': userAssignments,
+  'user-custom-roles': userCustomRoles,
+  'notification-groups': notificationGroups,
+  'notification-rules': notificationRules,
+  risks,
+  'audit-logs': auditLogs,
+  'vehicle-types': vehicleTypes,
+  'delivery-types': deliveryTypes,
+  'tour-statuses': tourStatuses,
 }
 
 export { AUTH_FIXTURES }
 
-/** Demo profiles for the in-browser fake login (no password required). */
 export interface FakeProfile {
   id: string
   email: string

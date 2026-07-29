@@ -1,7 +1,7 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@lpg/ui'
-import { Main } from '@/components/layout/main'
+import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
 import { getTruckTelemetry, type Truck } from './trucks'
 import { trucksHooks } from '@/lib/api/use-resources'
@@ -15,7 +15,7 @@ export function TruckDetailsPage() {
   const telemetry = truck ? getTruckTelemetry(truck.id) : null
 
   return (
-    <Main fluid className='bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'>
+    <PageShell fluid>
       <Link to='/trucks' className='inline-flex w-fit'>
         <Button variant='outline' size='sm' className='gap-2'>
           <ArrowLeft className='size-4' />
@@ -41,6 +41,6 @@ export function TruckDetailsPage() {
           <TruckDetailsBody truck={truck} telemetry={telemetry} />
         </section>
       )}
-    </Main>
+    </PageShell>
   )
 }

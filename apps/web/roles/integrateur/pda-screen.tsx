@@ -58,10 +58,7 @@ export function IntegrateurPdaScreen() {
     setDevices((prev) => prev.map((d) => (d.id === id ? { ...d, enrolled: true } : d)))
 
   return (
-    <main
-      id='main-content'
-      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
-    >
+    <PageShell>
       <PageHeader
         title='PDA + GPS + RFID'
         description='Activation, authentification et maintenance du matériel IoT.'
@@ -122,7 +119,7 @@ export function IntegrateurPdaScreen() {
           ))}
         </div>
       </ScrollArea>
-    </main>
+    </PageShell>
   )
 }
 
@@ -151,3 +148,4 @@ function Counter({
     </Card>
   )
 }
+

@@ -23,6 +23,13 @@ import {
   Wallet,
   ListChecks,
   Bell,
+  MapPin,
+  Globe,
+  Car,
+  FileWarning,
+  Flame,
+  ScrollText,
+  Receipt,
 } from 'lucide-react'
 import { type SidebarData } from '@/components/layout/types'
 import { type Role } from './roles'
@@ -47,20 +54,32 @@ export function roleFromSlug(slug: string): Role | undefined {
   )
 }
 
-type Item = {
+type BaseItem = {
   title: string
-  url: string
-  icon?: React.ElementType
   badge?: string
+  icon?: React.ElementType
+}
+
+type Item = BaseItem & {
+  url: string
+  items?: never
+}
+
+type CollapsibleItem = BaseItem & {
+  url?: never
+  items: (BaseItem & { url: string })[]
 }
 
 function item(role: Role, module: string, title: string, icon?: React.ElementType, badge?: string): Item {
   return { title, url: `/${roleSlug(role)}/${module}`, icon, badge }
 }
 
-/** A direct link to a top-level static feature page (e.g. /dashboard, /routes). */
 function staticLink(url: string, title: string, icon?: React.ElementType, badge?: string): Item {
   return { title, url, icon, badge }
+}
+
+function group(title: string, icon: React.ElementType, items: (BaseItem & { url: string })[]): CollapsibleItem {
+  return { title, icon, items }
 }
 
 const GROUPS: Record<Role, SidebarData> = {
@@ -70,29 +89,57 @@ const GROUPS: Record<Role, SidebarData> = {
         title: 'Pilotage national',
         items: [
           item('SUPER_ADMIN', 'overview', 'Vue d’ensemble nationale', LayoutDashboard),
-          item('SUPER_ADMIN', 'map', 'Carte ultra-détaillée', MapIcon),
+          item('SUPER_ADMIN', 'map', 'Carte interactive', MapIcon),
           item('SUPER_ADMIN', 'finance', 'Indicateurs financiers', Wallet),
         ],
       },
       {
-        title: 'Supervision',
+        title: 'Entités',
         items: [
-          item('SUPER_ADMIN', 'organizations', 'Organisations & sites', Building2),
+          group('Organisations & sites', Building2, [
+            { title: 'Organisations', url: '/super-admin/organizations', icon: Building2 },
+            { title: 'Sites', url: '/super-admin/sites', icon: MapPin },
+            { title: 'Zones géographiques', url: '/super-admin/zones', icon: Globe },
+          ]),
           item('SUPER_ADMIN', 'users', 'Utilisateurs (RBAC)', Users),
-          item('SUPER_ADMIN', 'anomalies', 'Anomalies & fraude', AlertTriangle, '!'),
-          item('SUPER_ADMIN', 'reports', 'Rapports & exports', FileBarChart),
-          staticLink('/settings/notification-groups', 'Groupes de notification', Bell),
+          group('Camions', Truck, [
+            { title: 'Parc camions', url: '/super-admin/trucks', icon: Truck },
+            { title: 'Types de véhicule', url: '/super-admin/vehicle-types', icon: Car },
+          ]),
+          item('SUPER_ADMIN', 'transporters', 'Transporteurs', Handshake),
+          item('SUPER_ADMIN', 'marketeurs', 'Marketeurs', Building2),
         ],
       },
       {
-        title: 'Applications métier',
+        title: 'Opérations',
         items: [
-          staticLink('/dashboard', 'Tableau de bord', LayoutDashboard),
-          staticLink('/routes', 'Tournées', Route),
-          staticLink('/activity/trip-tracking', 'Suivi camions', RadioTower),
-          staticLink('/trucks', 'Camions', Truck),
-          staticLink('/transporters', 'Transporteurs', Building2),
-          staticLink('/marketers', 'Marketeurs', Handshake),
+          item('SUPER_ADMIN', 'tours', 'Tournées', Route),
+          item('SUPER_ADMIN', 'deliveries', 'Livraisons', PackageCheck),
+          item('SUPER_ADMIN', 'declarations', 'Déclarations', ClipboardList),
+          item('SUPER_ADMIN', 'anomalies', 'Anomalies & fraude', AlertTriangle, '!'),
+          item('SUPER_ADMIN', 'incidents', 'Incidents', Flame),
+          item('SUPER_ADMIN', 'risks', 'Risques', FileWarning),
+        ],
+      },
+      {
+        title: 'Configuration',
+        items: [
+          item('SUPER_ADMIN', 'custom-roles', 'Rôles personnalisés', ShieldCheck),
+          item('SUPER_ADMIN', 'risks', 'Scores de risque', AlertTriangle, '!'),
+          item('SUPER_ADMIN', 'delivery-types', 'Types de livraison', Receipt),
+          item('SUPER_ADMIN', 'tour-statuses', 'Statuts de tournée', ScrollText),
+          item('SUPER_ADMIN', 'reports', 'Rapports & exports', FileBarChart),
+          staticLink('/settings/notification-groups', 'Groupes de notification', Bell),
+          item('SUPER_ADMIN', 'audit-logs', "Journal d'audit", ScrollText),
+        ],
+      },
+      {
+        title: 'Monitoring',
+        items: [
+          staticLink('/dashboard', 'Tableau de bord opérationnel', LayoutDashboard),
+          staticLink('/activity/trip-tracking', 'Suivi camions (carte)', RadioTower),
+          staticLink('/routes', 'Tournées en cours', Route),
+          item('SUPER_ADMIN', 'system-health', 'Santé du système', ServerCog),
         ],
       },
     ],

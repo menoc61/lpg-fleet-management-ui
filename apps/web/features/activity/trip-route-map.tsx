@@ -111,6 +111,7 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
     if (lastAppliedTheme.current === mapTheme) return
     
     lastAppliedTheme.current = mapTheme
+    // eslint-disable-next-line react-hooks/immutability, @typescript-eslint/no-explicit-any -- ArcGIS SDK side-effect on ref-held map; no built-in setter
     map.basemap = (mapTheme === 'dark' ? 'dark-gray-vector' : 'streets-navigation-vector') as any
     view.theme = mapTheme === 'dark'
       ? { accentColor: '#86efac', textColor: '#f8fafc' }
@@ -225,6 +226,7 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
               type: 'simple-line',
               color: [59, 130, 246, 0.8], // blue line
               width: 4,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ArcGIS SDK type; symbol property accepts plain objects
             } as any
             routeLayer.add(routeResult)
 

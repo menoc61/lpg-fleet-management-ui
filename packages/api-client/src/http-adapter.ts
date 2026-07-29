@@ -99,7 +99,7 @@ export function createHttpAdapter(baseURL?: string): ApiAdapter {
     }
     return {
       data: res.data.donnees ?? [],
-      pagination: res.data.pagination ?? { page: 1, limite: 0, total: 0 },
+      pagination: res.data.pagination ?? { page: 1, limit: 0, total: 0, pages: 0 },
     }
   }
 
