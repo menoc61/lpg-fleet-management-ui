@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- TanStack Router route files export both Route and component */
 import { createFileRoute } from '@tanstack/react-router'
 import { SuiviTripsLayout } from '@/features/activity/trip-tracking/components/trip-tracking-layout'
 
