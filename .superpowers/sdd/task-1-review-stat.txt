@@ -1,0 +1,7 @@
+ .gitignore          |   2 +
+ package.json        | 109 ++++++++--------------------------------------------
+ pnpm-workspace.yaml |  10 +++++
+ scripts/dev-kill.js |   2 +
+ turbo.json          |  16 ++++++++
+ vercel.json         |  10 +++--
+ 6 files changed, 52 insertions(+), 97 deletions(-)

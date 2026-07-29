@@ -11,14 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedTrucksIndexRouteImport } from './routes/_authenticated/trucks/index'
-import { Route as AuthenticatedTransportersIndexRouteImport } from './routes/_authenticated/transporters/index'
-import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenticated/routes/index'
-import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
-import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
-import { Route as AuthenticatedTransportersTransporterIdRouteImport } from './routes/_authenticated/transporters/$transporterId'
-import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
 import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
+import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
+import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
+import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenticated/routes/index'
+import { Route as AuthenticatedTransportersIndexRouteImport } from './routes/_authenticated/transporters/index'
+import { Route as AuthenticatedTransportersTransporterIdRouteImport } from './routes/_authenticated/transporters/$transporterId'
+import { Route as AuthenticatedTrucksIndexRouteImport } from './routes/_authenticated/trucks/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -29,28 +29,10 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTrucksIndexRoute =
-  AuthenticatedTrucksIndexRouteImport.update({
-    id: '/trucks/',
-    path: '/trucks/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedTransportersIndexRoute =
-  AuthenticatedTransportersIndexRouteImport.update({
-    id: '/transporters/',
-    path: '/transporters/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedRoutesIndexRoute =
-  AuthenticatedRoutesIndexRouteImport.update({
-    id: '/routes/',
-    path: '/routes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMarketersIndexRoute =
-  AuthenticatedMarketersIndexRouteImport.update({
-    id: '/marketers/',
-    path: '/marketers/',
+const AuthenticatedActivityTripTrackingRoute =
+  AuthenticatedActivityTripTrackingRouteImport.update({
+    id: '/activity/trip-tracking',
+    path: '/activity/trip-tracking',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedDashboardIndexRoute =
@@ -59,10 +41,10 @@ const AuthenticatedDashboardIndexRoute =
     path: '/dashboard/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedTransportersTransporterIdRoute =
-  AuthenticatedTransportersTransporterIdRouteImport.update({
-    id: '/transporters/$transporterId',
-    path: '/transporters/$transporterId',
+const AuthenticatedMarketersIndexRoute =
+  AuthenticatedMarketersIndexRouteImport.update({
+    id: '/marketers/',
+    path: '/marketers/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMarketersMarketerIdRoute =
@@ -71,10 +53,28 @@ const AuthenticatedMarketersMarketerIdRoute =
     path: '/marketers/$marketerId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedActivityTripTrackingRoute =
-  AuthenticatedActivityTripTrackingRouteImport.update({
-    id: '/activity/trip-tracking',
-    path: '/activity/trip-tracking',
+const AuthenticatedRoutesIndexRoute =
+  AuthenticatedRoutesIndexRouteImport.update({
+    id: '/routes/',
+    path: '/routes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTransportersIndexRoute =
+  AuthenticatedTransportersIndexRouteImport.update({
+    id: '/transporters/',
+    path: '/transporters/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTransportersTransporterIdRoute =
+  AuthenticatedTransportersTransporterIdRouteImport.update({
+    id: '/transporters/$transporterId',
+    path: '/transporters/$transporterId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrucksIndexRoute =
+  AuthenticatedTrucksIndexRouteImport.update({
+    id: '/trucks/',
+    path: '/trucks/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -170,32 +170,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/trucks/': {
-      id: '/_authenticated/trucks/'
-      path: '/trucks'
-      fullPath: '/trucks/'
-      preLoaderRoute: typeof AuthenticatedTrucksIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/transporters/': {
-      id: '/_authenticated/transporters/'
-      path: '/transporters'
-      fullPath: '/transporters/'
-      preLoaderRoute: typeof AuthenticatedTransportersIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/routes/': {
-      id: '/_authenticated/routes/'
-      path: '/routes'
-      fullPath: '/routes/'
-      preLoaderRoute: typeof AuthenticatedRoutesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/marketers/': {
-      id: '/_authenticated/marketers/'
-      path: '/marketers'
-      fullPath: '/marketers/'
-      preLoaderRoute: typeof AuthenticatedMarketersIndexRouteImport
+    '/_authenticated/activity/trip-tracking': {
+      id: '/_authenticated/activity/trip-tracking'
+      path: '/activity/trip-tracking'
+      fullPath: '/activity/trip-tracking'
+      preLoaderRoute: typeof AuthenticatedActivityTripTrackingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard/': {
@@ -205,11 +184,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/transporters/$transporterId': {
-      id: '/_authenticated/transporters/$transporterId'
-      path: '/transporters/$transporterId'
-      fullPath: '/transporters/$transporterId'
-      preLoaderRoute: typeof AuthenticatedTransportersTransporterIdRouteImport
+    '/_authenticated/marketers/': {
+      id: '/_authenticated/marketers/'
+      path: '/marketers'
+      fullPath: '/marketers/'
+      preLoaderRoute: typeof AuthenticatedMarketersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/marketers/$marketerId': {
@@ -219,11 +198,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketersMarketerIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/activity/trip-tracking': {
-      id: '/_authenticated/activity/trip-tracking'
-      path: '/activity/trip-tracking'
-      fullPath: '/activity/trip-tracking'
-      preLoaderRoute: typeof AuthenticatedActivityTripTrackingRouteImport
+    '/_authenticated/routes/': {
+      id: '/_authenticated/routes/'
+      path: '/routes'
+      fullPath: '/routes/'
+      preLoaderRoute: typeof AuthenticatedRoutesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transporters/': {
+      id: '/_authenticated/transporters/'
+      path: '/transporters'
+      fullPath: '/transporters/'
+      preLoaderRoute: typeof AuthenticatedTransportersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transporters/$transporterId': {
+      id: '/_authenticated/transporters/$transporterId'
+      path: '/transporters/$transporterId'
+      fullPath: '/transporters/$transporterId'
+      preLoaderRoute: typeof AuthenticatedTransportersTransporterIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/trucks/': {
+      id: '/_authenticated/trucks/'
+      path: '/trucks'
+      fullPath: '/trucks/'
+      preLoaderRoute: typeof AuthenticatedTrucksIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }

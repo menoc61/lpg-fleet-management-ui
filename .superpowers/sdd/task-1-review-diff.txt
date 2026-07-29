@@ -1,0 +1,203 @@
+diff --git a/.gitignore b/.gitignore
+index b9fa7c2..3dfdaeb 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -33,3 +33,5 @@ dist-ssr
+ # Vitest artifacts (browser screenshots/attachments)
+ **/__screenshots__/
+ .vitest-attachments/
++
++/.turbo
+diff --git a/package.json b/package.json
+index 36146db..607550c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,98 +1,19 @@
+ {
+-  "name": "lpg-fleet-dashboard",
+-  "private": false,
+-  "version": "2.2.1",
+-  "type": "module",
++  "name": "lpg-fleet-platform",
++  "version": "0.0.0",
++  "private": true,
+   "scripts": {
+-    "dev": "vite",
+-    "build": "tsc -b && vite build",
+-    "lint": "eslint .",
+-    "preview": "vite preview",
+-    "format:check": "prettier --check .",
+-    "format": "prettier --write .",
+-    "knip": "knip",
+-    "test": "vitest run --browser.headless",
+-    "test:watch": "vitest --browser.headless",
+-    "test:ui": "vitest --ui --browser.headless",
+-    "test:browser": "vitest",
+-    "test:coverage": "vitest run --coverage --browser.headless",
+-    "test:browser:install": "playwright install chromium --with-deps"
+-  },
+-  "dependencies": {
+-    "@arcgis/core": "^5.0.18",
+-    "@arcgis/map-components": "^5.0.18",
+-    "@clerk/react": "^6.4.2",
+-    "@esri/calcite-components": "^5.0.2",
+-    "@hookform/resolvers": "^5.2.2",
+-    "@radix-ui/react-alert-dialog": "^1.1.15",
+-    "@radix-ui/react-avatar": "^1.1.11",
+-    "@radix-ui/react-checkbox": "^1.3.3",
+-    "@radix-ui/react-collapsible": "^1.1.12",
+-    "@radix-ui/react-dialog": "^1.1.15",
+-    "@radix-ui/react-direction": "^1.1.1",
+-    "@radix-ui/react-dropdown-menu": "^2.1.16",
+-    "@radix-ui/react-icons": "^1.3.2",
+-    "@radix-ui/react-label": "^2.1.8",
+-    "@radix-ui/react-popover": "^1.1.15",
+-    "@radix-ui/react-radio-group": "^1.3.8",
+-    "@radix-ui/react-scroll-area": "^1.2.10",
+-    "@radix-ui/react-select": "^2.2.6",
+-    "@radix-ui/react-separator": "^1.1.8",
+-    "@radix-ui/react-slot": "^1.2.4",
+-    "@radix-ui/react-switch": "^1.2.6",
+-    "@radix-ui/react-tabs": "^1.1.13",
+-    "@radix-ui/react-tooltip": "^1.2.8",
+-    "@tailwindcss/vite": "^4.2.2",
+-    "@tanstack/react-query": "^5.99.0",
+-    "@tanstack/react-router": "^1.168.22",
+-    "@tanstack/react-table": "^8.21.3",
+-    "axios": "^1.15.0",
+-    "class-variance-authority": "^0.7.1",
+-    "clsx": "^2.1.1",
+-    "cmdk": "1.1.1",
+-    "date-fns": "^4.1.0",
+-    "input-otp": "^1.4.2",
+-    "lucide-react": "^1.8.0",
+-    "react": "^19.2.5",
+-    "react-day-picker": "9.14.0",
+-    "react-dom": "^19.2.5",
+-    "react-hook-form": "^7.72.1",
+-    "react-top-loading-bar": "^3.0.2",
+-    "recharts": "^3.8.1",
+-    "sonner": "^2.0.7",
+-    "tailwind-merge": "^3.5.0",
+-    "tailwindcss": "^4.2.2",
+-    "tw-animate-css": "^1.4.0",
+-    "zod": "^4.3.6",
+-    "zustand": "^5.0.12"
++    "build": "turbo run build",
++    "predev": "node scripts/dev-kill.js",
++    "dev": "turbo run dev",
++    "dev:kill": "node scripts/dev-kill.js",
++    "mock": "turbo run dev --filter @lpg/mock-api",
++    "lint": "turbo run lint",
++    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+   },
+   "devDependencies": {
+-    "@eslint/js": "^10.0.1",
+-    "@faker-js/faker": "^10.4.0",
+-    "@tanstack/eslint-plugin-query": "^5.99.0",
+-    "@tanstack/react-query-devtools": "^5.99.0",
+-    "@tanstack/react-router-devtools": "^1.166.13",
+-    "@tanstack/router-plugin": "^1.167.22",
+-    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+-    "@types/node": "^25.6.0",
+-    "@types/react": "^19.2.14",
+-    "@types/react-dom": "^19.2.3",
+-    "@vitejs/plugin-react": "^6.0.1",
+-    "@vitest/browser-playwright": "^4.1.4",
+-    "@vitest/coverage-v8": "^4.1.4",
+-    "@vitest/ui": "^4.1.4",
+-    "eslint": "^10.2.1",
+-    "eslint-plugin-react-hooks": "7.1.1",
+-    "eslint-plugin-react-refresh": "^0.5.2",
+-    "globals": "^17.5.0",
+-    "knip": "^6.4.1",
+-    "playwright": "1.59.1",
+-    "prettier": "^3.8.3",
+-    "prettier-plugin-tailwindcss": "^0.7.2",
+-    "typescript": "~6.0.3",
+-    "typescript-eslint": "^8.58.2",
+-    "vite": "^8.0.8",
+-    "vitest": "^4.1.4",
+-    "vitest-browser-react": "^2.2.0"
+-  }
+-}
++    "prettier": "^3.2.5",
++    "turbo": "^2.10.5"
++  },
++  "packageManager": "pnpm@9.0.0"
++}
+\ No newline at end of file
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+new file mode 100644
+index 0000000..59c38da
+--- /dev/null
++++ b/pnpm-workspace.yaml
+@@ -0,0 +1,10 @@
++packages:
++  - "apps/*"
++  - "packages/*"
++
++overrides:
++  "@types/react": "19.2.14"
++  "@types/react-dom": "19.2.3"
++  react: "19.2.5"
++  "react-dom": "19.2.5"
++  "react-hook-form": "7.73.1"
+\ No newline at end of file
+diff --git a/scripts/dev-kill.js b/scripts/dev-kill.js
+new file mode 100644
+index 0000000..54a85e2
+--- /dev/null
++++ b/scripts/dev-kill.js
+@@ -0,0 +1,2 @@
++// scripts/dev-kill.js — stub until proper kill script is added
++console.log('dev-kill stub');
+\ No newline at end of file
+diff --git a/turbo.json b/turbo.json
+new file mode 100644
+index 0000000..0ea82db
+--- /dev/null
++++ b/turbo.json
+@@ -0,0 +1,16 @@
++{
++  "$schema": "https://turbo.build/schema.json",
++  "tasks": {
++    "build": {
++      "dependsOn": ["^build"],
++      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
++    },
++    "lint": {
++      "dependsOn": ["^build"]
++    },
++    "dev": {
++      "cache": false,
++      "persistent": true
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/vercel.json b/vercel.json
+index 4b00aa5..30b272e 100644
+--- a/vercel.json
++++ b/vercel.json
+@@ -1,12 +1,16 @@
+ {
+   "$schema": "https://openapi.vercel.sh/vercel.json",
+   "framework": "vite",
+-  "buildCommand": "npm run build",
+-  "outputDirectory": "dist",
++  "buildCommand": "pnpm turbo run build --filter @lpg/web",
++  "outputDirectory": "apps/web/dist",
++  "installCommand": "pnpm install",
++  "env": {
++    "VITE_API_MODE": "fake"
++  },
+   "rewrites": [
+     {
+       "source": "/(.*)",
+       "destination": "/index.html"
+     }
+   ]
+-}
++}
+\ No newline at end of file

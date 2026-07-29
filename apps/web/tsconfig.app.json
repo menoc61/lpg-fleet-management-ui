@@ -17,7 +17,12 @@
 
     /* Alias */
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@lpg/types": ["../../packages/types/src/index.ts"],
+      "@lpg/config": ["../../packages/config/src/index.ts"],
+      "@lpg/permissions": ["../../packages/permissions/src/index.ts"],
+      "@lpg/api-client": ["../../packages/api-client/src/index.ts"],
+      "@lpg/ui": ["../../packages/ui/src/index.ts"]
     },
 
     /* Linting */
