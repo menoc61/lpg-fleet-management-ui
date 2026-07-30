@@ -34,7 +34,7 @@ export function AppHeader() {
           <Breadcrumbs pathname={pathname} />
         </div>
 
-        <div className='ml-auto flex items-center gap-2'>
+        <div className='ml-auto flex items-center gap-3'>
           <div className='relative hidden w-full max-w-md md:block'>
             <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
             <div className='pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 rounded-md border bg-muted/70 px-1.5 py-1 text-[10px] font-medium text-muted-foreground'>
