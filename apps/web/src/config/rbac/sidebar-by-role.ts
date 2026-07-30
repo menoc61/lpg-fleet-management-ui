@@ -149,7 +149,7 @@ const GROUPS: Record<Role, SidebarData> = {
       {
         title: 'Gestion',
         items: [
-          item('ADMIN', 'overview', 'Tableau de bord', LayoutDashboard),
+          staticLink('/dashboard', 'Tableau de bord', LayoutDashboard),
           item('ADMIN', 'users', 'Utilisateurs & organisations', Users),
           item('ADMIN', 'marketeurs', 'Marketeurs', Building2),
         ],

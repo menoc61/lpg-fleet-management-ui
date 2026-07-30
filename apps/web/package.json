@@ -21,8 +21,11 @@
   "dependencies": {
     "@arcgis/core": "^5.0.18",
     "@arcgis/map-components": "^5.0.18",
+    "@casl/react": "^7.0.1",
+    "@hookform/resolvers": "^5.5.7",
     "@lpg/api-client": "workspace:*",
     "@lpg/config": "workspace:*",
+    "@lpg/mock-data": "workspace:*",
     "@lpg/permissions": "workspace:*",
     "@lpg/types": "workspace:*",
     "@lpg/ui": "workspace:*",

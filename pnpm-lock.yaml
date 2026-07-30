@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.5.7
+        version: 5.5.7(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.73.1(react@19.2.8))(zod@4.4.3)
     devDependencies:
       prettier:
         specifier: ^3.2.5
@@ -23,12 +27,21 @@ importers:
       '@arcgis/map-components':
         specifier: ^5.0.18
         version: 5.1.14(@arcgis/core@5.1.14)(@esri/calcite-components@5.1.2)
+      '@casl/react':
+        specifier: ^7.0.1
+        version: 7.0.1(@casl/ability@6.8.1)(react@19.2.8)
+      '@hookform/resolvers':
+        specifier: ^5.5.7
+        version: 5.5.7(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.73.1(react@19.2.8))(zod@4.4.3)
       '@lpg/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
       '@lpg/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@lpg/mock-data':
+        specifier: workspace:*
+        version: link:../../packages/mock-data
       '@lpg/permissions':
         specifier: workspace:*
         version: link:../../packages/permissions
@@ -982,6 +995,12 @@ packages:
   '@casl/ability@6.8.1':
     resolution: {integrity: sha512-VX5DD1JbSP/DdewZnNwXXaCzve+0pLe14mcUj2l93CdOFAQUT/ylAptNqxf3Wc/jlsuSanAgXza4Z1Iq23dzpQ==}
 
+  '@casl/react@7.0.1':
+    resolution: {integrity: sha512-HFfBxQD5wFUIyd9gAPa5LDqMbB7CIOqRcocxzwMC589d8vLMzaz/OAdFLglGiBz9pAcumC0ULp5QLFiYZ46mUw==}
+    peerDependencies:
+      '@casl/ability': ^4.0.0 || ^5.1.0 || ^6.0.0 || ^7.0.0
+      react: ^18.0.0 || ^19.0.0
+
   '@date-fns/tz@1.5.0':
     resolution: {integrity: sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg==}
 
@@ -1224,6 +1243,84 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@hookform/resolvers@5.5.7':
+    resolution: {integrity: sha512-CyPCYV8/KlXfEXLWj8HHHhVsR/IZ6Ckm3b/a4fWtO/lRnRK1huqncb8LlAWrmpPRsse5glF5aVuDRMHEr3UGag==}
+    peerDependencies:
+      '@sinclair/typebox': '>=0.25.24'
+      '@standard-schema/spec': ^1.0.0
+      '@typeschema/main': '>=0.13.7'
+      '@vinejs/vine': ^2.0.0 || ^3.0.0
+      ajv: ^8.12.0
+      ajv-errors: ^3.0.0
+      ajv-formats: ^2.1.1
+      arktype: ^2.0.0
+      ata-validator: ^0.7.0
+      class-transformer: '>=0.4.0'
+      class-validator: '>=0.12.0'
+      computed-types: ^1.0.0
+      effect: ^3.10.3
+      fluentvalidation-ts: ^3.0.0
+      fp-ts: ^2.7.0
+      io-ts: ^2.0.0
+      joi: ^17.0.0
+      nope-validator: '>=0.12.0'
+      react-hook-form: ^7.55.0
+      superstruct: '>=0.12.0'
+      typanion: ^3.3.2
+      valibot: '>=0.31.0 || ^1.0.0-beta.4 || ^1.0.0-rc'
+      vest: '>=3.0.0'
+      yup: ^1.0.0
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      '@sinclair/typebox':
+        optional: true
+      '@standard-schema/spec':
+        optional: true
+      '@typeschema/main':
+        optional: true
+      '@vinejs/vine':
+        optional: true
+      ajv:
+        optional: true
+      ajv-errors:
+        optional: true
+      ajv-formats:
+        optional: true
+      arktype:
+        optional: true
+      ata-validator:
+        optional: true
+      class-transformer:
+        optional: true
+      class-validator:
+        optional: true
+      computed-types:
+        optional: true
+      effect:
+        optional: true
+      fluentvalidation-ts:
+        optional: true
+      fp-ts:
+        optional: true
+      io-ts:
+        optional: true
+      joi:
+        optional: true
+      nope-validator:
+        optional: true
+      superstruct:
+        optional: true
+      typanion:
+        optional: true
+      valibot:
+        optional: true
+      vest:
+        optional: true
+      yup:
+        optional: true
+      zod:
+        optional: true
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -6132,6 +6229,11 @@ snapshots:
     dependencies:
       '@ucast/mongo2js': 1.4.1
 
+  '@casl/react@7.0.1(@casl/ability@6.8.1)(react@19.2.8)':
+    dependencies:
+      '@casl/ability': 6.8.1
+      react: 19.2.8
+
   '@date-fns/tz@1.5.0': {}
 
   '@emnapi/core@1.11.1':
@@ -6317,6 +6419,15 @@ snapshots:
       react-dom: 19.2.8(react@19.2.8)
 
   '@floating-ui/utils@0.2.12': {}
+
+  '@hookform/resolvers@5.5.7(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.73.1(react@19.2.8))(zod@4.4.3)':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.73.1(react@19.2.8)
+    optionalDependencies:
+      '@standard-schema/spec': 1.1.0
+      ajv: 8.20.0
+      zod: 4.4.3
 
   '@humanfs/core@0.19.2':
     dependencies:

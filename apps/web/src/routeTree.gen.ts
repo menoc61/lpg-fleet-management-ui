@@ -10,23 +10,59 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedRoleIndexRouteImport } from './routes/_authenticated/$role/index'
+import { Route as AuthenticatedRoleModuleRouteImport } from './routes/_authenticated/$role/$module'
 import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
 import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
 import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenticated/routes/index'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedSettingsNotificationGroupsRouteImport } from './routes/_authenticated/settings/notification-groups'
+import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile'
 import { Route as AuthenticatedTransportersIndexRouteImport } from './routes/_authenticated/transporters/index'
 import { Route as AuthenticatedTransportersTransporterIdRouteImport } from './routes/_authenticated/transporters/$transporterId'
 import { Route as AuthenticatedTrucksIndexRouteImport } from './routes/_authenticated/trucks/index'
+import { Route as AuthenticatedTrucksTruckIdRouteImport } from './routes/_authenticated/trucks/$truckId'
+import { Route as AuthenticatedDashboardFleetsFleetNameRouteImport } from './routes/_authenticated/dashboard/fleets/$fleetName'
+import { Route as AuthenticatedDashboardSitesSiteIdRouteImport } from './routes/_authenticated/dashboard/sites/$siteId'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoleIndexRoute = AuthenticatedRoleIndexRouteImport.update({
+  id: '/$role/',
+  path: '/$role/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoleModuleRoute = AuthenticatedRoleModuleRouteImport.update({
+  id: '/$role/$module',
+  path: '/$role/$module',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedActivityTripTrackingRoute =
@@ -37,9 +73,9 @@ const AuthenticatedActivityTripTrackingRoute =
   } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
-    id: '/dashboard/',
-    path: '/dashboard/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedMarketersIndexRoute =
   AuthenticatedMarketersIndexRouteImport.update({
@@ -57,6 +93,24 @@ const AuthenticatedRoutesIndexRoute =
   AuthenticatedRoutesIndexRouteImport.update({
     id: '/routes/',
     path: '/routes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsNotificationGroupsRoute =
+  AuthenticatedSettingsNotificationGroupsRouteImport.update({
+    id: '/settings/notification-groups',
+    path: '/settings/notification-groups',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsProfileRoute =
+  AuthenticatedSettingsProfileRouteImport.update({
+    id: '/settings/profile',
+    path: '/settings/profile',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedTransportersIndexRoute =
@@ -77,81 +131,165 @@ const AuthenticatedTrucksIndexRoute =
     path: '/trucks/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTrucksTruckIdRoute =
+  AuthenticatedTrucksTruckIdRouteImport.update({
+    id: '/trucks/$truckId',
+    path: '/trucks/$truckId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardFleetsFleetNameRoute =
+  AuthenticatedDashboardFleetsFleetNameRouteImport.update({
+    id: '/fleets/$fleetName',
+    path: '/fleets/$fleetName',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardSitesSiteIdRoute =
+  AuthenticatedDashboardSitesSiteIdRouteImport.update({
+    id: '/sites/$siteId',
+    path: '/sites/$siteId',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/terms': typeof TermsRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/$role/$module': typeof AuthenticatedRoleModuleRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
+  '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
+  '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
+  '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
+  '/$role/': typeof AuthenticatedRoleIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/routes/': typeof AuthenticatedRoutesIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/transporters/': typeof AuthenticatedTransportersIndexRoute
   '/trucks/': typeof AuthenticatedTrucksIndexRoute
+  '/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
+  '/dashboard/sites/$siteId': typeof AuthenticatedDashboardSitesSiteIdRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
+  '/terms': typeof TermsRoute
   '/': typeof AuthenticatedIndexRoute
+  '/$role/$module': typeof AuthenticatedRoleModuleRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
+  '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
+  '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
+  '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
+  '/$role': typeof AuthenticatedRoleIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/marketers': typeof AuthenticatedMarketersIndexRoute
   '/routes': typeof AuthenticatedRoutesIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
   '/transporters': typeof AuthenticatedTransportersIndexRoute
   '/trucks': typeof AuthenticatedTrucksIndexRoute
+  '/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
+  '/dashboard/sites/$siteId': typeof AuthenticatedDashboardSitesSiteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/login': typeof LoginRoute
+  '/terms': typeof TermsRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/$role/$module': typeof AuthenticatedRoleModuleRoute
   '/_authenticated/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/_authenticated/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
+  '/_authenticated/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
+  '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/_authenticated/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
+  '/_authenticated/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
+  '/_authenticated/$role/': typeof AuthenticatedRoleIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/_authenticated/routes/': typeof AuthenticatedRoutesIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/transporters/': typeof AuthenticatedTransportersIndexRoute
   '/_authenticated/trucks/': typeof AuthenticatedTrucksIndexRoute
+  '/_authenticated/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
+  '/_authenticated/dashboard/sites/$siteId': typeof AuthenticatedDashboardSitesSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/terms'
+    | '/dashboard'
+    | '/$role/$module'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
+    | '/settings/notification-groups'
+    | '/settings/profile'
     | '/transporters/$transporterId'
+    | '/trucks/$truckId'
+    | '/$role/'
     | '/dashboard/'
     | '/marketers/'
     | '/routes/'
+    | '/settings/'
     | '/transporters/'
     | '/trucks/'
+    | '/dashboard/fleets/$fleetName'
+    | '/dashboard/sites/$siteId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
+    | '/terms'
     | '/'
+    | '/$role/$module'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
+    | '/settings/notification-groups'
+    | '/settings/profile'
     | '/transporters/$transporterId'
+    | '/trucks/$truckId'
+    | '/$role'
     | '/dashboard'
     | '/marketers'
     | '/routes'
+    | '/settings'
     | '/transporters'
     | '/trucks'
+    | '/dashboard/fleets/$fleetName'
+    | '/dashboard/sites/$siteId'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/login'
+    | '/terms'
+    | '/_authenticated/dashboard'
     | '/_authenticated/'
+    | '/_authenticated/$role/$module'
     | '/_authenticated/activity/trip-tracking'
     | '/_authenticated/marketers/$marketerId'
+    | '/_authenticated/settings/notification-groups'
+    | '/_authenticated/settings/profile'
     | '/_authenticated/transporters/$transporterId'
+    | '/_authenticated/trucks/$truckId'
+    | '/_authenticated/$role/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/marketers/'
     | '/_authenticated/routes/'
+    | '/_authenticated/settings/'
     | '/_authenticated/transporters/'
     | '/_authenticated/trucks/'
+    | '/_authenticated/dashboard/fleets/$fleetName'
+    | '/_authenticated/dashboard/sites/$siteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -163,11 +301,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/$role/': {
+      id: '/_authenticated/$role/'
+      path: '/$role'
+      fullPath: '/$role/'
+      preLoaderRoute: typeof AuthenticatedRoleIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/$role/$module': {
+      id: '/_authenticated/$role/$module'
+      path: '/$role/$module'
+      fullPath: '/$role/$module'
+      preLoaderRoute: typeof AuthenticatedRoleModuleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/activity/trip-tracking': {
@@ -179,10 +352,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
-      path: '/dashboard'
+      path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/marketers/': {
       id: '/_authenticated/marketers/'
@@ -203,6 +376,27 @@ declare module '@tanstack/react-router' {
       path: '/routes'
       fullPath: '/routes/'
       preLoaderRoute: typeof AuthenticatedRoutesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/notification-groups': {
+      id: '/_authenticated/settings/notification-groups'
+      path: '/settings/notification-groups'
+      fullPath: '/settings/notification-groups'
+      preLoaderRoute: typeof AuthenticatedSettingsNotificationGroupsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/profile': {
+      id: '/_authenticated/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/transporters/': {
@@ -226,31 +420,85 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrucksIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/trucks/$truckId': {
+      id: '/_authenticated/trucks/$truckId'
+      path: '/trucks/$truckId'
+      fullPath: '/trucks/$truckId'
+      preLoaderRoute: typeof AuthenticatedTrucksTruckIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/fleets/$fleetName': {
+      id: '/_authenticated/dashboard/fleets/$fleetName'
+      path: '/fleets/$fleetName'
+      fullPath: '/dashboard/fleets/$fleetName'
+      preLoaderRoute: typeof AuthenticatedDashboardFleetsFleetNameRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/sites/$siteId': {
+      id: '/_authenticated/dashboard/sites/$siteId'
+      path: '/sites/$siteId'
+      fullPath: '/dashboard/sites/$siteId'
+      preLoaderRoute: typeof AuthenticatedDashboardSitesSiteIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
   }
 }
 
+interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardFleetsFleetNameRoute: typeof AuthenticatedDashboardFleetsFleetNameRoute
+  AuthenticatedDashboardSitesSiteIdRoute: typeof AuthenticatedDashboardSitesSiteIdRoute
+}
+
+const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
+  {
+    AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+    AuthenticatedDashboardFleetsFleetNameRoute:
+      AuthenticatedDashboardFleetsFleetNameRoute,
+    AuthenticatedDashboardSitesSiteIdRoute:
+      AuthenticatedDashboardSitesSiteIdRoute,
+  }
+
+const AuthenticatedDashboardRouteWithChildren =
+  AuthenticatedDashboardRoute._addFileChildren(
+    AuthenticatedDashboardRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedRoleModuleRoute: typeof AuthenticatedRoleModuleRoute
   AuthenticatedActivityTripTrackingRoute: typeof AuthenticatedActivityTripTrackingRoute
   AuthenticatedMarketersMarketerIdRoute: typeof AuthenticatedMarketersMarketerIdRoute
+  AuthenticatedSettingsNotificationGroupsRoute: typeof AuthenticatedSettingsNotificationGroupsRoute
+  AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
   AuthenticatedTransportersTransporterIdRoute: typeof AuthenticatedTransportersTransporterIdRoute
-  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedTrucksTruckIdRoute: typeof AuthenticatedTrucksTruckIdRoute
+  AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
   AuthenticatedMarketersIndexRoute: typeof AuthenticatedMarketersIndexRoute
   AuthenticatedRoutesIndexRoute: typeof AuthenticatedRoutesIndexRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedTransportersIndexRoute: typeof AuthenticatedTransportersIndexRoute
   AuthenticatedTrucksIndexRoute: typeof AuthenticatedTrucksIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedRoleModuleRoute: AuthenticatedRoleModuleRoute,
   AuthenticatedActivityTripTrackingRoute:
     AuthenticatedActivityTripTrackingRoute,
   AuthenticatedMarketersMarketerIdRoute: AuthenticatedMarketersMarketerIdRoute,
+  AuthenticatedSettingsNotificationGroupsRoute:
+    AuthenticatedSettingsNotificationGroupsRoute,
+  AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
   AuthenticatedTransportersTransporterIdRoute:
     AuthenticatedTransportersTransporterIdRoute,
-  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedTrucksTruckIdRoute: AuthenticatedTrucksTruckIdRoute,
+  AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
   AuthenticatedMarketersIndexRoute: AuthenticatedMarketersIndexRoute,
   AuthenticatedRoutesIndexRoute: AuthenticatedRoutesIndexRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedTransportersIndexRoute: AuthenticatedTransportersIndexRoute,
   AuthenticatedTrucksIndexRoute: AuthenticatedTrucksIndexRoute,
 }
@@ -260,6 +508,8 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
