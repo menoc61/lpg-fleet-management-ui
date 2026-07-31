@@ -88,7 +88,7 @@ function buildIndex(role: string): SearchItem[] {
     items.push({
       category: 'Camions',
       title: t.plateNumber,
-      subtitle: `${t.tenantName} · ${t.assignedDriver}`,
+      subtitle: `${t.tenantName} - ${t.assignedDriver}`,
       value: `${t.plateNumber} ${t.tenantName} ${t.assignedDriver} ${t.id}`,
       url: `/trucks/${t.id}`,
       icon: TruckIcon,
@@ -123,7 +123,7 @@ function buildIndex(role: string): SearchItem[] {
       items.push({
         category: 'Sites',
         title: s.name,
-        subtitle: `${s.city} · ${s.region}`,
+        subtitle: `${s.city} - ${s.region}`,
         value: `${s.name} ${s.city} ${s.region} ${s.id}`,
         url: `${sitesUrl}?q=${encodeURIComponent(s.name)}`,
         icon: MapPin,
@@ -135,7 +135,9 @@ function buildIndex(role: string): SearchItem[] {
 }
 
 export function GlobalSearch() {
-  const { open, close, toggle } = useGlobalSearchStore()
+  const open = useGlobalSearchStore((s) => s.open)
+  const close = useGlobalSearchStore((s) => s.close)
+  const toggle = useGlobalSearchStore((s) => s.toggle)
   const { activeRole } = useRoleStore()
   const navigate = useNavigate()
 
@@ -154,9 +156,9 @@ export function GlobalSearch() {
 
   return (
     <CommandDialog open={open} onOpenChange={(o) => { if (!o) close() }}>
-      <CommandInput placeholder="Rechercher une page, un camion, un site�" />
+      <CommandInput placeholder="Rechercher une page, un camion, un site..." />
       <CommandList>
-        <CommandEmpty>Aucun résultat.</CommandEmpty>
+        <CommandEmpty>Aucun resultat.</CommandEmpty>
         {(() => {
           const grouped = new Map<string, SearchItem[]>()
           for (const item of items) {
@@ -191,4 +193,3 @@ export function GlobalSearch() {
     </CommandDialog>
   )
 }
-
