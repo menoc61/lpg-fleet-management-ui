@@ -1,4 +1,5 @@
 import { Moon, Search, Sun, LogOut } from 'lucide-react'
+import { useGlobalSearchStore } from '@/features/command-palette/global-search-store'
 import { useTheme } from '@/context/theme-provider'
 import { Avatar, AvatarFallback, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@lpg/ui'
 import { useNavigate } from '@tanstack/react-router'
@@ -8,6 +9,7 @@ import { Header } from './header'
 import { Breadcrumbs } from './breadcrumbs'
 import { useLocation } from '@tanstack/react-router'
 import { NotificationCenter } from '@/features/notifications/notification-center'
+import { GlobalSearch } from '@/features/command-palette/global-search'
 
 export function AppHeader() {
   const { resolvedTheme, setTheme } = useTheme()
@@ -29,19 +31,25 @@ export function AppHeader() {
 
   return (
     <Header fixed>
+      <GlobalSearch />
       <div className='flex flex-1 items-center gap-3'>
         <div className='hidden flex-1 items-center gap-3 md:flex'>
           <Breadcrumbs pathname={pathname} />
         </div>
 
         <div className='ml-auto flex items-center gap-3'>
-          <div className='relative hidden w-full max-w-md md:block'>
+          <button
+            type='button'
+            className='relative hidden w-72 md:w-80 md:block'
+            onClick={() => useGlobalSearchStore.getState().setOpen(true)}
+            aria-label='Rechercher dans le système'
+          >
             <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
             <div className='pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 rounded-md border bg-muted/70 px-1.5 py-1 text-[10px] font-medium text-muted-foreground'>
               <span>Ctrl</span>
               <span>K</span>
             </div>
-          </div>
+          </button>
 
           <NotificationCenter />
 

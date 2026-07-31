@@ -11,12 +11,12 @@ describe('useGlobalSearchStore', () => {
   })
 
   it('open sets open to true', () => {
-    useGlobalSearchStore.getState().open()
+    useGlobalSearchStore.getState().setOpen(true)
     expect(useGlobalSearchStore.getState().open).toBe(true)
   })
 
   it('close sets open to false', () => {
-    useGlobalSearchStore.getState().open()
+    useGlobalSearchStore.getState().setOpen(true)
     useGlobalSearchStore.getState().close()
     expect(useGlobalSearchStore.getState().open).toBe(false)
   })

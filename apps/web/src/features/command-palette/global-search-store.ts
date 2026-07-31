@@ -2,14 +2,14 @@ import { create } from 'zustand'
 
 type GlobalSearchStore = {
   open: boolean
-  open: () => void
+  setOpen: (open: boolean) => void
   close: () => void
   toggle: () => void
 }
 
 export const useGlobalSearchStore = create<GlobalSearchStore>()((set) => ({
   open: false,
-  open: () => set({ open: true }),
+  setOpen: (open) => set({ open }),
   close: () => set({ open: false }),
   toggle: () => set((s) => ({ open: !s.open })),
 }))
