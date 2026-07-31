@@ -38,18 +38,20 @@ export function AppHeader() {
         </div>
 
         <div className='ml-auto flex items-center gap-3'>
-          <button
-            type='button'
-            className='relative hidden w-72 md:w-80 md:block'
-            onClick={() => useGlobalSearchStore.getState().setOpen(true)}
-            aria-label='Rechercher dans le système'
-          >
-            <Search className='pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
-            <div className='pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 rounded-md border bg-muted/70 px-1.5 py-1 text-[10px] font-medium text-muted-foreground'>
-              <span>Ctrl</span>
-              <span>K</span>
-            </div>
-          </button>
+        <div
+          role="button"
+          tabIndex={0}
+          className="relative hidden w-72 md:w-80 md:block cursor-pointer rounded-full border border-transparent bg-background hover:border-border hover:bg-accent/50 transition-colors px-3"
+          onClick={() => useGlobalSearchStore.getState().setOpen(true)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); useGlobalSearchStore.getState().setOpen(true) } }}
+          aria-label="Rechercher dans le système"
+        >
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" />
+          <div className="pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1 rounded-md border bg-muted/70 px-1.5 py-1 text-[10px] font-medium text-muted-foreground">
+            <span>Ctrl</span>
+            <span>K</span>
+          </div>
+        </div>
 
           <NotificationCenter />
 
