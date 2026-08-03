@@ -2,6 +2,7 @@
 created: 2026-08-03T16:55:33.021Z
 title: Use curated JSON fixtures for frontend data
 area: general
+resolves_phase: 1
 files:
   - packages/mock-data/src/seed-extended.ts
   - C:/Users/DTA_WorkStation/Downloads/json_fixture
