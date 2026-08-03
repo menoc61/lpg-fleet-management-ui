@@ -77,4 +77,14 @@
 
 | Phase | Requirements |
 |-------|--------------|
-|       |              |
+| Phase 1: Fixtures Infrastructure | FX-01, FX-02, FX-03 |
+| Phase 2: Design System & Layout Foundation | DSGN-01, DSGN-02 |
+| Phase 3: Organizations & Sites | ORG-01, ORG-02, ORG-03 |
+| Phase 4: Users & Roles | USR-01, USR-02, USR-03 |
+| Phase 5: Fleet & Devices | FLT-01, FLT-02 |
+| Phase 6: Tours & Scans | TOUR-01, TOUR-02, TOUR-03 |
+| Phase 7: Compliance & Reconciliations | COMP-01, COMP-02 |
+| Phase 8: Anomalies | ANOM-01, ANOM-02, ANOM-03 |
+| Phase 9: Notifications | NOTIF-01, NOTIF-02 |
+| Phase 10: TRANSPORTEUR Role | TSP-01, TSP-02 |
+| Phase 11: Global Search | SRCH-01, SRCH-02 |
