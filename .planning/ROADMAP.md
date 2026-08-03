@@ -61,7 +61,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Organization and site pages render exclusively from curated fixtures (no seed-extended values).
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 4: Users & Roles
 **Goal**: Users can inspect system users, roles, MFA, integration auth, the permission matrix, and manage assignments consistently with the CASL RBAC matrix.
@@ -74,7 +74,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Users are gated by their role such that only permitted roles reach this screen per the dynamic routing map.
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 5: Fleet & Devices
 **Goal**: Users can inspect vehicles/drivers and devices/health across the fleet, including offline/battery-critical states.
@@ -87,7 +87,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Fleet data renders only from curated fixtures.
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 6: Tours & Scans
 **Goal**: Users can follow the pickup → tour → scan lifecycle with exact state-machine enums, and TRANSPORTEUR can acknowledge pending tours.
@@ -100,7 +100,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. A tour cannot be advanced to a state the §3 state machine disallows given its current state and role.
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 7: Compliance & Reconciliations
 **Goal**: Users can view declarations, reconciliations, redressements, risk scores, and the subsidy-at-risk math transparently.
@@ -113,7 +113,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Compliance data renders from curated fixtures, with risk score rankings ordered and color-coded per the design system.
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 8: Anomalies
 **Goal**: Users can triage anomalies split into INVESTIGATION vs. TECHNICAL tracks, follow the lifecycle, and recognize exact category enums.
@@ -127,7 +127,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Anomaly counts/values match the curated fixture (inspected per page before building).
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 9: Notifications
 **Goal**: Users can expose notification groups, users, rules, and a filterable notification center.
@@ -140,7 +140,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Unread/read state is visible inline and consistent with fixture channel delivery state.
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 10: TRANSPORTEUR Role
 **Goal**: TRANSPORTEUR becomes the 8th system role wired across RBAC, sidebar, dashboard, switcher, and manifest, with tours-pending/acknowledgment/assignment views.
@@ -154,7 +154,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. The TypeScript strict build passes clean with the new exhaustive role registered.
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ### Phase 11: Global Search
 **Goal**: A Ctrl+K palette searches organizations, sites, vehicles, tours, anomalies, and notifications across all curated fixtures and deep-links to the correct route.
@@ -167,7 +167,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Search does not surface entities the user's role cannot access (RBAC-aware results).
 **Plans**: TBD
 
-**UI hint**: UI
+**UI hint**: yes
 
 ## Phase 0 / Foundation Notes
 
