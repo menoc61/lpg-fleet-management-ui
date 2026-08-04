@@ -24,7 +24,7 @@ function LoginPage() {
   const activeRole = useRoleStore((s) => s.activeRole)
   const setActiveRole = useRoleStore((s) => s.setActiveRole)
   const navigate = useNavigate()
-  const [email, setEmail] = useState('superadmin@lpg.cm')
+  const [email, setEmail] = useState('b.ndoumbetane@csph.cm')
   const [password, setPassword] = useState('password')
   const [submitting, setSubmitting] = useState(false)
 
