@@ -26,6 +26,20 @@ export interface Truck {
   risk_level: TruckRiskLevel
   marketer?: string
   tenant_name?: string
+  // Legacy camelCase aliases — preserved so existing screens (global-search,
+  // trucks-* components, routes.ts) compile without a separate migration.
+  plateNumber: string
+  makeModel: string
+  assignedDriver: string
+  driverPhone: string
+  fleetManager: string
+  operatingRegion: string
+  currentLocation: string
+  contractTier: ContractTier
+  riskLevel: TruckRiskLevel
+  /** Centre point, derived from a deterministic hash for map rendering. */
+  latitude: number
+  longitude: number
 }
 
 export interface TruckTelemetry {
@@ -88,27 +102,44 @@ export function getTrucks(): Truck[] {
     const status = STATUS_BY_INDEX[idx % STATUS_BY_INDEX.length]
     const region = REGIONS[idx % REGIONS.length]
     const org = orgs[idx % orgs.length]
+    const plate_number = v.license_plate
+    const assigned_driver = driver ? `${driver.first_name} ${driver.last_name}` : '—'
+    const tenant = org?.name ?? '—'
+    // Deterministic Yaoundé-area fallback so map consumers have a center to plot.
+    const latitude = 3.4 + ((idx * 0.27) % 1.0)
+    const longitude = 10.8 + ((idx * 0.41) % 1.4)
     return {
       id: v.id,
-      plate_number: v.license_plate,
+      plate_number,
       type: v.type,
       status,
-      make_model: `${v.type} ${v.license_plate}`,
+      make_model: `${v.type} ${plate_number}`,
       year: 2020 + (idx % 5),
       certificate_expiry_at: v.certificate_expiry_at ?? '2027-06-30',
       certificate_number: v.certificate_number ?? `CERT-${v.id}`,
       org_id: v.org_id,
       region,
-      assigned_driver: driver ? `${driver.first_name} ${driver.last_name}` : '—',
+      assigned_driver,
       driver_phone: '+237 6 XX XX XX XX',
       fleet_manager: '—',
       operating_region: region,
       current_location: '—',
       contract_tier: idx % 3 === 0 ? 'Enterprise' : idx % 3 === 1 ? 'Growth' : 'Starter',
       risk_level: idx % 4 === 0 ? 'high' : idx % 3 === 0 ? 'medium' : 'low',
-      marketer: org?.name,
-      tenant_name: org?.name,
-    }
+      marketer: tenant,
+      tenant_name: tenant,
+      plateNumber: plate_number,
+      makeModel: `${v.type} ${plate_number}`,
+      assignedDriver: assigned_driver,
+      driverPhone: '+237 6 XX XX XX XX',
+      fleetManager: '—',
+      operatingRegion: region,
+      currentLocation: '—',
+      contractTier: idx % 3 === 0 ? 'Enterprise' : idx % 3 === 1 ? 'Growth' : 'Starter',
+      riskLevel: idx % 4 === 0 ? 'high' : idx % 3 === 0 ? 'medium' : 'low',
+      latitude,
+      longitude,
+    } as Truck
   })
 }
 
