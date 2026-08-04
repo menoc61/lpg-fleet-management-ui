@@ -1,15 +1,22 @@
 /**
- * Role → bespoke-screen contract.
+ * Role → bespoke-screen registry.
  *
  * Uniform CRUD modules are rendered generically via `module/module-screen.tsx`
  * (driven by `config/modules/registry.ts`) and gated by `@lpg/permissions`.
- * This manifest is the single, explicit registry for the *bespoke* screens that
- * a role owns — the screens that are NOT a generic module view.
+ * This manifest is the single, explicit registry for the *bespoke* screens
+ * that a role owns — the screens that are NOT a generic module view.
  *
- * Each role may register one screen per module key (e.g. `TRANSPORTEUR:tours`).
- * `module/custom-screens.tsx` consumes this manifest at runtime.
+ * Each entry declares the permission codes the active role must hold for
+ * the screen to be mounted. The renderer in `custom-screens.tsx` calls
+ * `hasPermission(role, code)` to gate registration dynamically.
  */
-import { type Role } from '@/config/rbac/roles'
+
+import {
+  hasPermission,
+  type PermissionCode,
+  type Role,
+} from '@lpg/permissions'
+import { type Role as WebRole } from '@/config/rbac/roles'
 
 import { PermissionMatrixScreen } from '@/module/permission-matrix'
 
@@ -28,107 +35,105 @@ import { TransporteurOverviewScreen } from '@/roles/transporteur/overview-screen
 
 import { type CustomScreenComponent } from '@/module/custom-screens'
 
-type ScreenRegistration = {
-  file: string
+interface RoleScreenRegistration {
+  module: string
   component: CustomScreenComponent
-  modules: string[]
+  requires: readonly PermissionCode[]
 }
 
-export const ROLE_MANIFEST: Record<Role, ScreenRegistration[]> = {
-  SUPERADMIN: [
-    {
-      file: 'roles/super-admin/overview-screen.tsx',
-      component: SuperAdminOverviewScreen,
-      modules: ['overview'],
-    },
-    {
-      file: 'roles/super-admin/organizations-screen.tsx',
-      component: SuperAdminOrganizationsScreen,
-      modules: ['organizations'],
-    },
-    {
-      file: 'roles/super-admin/transporters-screen.tsx',
-      component: SuperAdminTransportersScreen,
-      modules: ['transporters'],
-    },
-    {
-      file: 'roles/super-admin/map-screen.tsx',
-      component: SuperAdminMapScreen,
-      modules: ['map'],
-    },
-    {
-      file: 'roles/super-admin/risk-dashboard-screen.tsx',
-      component: SuperAdminRiskDashboardScreen,
-      modules: ['risks'],
-    },
-    {
-      file: 'roles/super-admin/custom-roles-screen.tsx',
-      component: SuperAdminCustomRolesScreen,
-      modules: ['custom-roles'],
-    },
-    {
-      file: 'module/permission-matrix.tsx',
-      component: PermissionMatrixScreen,
-      modules: ['permissions'],
-    },
+type BespokeCatalog = {
+  readonly module: string
+  readonly requires: readonly PermissionCode[]
+  readonly component: CustomScreenComponent
+}
+
+/* --------------------------------------------------------------------------
+ * CATALOG — single source of bespoke screens.
+ * --------------------------------------------------------------------------*/
+
+const BESPOKE_SCREENS: ReadonlyArray<BespokeCatalog> = [
+  { module: 'overview', component: SuperAdminOverviewScreen, requires: ['reports.read'] },
+  { module: 'organizations', component: SuperAdminOrganizationsScreen, requires: ['orgs.read'] },
+  { module: 'transporters', component: SuperAdminTransportersScreen, requires: ['transporters.read'] },
+  { module: 'map', component: SuperAdminMapScreen, requires: ['sites.read', 'tours.read'] },
+  { module: 'risks', component: SuperAdminRiskDashboardScreen, requires: ['risks.read'] },
+  { module: 'custom-roles', component: SuperAdminCustomRolesScreen, requires: ['custom-roles.manage'] },
+
+  { module: 'permissions', component: PermissionMatrixScreen, requires: ['permissions.read'] },
+  { module: 'infra', component: SupervisorInfraScreen, requires: ['metrics.read'] },
+  { module: 'pda', component: IntegrateurPdaScreen, requires: ['pda.read'] },
+  { module: 'declarations', component: AgentDeclarationsScreen, requires: ['declarations.read'] },
+  { module: 'supply', component: MarketeurSupplyScreen, requires: ['pickups.create'] },
+  { module: 'delivery-tours', component: MarketeurDeliveryToursScreen, requires: ['tours.read'] },
+  { module: 'transporteur-overview', component: TransporteurOverviewScreen, requires: ['tours.read'] },
+] as const
+
+/* --------------------------------------------------------------------------
+ * Permission-driven registration
+ *
+ * Same shape as before — `buildCustomScreenRegistry()` returns a
+ * `Record<\`${role}:${module}\`, Component>` — but its membership is
+ * derived from `ROLE_GRANTS`, so reducing a role's grants automatically
+ * hides the screen.
+ * --------------------------------------------------------------------------*/
+
+const ROLE_BESPOKE_BY_MODULE: Record<string, { role: WebRole; decl: BespokeCatalog }[]> = {
+  overview: [
+    { role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'overview')! },
+    { role: 'TRANSPORTEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'transporteur-overview')! },
   ],
-  ADMIN: [
-    {
-      file: 'module/permission-matrix.tsx',
-      component: PermissionMatrixScreen,
-      modules: ['permissions'],
-    },
+  organizations: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'organizations')! }],
+  transporters: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'transporters')! }],
+  map: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'map')! }],
+  risks: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'risks')! }],
+  'custom-roles': [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'custom-roles')! }],
+  permissions: [
+    { role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'permissions')! },
+    { role: 'ADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'permissions')! },
   ],
-  SUPERVISOR: [
-    {
-      file: 'roles/supervisor/infra-screen.tsx',
-      component: SupervisorInfraScreen,
-      modules: ['infra'],
-    },
-  ],
-  INTEGRATEUR: [
-    {
-      file: 'roles/integrateur/pda-screen.tsx',
-      component: IntegrateurPdaScreen,
-      modules: ['pda'],
-    },
-  ],
-  AGENT: [
-    {
-      file: 'roles/agent/declarations-screen.tsx',
-      component: AgentDeclarationsScreen,
-      modules: ['declarations'],
-    },
-  ],
-  MARKETEUR: [
-    {
-      file: 'roles/marketeur/supply-screen.tsx',
-      component: MarketeurSupplyScreen,
-      modules: ['supply'],
-    },
-    {
-      file: 'roles/marketeur/delivery-tours-screen.tsx',
-      component: MarketeurDeliveryToursScreen,
-      modules: ['delivery-tours'],
-    },
-  ],
-  TRANSPORTEUR: [
-    {
-      file: 'roles/transporteur/overview-screen.tsx',
-      component: TransporteurOverviewScreen,
-      modules: ['overview'],
-    },
-  ],
+  infra: [{ role: 'SUPERVISOR', decl: BESPOKE_SCREENS.find((s) => s.module === 'infra')! }],
+  pda: [{ role: 'INTEGRATEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'pda')! }],
+  declarations: [{ role: 'AGENT', decl: BESPOKE_SCREENS.find((s) => s.module === 'declarations')! }],
+  supply: [{ role: 'MARKETEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'supply')! }],
+  'delivery-tours': [{ role: 'MARKETEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'delivery-tours')! }],
 }
 
 export function buildCustomScreenRegistry(): Record<string, CustomScreenComponent> {
   const registry: Record<string, CustomScreenComponent> = {}
-  for (const [role, registrations] of Object.entries(ROLE_MANIFEST)) {
-    for (const reg of registrations) {
-      for (const module of reg.modules) {
-        registry[`${role}:${module}`] = reg.component
+  for (const [module, registrations] of Object.entries(ROLE_BESPOKE_BY_MODULE)) {
+    for (const { role, decl } of registrations) {
+      if (decl.requires.some((code) => hasPermission(role as Role, code))) {
+        registry[`${role}:${module}`] = decl.component
       }
     }
   }
   return registry
 }
+
+/**
+ * `ROLE_MANIFEST` retained for backward compatibility (existing
+ * `role-dashboard.tsx` reads it). Each entry is the same data shape as
+ * before but with the `requires` projection applied.
+ */
+export const ROLE_MANIFEST: Record<Role, RoleScreenRegistration[]> = (() => {
+  const roleKeys: WebRole[] = ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTEGRATEUR', 'AGENT', 'MARKETEUR', 'TRANSPORTEUR']
+  const out = {} as Record<Role, RoleScreenRegistration[]>
+  for (const roleKey of roleKeys) {
+    const entries: RoleScreenRegistration[] = []
+    for (const { module, registrations } of Object.entries(ROLE_BESPOKE_BY_MODULE)) {
+      for (const { role, decl } of registrations) {
+        if (role === roleKey && decl.requires.some((code) => hasPermission(role as Role, code))) {
+          entries.push({
+            module,
+            component: decl.component,
+            requires: decl.requires,
+          })
+        }
+      }
+    }
+    if (roleKey in out || entries.length > 0) {
+      ;(out as any)[roleKey] = entries
+    }
+  }
+  return out
+})()
