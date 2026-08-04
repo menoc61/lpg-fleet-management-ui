@@ -4,16 +4,8 @@
  * are trivially testable.
  */
 
-import { curated } from './curated'
-import type {
-  Anomaly,
-  Declaration,
-  Device,
-  DeliveryTour,
-  Organization,
-  Reconciliation,
-  RiskScore,
-} from './curated'
+import { curated } from './curated.ts'
+import type { Anomaly, Declaration, Device, DeliveryTour, Organization, Reconciliation, RiskScore } from './curated.ts'
 
 type Indexable = object
 
@@ -408,14 +400,4 @@ export function buildAnalytics(): Analytics {
     checkpoints: checkpointStats(),
     notifications: notificationStats(),
   }
-}
-
-export type {
-  Anomaly,
-  Declaration,
-  Device,
-  DeliveryTour,
-  Organization,
-  Reconciliation,
-  RiskScore,
 }
