@@ -145,7 +145,7 @@ export function SuperAdminRiskDashboardScreen() {
             <CardTitle className='text-base'>Évolution des scores (30 jours)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width='100%' height={280}>
+            <ResponsiveContainer width='100%' aspect={16 / 9}>
               <AreaChart data={[...HISTORY]}>
                 <defs>
                   {SERIES_LEGEND.map((c) => (
@@ -175,7 +175,7 @@ export function SuperAdminRiskDashboardScreen() {
             <CardTitle className='text-base'>Score moyen par type d&apos;entité</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width='100%' height={280}>
+            <ResponsiveContainer width='100%' aspect={16 / 9}>
               <BarChart data={entityBreakdown}>
                 <CartesianGrid strokeDasharray='3 3' className='stroke-muted/40' />
                 <XAxis

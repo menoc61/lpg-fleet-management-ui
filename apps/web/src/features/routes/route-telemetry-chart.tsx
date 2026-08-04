@@ -47,7 +47,7 @@ export function RouteTelemetryChart({
       </CardHeader>
       <CardContent className='space-y-4 p-4'>
         <div className='surface-sunken h-[320px] px-2 py-4'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' aspect={16 / 9}>
             <ComposedChart data={chartData}>
               <defs>
                 <linearGradient

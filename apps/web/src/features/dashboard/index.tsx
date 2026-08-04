@@ -714,7 +714,7 @@ function MonthlyVolumesCard({
       </CardHeader>
       <CardContent className='space-y-5'>
         <div className='h-[290px]'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' aspect={16 / 9}>
             <BarChart data={series} barCategoryGap={18}>
               <CartesianGrid
                 stroke='rgba(148, 163, 184, 0.18)'
@@ -812,7 +812,7 @@ function ReserveSummaryCard({
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='relative mx-auto h-[220px] w-full max-w-[240px]'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' aspect={16 / 9}>
             <PieChart>
               <Pie
                 data={summary}
