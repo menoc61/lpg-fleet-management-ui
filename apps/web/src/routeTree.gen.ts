@@ -18,6 +18,7 @@ import { Route as AuthenticatedRoleIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedRoleModuleRouteImport } from './routes/_authenticated/$role/$module'
 import { Route as AuthenticatedRoleDashboardRouteImport } from './routes/_authenticated/$role/dashboard'
 import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
+import { Route as AuthenticatedClientSitesIndexRouteImport } from './routes/_authenticated/client-sites/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
 import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
@@ -25,6 +26,8 @@ import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSettingsNotificationGroupsRouteImport } from './routes/_authenticated/settings/notification-groups'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile'
+import { Route as AuthenticatedSiteVerificationsIndexRouteImport } from './routes/_authenticated/site-verifications/index'
+import { Route as AuthenticatedSitesIndexRouteImport } from './routes/_authenticated/sites/index'
 import { Route as AuthenticatedTransportersIndexRouteImport } from './routes/_authenticated/transporters/index'
 import { Route as AuthenticatedTransportersTransporterIdRouteImport } from './routes/_authenticated/transporters/$transporterId'
 import { Route as AuthenticatedTrucksIndexRouteImport } from './routes/_authenticated/trucks/index'
@@ -78,6 +81,12 @@ const AuthenticatedActivityTripTrackingRoute =
     path: '/activity/trip-tracking',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClientSitesIndexRoute =
+  AuthenticatedClientSitesIndexRouteImport.update({
+    id: '/client-sites/',
+    path: '/client-sites/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/',
@@ -120,6 +129,17 @@ const AuthenticatedSettingsProfileRoute =
     path: '/settings/profile',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSiteVerificationsIndexRoute =
+  AuthenticatedSiteVerificationsIndexRouteImport.update({
+    id: '/site-verifications/',
+    path: '/site-verifications/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSitesIndexRoute = AuthenticatedSitesIndexRouteImport.update({
+  id: '/sites/',
+  path: '/sites/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTransportersIndexRoute =
   AuthenticatedTransportersIndexRouteImport.update({
     id: '/transporters/',
@@ -171,10 +191,13 @@ export interface FileRoutesByFullPath {
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/$role/': typeof AuthenticatedRoleIndexRoute
+  '/client-sites/': typeof AuthenticatedClientSitesIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/routes/': typeof AuthenticatedRoutesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/site-verifications/': typeof AuthenticatedSiteVerificationsIndexRoute
+  '/sites/': typeof AuthenticatedSitesIndexRoute
   '/transporters/': typeof AuthenticatedTransportersIndexRoute
   '/trucks/': typeof AuthenticatedTrucksIndexRoute
   '/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
@@ -193,10 +216,13 @@ export interface FileRoutesByTo {
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/$role': typeof AuthenticatedRoleIndexRoute
+  '/client-sites': typeof AuthenticatedClientSitesIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/marketers': typeof AuthenticatedMarketersIndexRoute
   '/routes': typeof AuthenticatedRoutesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/site-verifications': typeof AuthenticatedSiteVerificationsIndexRoute
+  '/sites': typeof AuthenticatedSitesIndexRoute
   '/transporters': typeof AuthenticatedTransportersIndexRoute
   '/trucks': typeof AuthenticatedTrucksIndexRoute
   '/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
@@ -218,10 +244,13 @@ export interface FileRoutesById {
   '/_authenticated/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/_authenticated/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/_authenticated/$role/': typeof AuthenticatedRoleIndexRoute
+  '/_authenticated/client-sites/': typeof AuthenticatedClientSitesIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/_authenticated/routes/': typeof AuthenticatedRoutesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/site-verifications/': typeof AuthenticatedSiteVerificationsIndexRoute
+  '/_authenticated/sites/': typeof AuthenticatedSitesIndexRoute
   '/_authenticated/transporters/': typeof AuthenticatedTransportersIndexRoute
   '/_authenticated/trucks/': typeof AuthenticatedTrucksIndexRoute
   '/_authenticated/dashboard/fleets/$fleetName': typeof AuthenticatedDashboardFleetsFleetNameRoute
@@ -243,10 +272,13 @@ export interface FileRouteTypes {
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
     | '/$role/'
+    | '/client-sites/'
     | '/dashboard/'
     | '/marketers/'
     | '/routes/'
     | '/settings/'
+    | '/site-verifications/'
+    | '/sites/'
     | '/transporters/'
     | '/trucks/'
     | '/dashboard/fleets/$fleetName'
@@ -265,10 +297,13 @@ export interface FileRouteTypes {
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
     | '/$role'
+    | '/client-sites'
     | '/dashboard'
     | '/marketers'
     | '/routes'
     | '/settings'
+    | '/site-verifications'
+    | '/sites'
     | '/transporters'
     | '/trucks'
     | '/dashboard/fleets/$fleetName'
@@ -289,10 +324,13 @@ export interface FileRouteTypes {
     | '/_authenticated/transporters/$transporterId'
     | '/_authenticated/trucks/$truckId'
     | '/_authenticated/$role/'
+    | '/_authenticated/client-sites/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/marketers/'
     | '/_authenticated/routes/'
     | '/_authenticated/settings/'
+    | '/_authenticated/site-verifications/'
+    | '/_authenticated/sites/'
     | '/_authenticated/transporters/'
     | '/_authenticated/trucks/'
     | '/_authenticated/dashboard/fleets/$fleetName'
@@ -370,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActivityTripTrackingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/client-sites/': {
+      id: '/_authenticated/client-sites/'
+      path: '/client-sites'
+      fullPath: '/client-sites/'
+      preLoaderRoute: typeof AuthenticatedClientSitesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
       path: '/'
@@ -417,6 +462,20 @@ declare module '@tanstack/react-router' {
       path: '/settings/profile'
       fullPath: '/settings/profile'
       preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/site-verifications/': {
+      id: '/_authenticated/site-verifications/'
+      path: '/site-verifications'
+      fullPath: '/site-verifications/'
+      preLoaderRoute: typeof AuthenticatedSiteVerificationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sites/': {
+      id: '/_authenticated/sites/'
+      path: '/sites'
+      fullPath: '/sites/'
+      preLoaderRoute: typeof AuthenticatedSitesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/transporters/': {
@@ -496,9 +555,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTransportersTransporterIdRoute: typeof AuthenticatedTransportersTransporterIdRoute
   AuthenticatedTrucksTruckIdRoute: typeof AuthenticatedTrucksTruckIdRoute
   AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
+  AuthenticatedClientSitesIndexRoute: typeof AuthenticatedClientSitesIndexRoute
   AuthenticatedMarketersIndexRoute: typeof AuthenticatedMarketersIndexRoute
   AuthenticatedRoutesIndexRoute: typeof AuthenticatedRoutesIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+  AuthenticatedSiteVerificationsIndexRoute: typeof AuthenticatedSiteVerificationsIndexRoute
+  AuthenticatedSitesIndexRoute: typeof AuthenticatedSitesIndexRoute
   AuthenticatedTransportersIndexRoute: typeof AuthenticatedTransportersIndexRoute
   AuthenticatedTrucksIndexRoute: typeof AuthenticatedTrucksIndexRoute
 }
@@ -518,9 +580,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedTransportersTransporterIdRoute,
   AuthenticatedTrucksTruckIdRoute: AuthenticatedTrucksTruckIdRoute,
   AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
+  AuthenticatedClientSitesIndexRoute: AuthenticatedClientSitesIndexRoute,
   AuthenticatedMarketersIndexRoute: AuthenticatedMarketersIndexRoute,
   AuthenticatedRoutesIndexRoute: AuthenticatedRoutesIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+  AuthenticatedSiteVerificationsIndexRoute:
+    AuthenticatedSiteVerificationsIndexRoute,
+  AuthenticatedSitesIndexRoute: AuthenticatedSitesIndexRoute,
   AuthenticatedTransportersIndexRoute: AuthenticatedTransportersIndexRoute,
   AuthenticatedTrucksIndexRoute: AuthenticatedTrucksIndexRoute,
 }
