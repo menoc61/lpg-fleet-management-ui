@@ -223,7 +223,7 @@ export function SuperAdminMapScreen() {
     }
 
     const map = new ArcGISMap({
-      basemap: mapTheme === 'dark' ? 'dark-gray-vector' : 'streets-navigation-vector',
+      basemap: 'dark-gray-vector',
       layers: [zonesLayer, heatLayer, supplyLayer, checkpointsLayer, sitesLayer, trucksLayer],
     })
 
@@ -256,6 +256,7 @@ export function SuperAdminMapScreen() {
         applyLayerVisibility()
       })
       .catch((err) => {
+        console.error('Map view failed to load:', err)
         if (err?.name === 'AbortError') return
         setLoadFailed(true)
       })
