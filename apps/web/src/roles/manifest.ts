@@ -35,7 +35,7 @@ type ScreenRegistration = {
 }
 
 export const ROLE_MANIFEST: Record<Role, ScreenRegistration[]> = {
-  SUPER_ADMIN: [
+  SUPERADMIN: [
     {
       file: 'roles/super-admin/overview-screen.tsx',
       component: SuperAdminOverviewScreen,

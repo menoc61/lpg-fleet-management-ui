@@ -42,7 +42,7 @@ const MARKETEUR_FIELDS: ModuleField[] = [
     options: STATUS,
     filterable: true,
   },
-  { key: 'declaredAt', header: 'Déclaration', type: 'date' },
+  { key: 'declared_at', header: 'Déclaration', type: 'date' },
 ]
 
 export const MODULE_REGISTRY: ModuleRegistry = {
@@ -56,7 +56,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'traceability', header: 'Traçabilité %', type: 'number' },
       { key: 'volume', header: 'Volume (t)', type: 'number' },
       { key: 'anomalies', header: 'Anomalies', type: 'number' },
-      { key: 'updatedAt', header: 'Mis à jour', type: 'date' },
+      { key: 'updated_at', header: 'Mis à jour', type: 'date' },
     ],
   },
   'SUPER_ADMIN:map': {
@@ -67,7 +67,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'site', header: 'Site', type: 'text', filterable: true },
       { key: 'region', header: 'Région', type: 'text', filterable: true },
       { key: 'status', header: 'Statut', type: 'status', options: STATUS, filterable: true },
-      { key: 'updatedAt', header: 'Mis à jour', type: 'date' },
+      { key: 'updated_at', header: 'Mis à jour', type: 'date' },
     ],
   },
   'SUPER_ADMIN:finance': {
@@ -98,7 +98,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+      { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:marketeurs': {
@@ -135,7 +135,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: STATUS,
         filterable: true,
       },
-      { key: 'createdAt', header: 'Créé le', type: 'date' },
+      { key: 'created_at', header: 'Créé le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:users': {
@@ -150,7 +150,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         header: 'Rôle',
         type: 'badge',
         options: [
-          { label: 'Super Admin', value: 'SUPER_ADMIN' },
+          { label: 'Super Admin', value: 'SUPERADMIN' },
           { label: 'Admin', value: 'ADMIN' },
           { label: 'Superviseur', value: 'SUPERVISOR' },
           { label: 'Intégrateur', value: 'INTEGRATEUR' },
@@ -168,7 +168,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: STATUS,
         filterable: true,
       },
-      { key: 'lastLogin', header: 'Dernière connexion', type: 'date' },
+      { key: 'last_login_at', header: 'Dernière connexion', type: 'date' },
     ],
   },
   'SUPER_ADMIN:tours': {
@@ -192,7 +192,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         groupable: true,
       },
       { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
-      { key: 'startedAt', header: 'Début', type: 'date' },
+      { key: 'started_at', header: 'Début', type: 'date' },
     ],
   },
   'SUPER_ADMIN:deliveries': {
@@ -221,7 +221,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
     fields: [
       { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
       { key: 'period', header: 'Période', type: 'text' },
-      { key: 'declaredVolume', header: 'Volume déclaré', type: 'number' },
+      { key: 'declared_volume', header: 'Volume déclaré', type: 'number' },
       {
         key: 'status',
         header: 'Statut',
@@ -235,7 +235,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'submittedAt', header: 'Soumis le', type: 'date' },
+      { key: 'submitted_at', header: 'Soumis le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:reconciliations': {
@@ -244,8 +244,8 @@ export const MODULE_REGISTRY: ModuleRegistry = {
     mockCount: 26,
     fields: [
       { key: 'declaration', header: 'Déclaration', type: 'text', filterable: true },
-      { key: 'trackedVolume', header: 'Volume tracké', type: 'number' },
-      { key: 'volumeGap', header: 'Écart volume', type: 'number' },
+      { key: 'tracked_volume', header: 'Volume tracké', type: 'number' },
+      { key: 'volume_gap', header: 'Écart volume', type: 'number' },
       {
         key: 'status',
         header: 'Statut',
@@ -254,7 +254,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'verifiedAt', header: 'Vérifié le', type: 'date' },
+      { key: 'verified_at', header: 'Vérifié le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:redressements': {
@@ -272,8 +272,8 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'issuedAt', header: 'Émis le', type: 'date' },
-      { key: 'paidAt', header: 'Payé le', type: 'date' },
+      { key: 'issued_at', header: 'Émis le', type: 'date' },
+      { key: 'paid_at', header: 'Payé le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:anomalies': {
@@ -301,7 +301,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: RISK,
         filterable: true,
       },
-      { key: 'detectedAt', header: 'Détecté le', type: 'date' },
+      { key: 'detected_at', header: 'Détecté le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:incidents': {
@@ -359,7 +359,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'name', header: 'Rôle', type: 'text', filterable: true },
       { key: 'permissions', header: 'Permissions', type: 'number' },
       { key: 'users', header: 'Utilisateurs', type: 'number' },
-      { key: 'createdAt', header: 'Créé le', type: 'date' },
+      { key: 'created_at', header: 'Créé le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:delivery-types': {
@@ -429,7 +429,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'generatedAt', header: 'Généré le', type: 'date' },
+      { key: 'generated_at', header: 'Généré le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:audit-logs': {
@@ -464,7 +464,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'key', header: 'Clé', type: 'text', filterable: true },
       { key: 'value', header: 'Valeur', type: 'text' },
       { key: 'category', header: 'Catégorie', type: 'text', filterable: true, groupable: true },
-      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+      { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:system-health': {
@@ -486,7 +486,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         groupable: true,
       },
       { key: 'latency', header: 'Latence', type: 'number' },
-      { key: 'checkedAt', header: 'Vérifié le', type: 'date' },
+      { key: 'checked_at', header: 'Vérifié le', type: 'date' },
     ],
   },
 
@@ -511,7 +511,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         groupable: true,
       },
       { key: 'status', header: 'Statut', type: 'status', options: STATUS, filterable: true },
-      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+      { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
   'ADMIN:marketeurs': {
@@ -535,7 +535,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'submittedAt', header: 'Soumis le', type: 'date' },
+      { key: 'submitted_at', header: 'Soumis le', type: 'date' },
     ],
   },
   'ADMIN:reports': {
@@ -553,7 +553,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'generatedAt', header: 'Généré le', type: 'date' },
+      { key: 'generated_at', header: 'Généré le', type: 'date' },
     ],
   },
   'ADMIN:alert-rules': {
@@ -570,7 +570,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+      { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
 
@@ -583,7 +583,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'metric', header: 'Métrique', type: 'text', filterable: true },
       { key: 'value', header: 'Valeur', type: 'number' },
       { key: 'unit', header: 'Unité', type: 'text' },
-      { key: 'checkedAt', header: 'Vérifié le', type: 'date' },
+      { key: 'checked_at', header: 'Vérifié le', type: 'date' },
     ],
   },
   'SUPERVISOR:infra': {
@@ -605,7 +605,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         groupable: true,
       },
       { key: 'cpu', header: 'CPU %', type: 'number' },
-      { key: 'checkedAt', header: 'Vérifié le', type: 'date' },
+      { key: 'checked_at', header: 'Vérifié le', type: 'date' },
     ],
   },
   'SUPERVISOR:risk': {
@@ -691,7 +691,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: STATUS,
         filterable: true,
       },
-      { key: 'activatedAt', header: 'Activé le', type: 'date' },
+      { key: 'activated_at', header: 'Activé le', type: 'date' },
     ],
   },
   'INTEGRATEUR:pda': {
@@ -719,7 +719,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: SYNC,
         filterable: true,
       },
-      { key: 'activatedAt', header: 'Activé le', type: 'date' },
+      { key: 'activated_at', header: 'Activé le', type: 'date' },
     ],
   },
   'INTEGRATEUR:auth': {
@@ -780,7 +780,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
       { key: 'pending', header: 'En attente', type: 'number' },
       { key: 'anomalies', header: 'Anomalies', type: 'number' },
-      { key: 'updatedAt', header: 'Mis à jour', type: 'date' },
+      { key: 'updated_at', header: 'Mis à jour', type: 'date' },
     ],
   },
   'AGENT:marketeurs': {
@@ -804,7 +804,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'submittedAt', header: 'Soumis le', type: 'date' },
+      { key: 'submitted_at', header: 'Soumis le', type: 'date' },
     ],
   },
   'AGENT:visits': {
@@ -863,8 +863,8 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'verifiedBy', header: 'Vérifié par', type: 'text' },
-      { key: 'verifiedAt', header: 'Vérifié le', type: 'date' },
+      { key: 'verified_by', header: 'Vérifié par', type: 'text' },
+      { key: 'verified_at', header: 'Vérifié le', type: 'date' },
     ],
   },
 
@@ -889,7 +889,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+      { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
   'MARKETEUR:quotas': {
@@ -988,7 +988,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'generatedAt', header: 'Généré le', type: 'date' },
+      { key: 'generated_at', header: 'Généré le', type: 'date' },
     ],
   },
 
@@ -1021,7 +1021,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'createdAt', header: 'Créée le', type: 'date' },
+      { key: 'created_at', header: 'Créée le', type: 'date' },
     ],
   },
   'TRANSPORTEUR:tours-active': {
@@ -1045,7 +1045,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         groupable: true,
       },
       { key: 'progress', header: 'Avancement', type: 'number' },
-      { key: 'startedAt', header: 'Début', type: 'date' },
+      { key: 'started_at', header: 'Début', type: 'date' },
     ],
   },
   'TRANSPORTEUR:tours-history': {
@@ -1068,7 +1068,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
         groupable: true,
       },
-      { key: 'closedAt', header: 'Clôturée le', type: 'date' },
+      { key: 'closed_at', header: 'Clôturée le', type: 'date' },
     ],
   },
   'TRANSPORTEUR:vehicles': {
