@@ -32,6 +32,7 @@ import { SuperAdminRiskDashboardScreen } from '@/roles/super-admin/risk-dashboar
 import { SuperAdminCustomRolesScreen } from '@/roles/super-admin/custom-roles-screen'
 import { SupervisorInfraScreen } from '@/roles/supervisor/infra-screen'
 import { TransporteurOverviewScreen } from '@/roles/transporteur/overview-screen'
+import { PickupsPage } from '@/features/pickups'
 
 import { type CustomScreenComponent } from '@/module/custom-screens'
 
@@ -64,6 +65,7 @@ const BESPOKE_SCREENS: ReadonlyArray<BespokeCatalog> = [
   { module: 'pda', component: IntegrateurPdaScreen, requires: ['pda.read'] },
   { module: 'declarations', component: AgentDeclarationsScreen, requires: ['declarations.read'] },
   { module: 'supply', component: MarketeurSupplyScreen, requires: ['pickups.create'] },
+  { module: 'pickups', component: PickupsPage, requires: ['pickups.read'] },
   { module: 'delivery-tours', component: MarketeurDeliveryToursScreen, requires: ['tours.read'] },
   { module: 'transporteur-overview', component: TransporteurOverviewScreen, requires: ['tours.read'] },
 ] as const
@@ -95,6 +97,10 @@ const ROLE_BESPOKE_BY_MODULE: Record<string, { role: WebRole; decl: BespokeCatal
   pda: [{ role: 'INTEGRATEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'pda')! }],
   declarations: [{ role: 'AGENT', decl: BESPOKE_SCREENS.find((s) => s.module === 'declarations')! }],
   supply: [{ role: 'MARKETEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'supply')! }],
+  pickups: [
+    { role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'pickups')! },
+    { role: 'ADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'pickups')! },
+  ],
   'delivery-tours': [{ role: 'MARKETEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'delivery-tours')! }],
 }
 

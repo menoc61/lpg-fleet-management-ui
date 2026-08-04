@@ -22,6 +22,7 @@ import { Route as AuthenticatedClientSitesIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
 import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
+import { Route as AuthenticatedPickupsIndexRouteImport } from './routes/_authenticated/pickups/index'
 import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenticated/routes/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSettingsNotificationGroupsRouteImport } from './routes/_authenticated/settings/notification-groups'
@@ -103,6 +104,12 @@ const AuthenticatedMarketersMarketerIdRoute =
   AuthenticatedMarketersMarketerIdRouteImport.update({
     id: '/marketers/$marketerId',
     path: '/marketers/$marketerId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPickupsIndexRoute =
+  AuthenticatedPickupsIndexRouteImport.update({
+    id: '/pickups/',
+    path: '/pickups/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedRoutesIndexRoute =
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/client-sites/': typeof AuthenticatedClientSitesIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/marketers/': typeof AuthenticatedMarketersIndexRoute
+  '/pickups/': typeof AuthenticatedPickupsIndexRoute
   '/routes/': typeof AuthenticatedRoutesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/site-verifications/': typeof AuthenticatedSiteVerificationsIndexRoute
@@ -219,6 +227,7 @@ export interface FileRoutesByTo {
   '/client-sites': typeof AuthenticatedClientSitesIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/marketers': typeof AuthenticatedMarketersIndexRoute
+  '/pickups': typeof AuthenticatedPickupsIndexRoute
   '/routes': typeof AuthenticatedRoutesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/site-verifications': typeof AuthenticatedSiteVerificationsIndexRoute
@@ -247,6 +256,7 @@ export interface FileRoutesById {
   '/_authenticated/client-sites/': typeof AuthenticatedClientSitesIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/marketers/': typeof AuthenticatedMarketersIndexRoute
+  '/_authenticated/pickups/': typeof AuthenticatedPickupsIndexRoute
   '/_authenticated/routes/': typeof AuthenticatedRoutesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/site-verifications/': typeof AuthenticatedSiteVerificationsIndexRoute
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/client-sites/'
     | '/dashboard/'
     | '/marketers/'
+    | '/pickups/'
     | '/routes/'
     | '/settings/'
     | '/site-verifications/'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/client-sites'
     | '/dashboard'
     | '/marketers'
+    | '/pickups'
     | '/routes'
     | '/settings'
     | '/site-verifications'
@@ -327,6 +339,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client-sites/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/marketers/'
+    | '/_authenticated/pickups/'
     | '/_authenticated/routes/'
     | '/_authenticated/settings/'
     | '/_authenticated/site-verifications/'
@@ -434,6 +447,13 @@ declare module '@tanstack/react-router' {
       path: '/marketers/$marketerId'
       fullPath: '/marketers/$marketerId'
       preLoaderRoute: typeof AuthenticatedMarketersMarketerIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pickups/': {
+      id: '/_authenticated/pickups/'
+      path: '/pickups'
+      fullPath: '/pickups/'
+      preLoaderRoute: typeof AuthenticatedPickupsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/routes/': {
@@ -557,6 +577,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
   AuthenticatedClientSitesIndexRoute: typeof AuthenticatedClientSitesIndexRoute
   AuthenticatedMarketersIndexRoute: typeof AuthenticatedMarketersIndexRoute
+  AuthenticatedPickupsIndexRoute: typeof AuthenticatedPickupsIndexRoute
   AuthenticatedRoutesIndexRoute: typeof AuthenticatedRoutesIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedSiteVerificationsIndexRoute: typeof AuthenticatedSiteVerificationsIndexRoute
@@ -582,6 +603,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
   AuthenticatedClientSitesIndexRoute: AuthenticatedClientSitesIndexRoute,
   AuthenticatedMarketersIndexRoute: AuthenticatedMarketersIndexRoute,
+  AuthenticatedPickupsIndexRoute: AuthenticatedPickupsIndexRoute,
   AuthenticatedRoutesIndexRoute: AuthenticatedRoutesIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedSiteVerificationsIndexRoute:
