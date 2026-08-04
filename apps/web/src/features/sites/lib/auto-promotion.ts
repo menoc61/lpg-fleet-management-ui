@@ -12,7 +12,7 @@ type Translator = (fr: string) => string
 const MIN_DELIVERIES = 5
 
 export function explainPromotion(
-  row: Pick<SiteRow, 'status' | 'delivery_count' | 'geo_confidence_score'>,
+  row: Pick<SiteRow, 'id' | 'status' | 'delivery_count' | 'geo_confidence_score'>,
   thresholds: PromotionThresholds,
   t: Translator,
 ): string | null {
