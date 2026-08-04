@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
-  contractTierOptions,
+  contract_tierOptions,
   truckMarketerOptions,
   truckStatusOptions,
   truckTenantOptions,
@@ -49,8 +49,8 @@ export function TrucksTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     compartments: false,
     gpsImei: false,
-    permitExpiry: false,
-    lastPing: false,
+    permit_expiry: false,
+    last_ping: false,
   })
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
@@ -72,9 +72,9 @@ export function TrucksTable({
     columnFilters: [
       { columnId: 'id', searchKey: 'q', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'tenantName', searchKey: 'company', type: 'array' },
+      { columnId: 'tenant_name', searchKey: 'company', type: 'array' },
       { columnId: 'marketer', searchKey: 'site', type: 'array' },
-      { columnId: 'contractTier', searchKey: 'contract', type: 'array' },
+      { columnId: 'contract_tier', searchKey: 'contract', type: 'array' },
     ],
   })
 
@@ -125,7 +125,7 @@ export function TrucksTable({
             options: truckStatusOptions,
           },
           {
-            columnId: 'tenantName',
+            columnId: 'tenant_name',
             title: 'Entreprise',
             options: truckTenantOptions,
           },
@@ -135,9 +135,9 @@ export function TrucksTable({
             options: truckMarketerOptions,
           },
           {
-            columnId: 'contractTier',
+            columnId: 'contract_tier',
             title: 'Contrat',
-            options: contractTierOptions,
+            options: contract_tierOptions,
           },
         ]}
       />

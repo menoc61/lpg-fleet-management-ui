@@ -4,53 +4,53 @@ export type TruckStatus =
   | 'maintenance'
   | 'inactive'
 
-export type ContractTier = 'Starter' | 'Growth' | 'Enterprise'
+export type contract_tier = 'Starter' | 'Growth' | 'Enterprise'
 
-export type TruckRiskLevel = 'low' | 'medium' | 'high'
+export type Truckrisk_level = 'low' | 'medium' | 'high'
 
 export type Truck = {
   id: string
-  plateNumber: string
-  tenantName: string
+  plate_number: string
+  tenant_name: string
   marketer: string
   status: TruckStatus
-  tankCapacityLiters: number
+  tank_capacity_liters: number
   compartments: number
   fuelType: 'GPL'
-  makeModel: string
+  make_model: string
   year: number
   gpsImei: string
-  assignedDriver: string
-  driverPhone: string
-  fleetManager: string
-  operatingRegion: string
-  homeDepot: string
-  currentLocation: string
+  assigned_driver: string
+  driver_phone: string
+  fleet_manager: string
+  operating_region: string
+  home_depot: string
+  current_location: string
   latitude: number
   longitude: number
   destination: string
-  destinationLatitude: number
-  destinationLongitude: number
-  assignedRoute: string
+  destination_latitude: number
+  destination_longitude: number
+  assigned_route: string
   odometerKm: number
   nextServiceKm: number
-  lastServiceDate: string
-  insuranceExpiry: string
-  technicalVisitExpiry: string
-  permitExpiry: string
-  lastPing: string
-  contractTier: ContractTier
-  riskLevel: TruckRiskLevel
+  last_service_date: string
+  insurance_expiry: string
+  technical_visit_expiry: string
+  permit_expiry: string
+  last_ping: string
+  contract_tier: contract_tier
+  risk_level: Truckrisk_level
 }
 
 export type TruckTelemetry = {
-  speedKmh: number
-  lpgLevelPercent: number
-  etaText: string
-  distanceKm: number
-  routeProgress: number
+  speed_kmh: number
+  lpg_level_percent: number
+  eta_text: string
+  distance_km: number
+  route_progress: number
   pressureBar: number
-  temperatureCelsius: number
+  temperature_celsius: number
 }
 
 export const statusLabels: Record<TruckStatus, string> = {
@@ -70,13 +70,13 @@ export const statusClasses: Record<TruckStatus, string> = {
   inactive: 'bg-muted text-muted-foreground',
 }
 
-export const riskLabels: Record<TruckRiskLevel, string> = {
+export const riskLabels: Record<Truckrisk_level, string> = {
   low: 'Normal',
   medium: 'A surveiller',
   high: 'Critique',
 }
 
-export const riskClasses: Record<TruckRiskLevel, string> = {
+export const riskClasses: Record<Truckrisk_level, string> = {
   low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
   medium:
     'bg-amber-500/10 text-amber-700 dark:text-amber-300',
@@ -90,7 +90,7 @@ export const truckStatusOptions = [
   { label: 'Inactif', value: 'inactive' },
 ]
 
-export const contractTierOptions = [
+export const contract_tierOptions = [
   { label: 'Starter', value: 'Starter' },
   { label: 'Growth', value: 'Growth' },
   { label: 'Enterprise', value: 'Enterprise' },
@@ -99,270 +99,270 @@ export const contractTierOptions = [
 export const trucks: Truck[] = [
   {
     id: 'TRX-CM-001',
-    plateNumber: 'CE 2145 AB',
-    tenantName: 'Tradex',
+    plate_number: 'CE 2145 AB',
+    tenant_name: 'Tradex',
     marketer: 'Tradex Douala',
     status: 'available',
-    tankCapacityLiters: 22000,
+    tank_capacity_liters: 22000,
     compartments: 3,
     fuelType: 'GPL',
-    makeModel: 'HOWO Sinotruk 6x4',
+    make_model: 'HOWO Sinotruk 6x4',
     year: 2022,
     gpsImei: '356938035643809',
-    assignedDriver: 'Nji Gilbert',
-    driverPhone: '+237 6 72 14 09 31',
-    fleetManager: 'Diane Fotso',
-    operatingRegion: 'Littoral',
-    homeDepot: 'Dépôt Bonaberi',
-    currentLocation: 'Dépôt Bonaberi, Douala',
+    assigned_driver: 'Nji Gilbert',
+    driver_phone: '+237 6 72 14 09 31',
+    fleet_manager: 'Diane Fotso',
+    operating_region: 'Littoral',
+    home_depot: 'Dépôt Bonaberi',
+    current_location: 'Dépôt Bonaberi, Douala',
     latitude: 4.0751,
     longitude: 9.6814,
     destination: 'Station Tradex Akwa',
-    destinationLatitude: 4.0498,
-    destinationLongitude: 9.7679,
-    assignedRoute: 'Bonaberi - Akwa',
+    destination_latitude: 4.0498,
+    destination_longitude: 9.7679,
+    assigned_route: 'Bonaberi - Akwa',
     odometerKm: 58240,
     nextServiceKm: 61750,
-    lastServiceDate: '2026-03-18',
-    insuranceExpiry: '2026-11-08',
-    technicalVisitExpiry: '2026-09-22',
-    permitExpiry: '2026-10-14',
-    lastPing: '2026-04-23T10:42:00+01:00',
-    contractTier: 'Enterprise',
-    riskLevel: 'low',
+    last_service_date: '2026-03-18',
+    insurance_expiry: '2026-11-08',
+    technical_visit_expiry: '2026-09-22',
+    permit_expiry: '2026-10-14',
+    last_ping: '2026-04-23T10:42:00+01:00',
+    contract_tier: 'Enterprise',
+    risk_level: 'low',
   },
   {
     id: 'TTC-CM-002',
-    plateNumber: 'LT 8870 AD',
-    tenantName: 'Total Cameroun',
+    plate_number: 'LT 8870 AD',
+    tenant_name: 'Total Cameroun',
     marketer: 'Total Yaounde',
     status: 'in_transit',
-    tankCapacityLiters: 18000,
+    tank_capacity_liters: 18000,
     compartments: 2,
     fuelType: 'GPL',
-    makeModel: 'Mercedes Actros 1845',
+    make_model: 'Mercedes Actros 1845',
     year: 2021,
     gpsImei: '356938035643810',
-    assignedDriver: 'Mbah Armel',
-    driverPhone: '+237 6 90 44 18 26',
-    fleetManager: 'Patrick Ngono',
-    operatingRegion: 'Centre',
-    homeDepot: 'Dépôt Mvan',
-    currentLocation: 'Axe Yaounde - Mbalmayo',
+    assigned_driver: 'Mbah Armel',
+    driver_phone: '+237 6 90 44 18 26',
+    fleet_manager: 'Patrick Ngono',
+    operating_region: 'Centre',
+    home_depot: 'Dépôt Mvan',
+    current_location: 'Axe Yaounde - Mbalmayo',
     latitude: 3.6828,
     longitude: 11.5156,
     destination: 'Station Total Ebolowa',
-    destinationLatitude: 2.9167,
-    destinationLongitude: 11.15,
-    assignedRoute: 'Yaounde - Ebolowa',
+    destination_latitude: 2.9167,
+    destination_longitude: 11.15,
+    assigned_route: 'Yaounde - Ebolowa',
     odometerKm: 74315,
     nextServiceKm: 78000,
-    lastServiceDate: '2026-02-25',
-    insuranceExpiry: '2026-08-19',
-    technicalVisitExpiry: '2026-06-30',
-    permitExpiry: '2026-07-01',
-    lastPing: '2026-04-23T10:39:00+01:00',
-    contractTier: 'Growth',
-    riskLevel: 'medium',
+    last_service_date: '2026-02-25',
+    insurance_expiry: '2026-08-19',
+    technical_visit_expiry: '2026-06-30',
+    permit_expiry: '2026-07-01',
+    last_ping: '2026-04-23T10:39:00+01:00',
+    contract_tier: 'Growth',
+    risk_level: 'medium',
   },
   {
     id: 'CEX-CM-003',
-    plateNumber: 'CE 5312 BA',
-    tenantName: 'Centre Emplisseur Bonaberi',
+    plate_number: 'CE 5312 BA',
+    tenant_name: 'Centre Emplisseur Bonaberi',
     marketer: 'Hub Littoral',
     status: 'maintenance',
-    tankCapacityLiters: 16000,
+    tank_capacity_liters: 16000,
     compartments: 2,
     fuelType: 'GPL',
-    makeModel: 'Iveco Trakker 410',
+    make_model: 'Iveco Trakker 410',
     year: 2019,
     gpsImei: '356938035643811',
-    assignedDriver: 'Tchana Boris',
-    driverPhone: '+237 6 77 01 85 42',
-    fleetManager: 'Helene Kamga',
-    operatingRegion: 'Littoral',
-    homeDepot: 'Atelier Bonaberi',
-    currentLocation: 'Atelier Bonaberi',
+    assigned_driver: 'Tchana Boris',
+    driver_phone: '+237 6 77 01 85 42',
+    fleet_manager: 'Helene Kamga',
+    operating_region: 'Littoral',
+    home_depot: 'Atelier Bonaberi',
+    current_location: 'Atelier Bonaberi',
     latitude: 4.079,
     longitude: 9.6827,
     destination: 'Controle technique',
-    destinationLatitude: 4.079,
-    destinationLongitude: 9.6827,
-    assignedRoute: 'Maintenance atelier',
+    destination_latitude: 4.079,
+    destination_longitude: 9.6827,
+    assigned_route: 'Maintenance atelier',
     odometerKm: 121904,
     nextServiceKm: 122000,
-    lastServiceDate: '2026-04-21',
-    insuranceExpiry: '2026-05-28',
-    technicalVisitExpiry: '2026-05-02',
-    permitExpiry: '2026-05-18',
-    lastPing: '2026-04-23T09:58:00+01:00',
-    contractTier: 'Starter',
-    riskLevel: 'high',
+    last_service_date: '2026-04-21',
+    insurance_expiry: '2026-05-28',
+    technical_visit_expiry: '2026-05-02',
+    permit_expiry: '2026-05-18',
+    last_ping: '2026-04-23T09:58:00+01:00',
+    contract_tier: 'Starter',
+    risk_level: 'high',
   },
   {
     id: 'MKT-CM-004',
-    plateNumber: 'NW 4042 AC',
-    tenantName: 'Marketer Y',
+    plate_number: 'NW 4042 AC',
+    tenant_name: 'Marketer Y',
     marketer: 'Marketer Y Bafoussam',
     status: 'inactive',
-    tankCapacityLiters: 12000,
+    tank_capacity_liters: 12000,
     compartments: 1,
     fuelType: 'GPL',
-    makeModel: 'MAN TGS 18.440',
+    make_model: 'MAN TGS 18.440',
     year: 2018,
     gpsImei: '356938035643812',
-    assignedDriver: 'Fongang Junior',
-    driverPhone: '+237 6 99 64 74 11',
-    fleetManager: 'Nadine Talla',
-    operatingRegion: 'Ouest',
-    homeDepot: 'Dépôt Bafoussam',
-    currentLocation: 'Dépôt Bafoussam',
+    assigned_driver: 'Fongang Junior',
+    driver_phone: '+237 6 99 64 74 11',
+    fleet_manager: 'Nadine Talla',
+    operating_region: 'Ouest',
+    home_depot: 'Dépôt Bafoussam',
+    current_location: 'Dépôt Bafoussam',
     latitude: 5.4781,
     longitude: 10.4178,
     destination: 'Non affecte',
-    destinationLatitude: 5.4781,
-    destinationLongitude: 10.4178,
-    assignedRoute: 'Standby',
+    destination_latitude: 5.4781,
+    destination_longitude: 10.4178,
+    assigned_route: 'Standby',
     odometerKm: 134680,
     nextServiceKm: 138500,
-    lastServiceDate: '2026-01-17',
-    insuranceExpiry: '2026-12-03',
-    technicalVisitExpiry: '2026-10-16',
-    permitExpiry: '2026-12-03',
-    lastPing: '2026-04-22T17:15:00+01:00',
-    contractTier: 'Starter',
-    riskLevel: 'medium',
+    last_service_date: '2026-01-17',
+    insurance_expiry: '2026-12-03',
+    technical_visit_expiry: '2026-10-16',
+    permit_expiry: '2026-12-03',
+    last_ping: '2026-04-22T17:15:00+01:00',
+    contract_tier: 'Starter',
+    risk_level: 'medium',
   },
   {
     id: 'TRX-CM-005',
-    plateNumber: 'CE 7753 AE',
-    tenantName: 'Tradex',
+    plate_number: 'CE 7753 AE',
+    tenant_name: 'Tradex',
     marketer: 'Tradex Kribi',
     status: 'in_transit',
-    tankCapacityLiters: 20000,
+    tank_capacity_liters: 20000,
     compartments: 3,
     fuelType: 'GPL',
-    makeModel: 'Renault Trucks C460',
+    make_model: 'Renault Trucks C460',
     year: 2023,
     gpsImei: '356938035643813',
-    assignedDriver: 'Ekane Samuel',
-    driverPhone: '+237 6 96 28 45 33',
-    fleetManager: 'Diane Fotso',
-    operatingRegion: 'Sud',
-    homeDepot: 'Dépôt Kribi',
-    currentLocation: 'Axe Kribi - Edea',
+    assigned_driver: 'Ekane Samuel',
+    driver_phone: '+237 6 96 28 45 33',
+    fleet_manager: 'Diane Fotso',
+    operating_region: 'Sud',
+    home_depot: 'Dépôt Kribi',
+    current_location: 'Axe Kribi - Edea',
     latitude: 3.6312,
     longitude: 10.0454,
     destination: 'Dépôt Bonaberi',
-    destinationLatitude: 4.0751,
-    destinationLongitude: 9.6814,
-    assignedRoute: 'Kribi - Douala',
+    destination_latitude: 4.0751,
+    destination_longitude: 9.6814,
+    assigned_route: 'Kribi - Douala',
     odometerKm: 31420,
     nextServiceKm: 36000,
-    lastServiceDate: '2026-03-29',
-    insuranceExpiry: '2027-02-14',
-    technicalVisitExpiry: '2026-12-18',
-    permitExpiry: '2027-01-09',
-    lastPing: '2026-04-23T10:41:00+01:00',
-    contractTier: 'Enterprise',
-    riskLevel: 'low',
+    last_service_date: '2026-03-29',
+    insurance_expiry: '2027-02-14',
+    technical_visit_expiry: '2026-12-18',
+    permit_expiry: '2027-01-09',
+    last_ping: '2026-04-23T10:41:00+01:00',
+    contract_tier: 'Enterprise',
+    risk_level: 'low',
   },
   {
     id: 'TTC-CM-006',
-    plateNumber: 'CE 1207 AF',
-    tenantName: 'Total Cameroun',
+    plate_number: 'CE 1207 AF',
+    tenant_name: 'Total Cameroun',
     marketer: 'Total Douala',
     status: 'available',
-    tankCapacityLiters: 24000,
+    tank_capacity_liters: 24000,
     compartments: 4,
     fuelType: 'GPL',
-    makeModel: 'Volvo FMX 420',
+    make_model: 'Volvo FMX 420',
     year: 2020,
     gpsImei: '356938035643814',
-    assignedDriver: 'Ndombe Patrice',
-    driverPhone: '+237 6 75 82 18 09',
-    fleetManager: 'Patrick Ngono',
-    operatingRegion: 'Littoral',
-    homeDepot: 'Dépôt Bassa',
-    currentLocation: 'Dépôt Bassa, Douala',
+    assigned_driver: 'Ndombe Patrice',
+    driver_phone: '+237 6 75 82 18 09',
+    fleet_manager: 'Patrick Ngono',
+    operating_region: 'Littoral',
+    home_depot: 'Dépôt Bassa',
+    current_location: 'Dépôt Bassa, Douala',
     latitude: 4.0589,
     longitude: 9.7592,
     destination: 'Station Total Bonamoussadi',
-    destinationLatitude: 4.0912,
-    destinationLongitude: 9.7411,
-    assignedRoute: 'Bassa - Bonamoussadi',
+    destination_latitude: 4.0912,
+    destination_longitude: 9.7411,
+    assigned_route: 'Bassa - Bonamoussadi',
     odometerKm: 90135,
     nextServiceKm: 93500,
-    lastServiceDate: '2026-02-11',
-    insuranceExpiry: '2026-09-09',
-    technicalVisitExpiry: '2026-08-10',
-    permitExpiry: '2026-08-21',
-    lastPing: '2026-04-23T10:32:00+01:00',
-    contractTier: 'Growth',
-    riskLevel: 'low',
+    last_service_date: '2026-02-11',
+    insurance_expiry: '2026-09-09',
+    technical_visit_expiry: '2026-08-10',
+    permit_expiry: '2026-08-21',
+    last_ping: '2026-04-23T10:32:00+01:00',
+    contract_tier: 'Growth',
+    risk_level: 'low',
   },
 ]
 
 export const trucksTelemetryById: Record<string, TruckTelemetry> = {
   'TRX-CM-001': {
-    speedKmh: 100,
-    lpgLevelPercent: 72,
-    etaText: '1h 08m',
-    distanceKm: 72.9,
-    routeProgress: 74,
+    speed_kmh: 100,
+    lpg_level_percent: 72,
+    eta_text: '1h 08m',
+    distance_km: 72.9,
+    route_progress: 74,
     pressureBar: 11.7,
-    temperatureCelsius: 29,
+    temperature_celsius: 29,
   },
   'TTC-CM-002': {
-    speedKmh: 82,
-    lpgLevelPercent: 66,
-    etaText: '54m',
-    distanceKm: 49.4,
-    routeProgress: 79,
+    speed_kmh: 82,
+    lpg_level_percent: 66,
+    eta_text: '54m',
+    distance_km: 49.4,
+    route_progress: 79,
     pressureBar: 10.8,
-    temperatureCelsius: 31,
+    temperature_celsius: 31,
   },
   'CEX-CM-003': {
-    speedKmh: 0,
-    lpgLevelPercent: 34,
-    etaText: '--',
-    distanceKm: 0,
-    routeProgress: 0,
+    speed_kmh: 0,
+    lpg_level_percent: 34,
+    eta_text: '--',
+    distance_km: 0,
+    route_progress: 0,
     pressureBar: 6.4,
-    temperatureCelsius: 26,
+    temperature_celsius: 26,
   },
   'MKT-CM-004': {
-    speedKmh: 0,
-    lpgLevelPercent: 19,
-    etaText: '--',
-    distanceKm: 0,
-    routeProgress: 0,
+    speed_kmh: 0,
+    lpg_level_percent: 19,
+    eta_text: '--',
+    distance_km: 0,
+    route_progress: 0,
     pressureBar: 5.1,
-    temperatureCelsius: 25,
+    temperature_celsius: 25,
   },
   'TRX-CM-005': {
-    speedKmh: 94,
-    lpgLevelPercent: 78,
-    etaText: '1h 46m',
-    distanceKm: 131.2,
-    routeProgress: 53,
+    speed_kmh: 94,
+    lpg_level_percent: 78,
+    eta_text: '1h 46m',
+    distance_km: 131.2,
+    route_progress: 53,
     pressureBar: 12.1,
-    temperatureCelsius: 30,
+    temperature_celsius: 30,
   },
   'TTC-CM-006': {
-    speedKmh: 67,
-    lpgLevelPercent: 62,
-    etaText: '2h 03m',
-    distanceKm: 170.9,
-    routeProgress: 35,
+    speed_kmh: 67,
+    lpg_level_percent: 62,
+    eta_text: '2h 03m',
+    distance_km: 170.9,
+    route_progress: 35,
     pressureBar: 9.9,
-    temperatureCelsius: 28,
+    temperature_celsius: 28,
   },
 }
 
 export const truckTenantOptions = Array.from(
-  new Set(trucks.map((truck) => truck.tenantName))
-).map((tenantName) => ({ label: tenantName, value: tenantName }))
+  new Set(trucks.map((truck) => truck.tenant_name))
+).map((tenant_name) => ({ label: tenant_name, value: tenant_name }))
 
 export const truckMarketerOptions = Array.from(
   new Set(trucks.map((truck) => truck.marketer))
@@ -371,13 +371,13 @@ export const truckMarketerOptions = Array.from(
 export function getTruckTelemetry(truckId: string) {
   return (
     trucksTelemetryById[truckId] ?? {
-      speedKmh: 0,
-      lpgLevelPercent: 0,
-      etaText: '--',
-      distanceKm: 0,
-      routeProgress: 0,
+      speed_kmh: 0,
+      lpg_level_percent: 0,
+      eta_text: '--',
+      distance_km: 0,
+      route_progress: 0,
       pressureBar: 0,
-      temperatureCelsius: 0,
+      temperature_celsius: 0,
     }
   )
 }

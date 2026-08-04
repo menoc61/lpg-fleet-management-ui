@@ -55,7 +55,7 @@ export function TruckDetailsSheet({
               <div>
                 <SheetTitle className='text-xl'>{truck.id}</SheetTitle>
                 <SheetDescription>
-                  {truck.makeModel} - {truck.plateNumber}
+                  {truck.make_model} - {truck.plate_number}
                 </SheetDescription>
               </div>
               <Badge className={cn('font-medium', statusClasses[truck.status])}>
@@ -68,26 +68,26 @@ export function TruckDetailsSheet({
             <div className='grid grid-cols-2 gap-3'>
               <MetricCard
                 label='LPG'
-                value={`${telemetry.lpgLevelPercent}%`}
+                value={`${telemetry.lpg_level_percent}%`}
                 detail={`${Math.round(
-                  (truck.tankCapacityLiters * telemetry.lpgLevelPercent) / 100
+                  (truck.tank_capacity_liters * telemetry.lpg_level_percent) / 100
                 ).toLocaleString()} L disponibles`}
               />
               <MetricCard
                 label='Vitesse'
-                value={`${telemetry.speedKmh} km/h`}
-                detail={`ETA ${telemetry.etaText}`}
+                value={`${telemetry.speed_kmh} km/h`}
+                detail={`ETA ${telemetry.eta_text}`}
               />
               <MetricCard
                 label='Pression'
                 value={`${telemetry.pressureBar.toFixed(1)} bar`}
-                detail={`${telemetry.temperatureCelsius} C reservoir`}
+                detail={`${telemetry.temperature_celsius} C reservoir`}
               />
               <MetricCard
                 label='Risque'
-                value={riskLabels[truck.riskLevel]}
+                value={riskLabels[truck.risk_level]}
                 detail='Score operationnel'
-                className={riskClasses[truck.riskLevel]}
+                className={riskClasses[truck.risk_level]}
               />
             </div>
 
@@ -107,12 +107,12 @@ export function TruckDetailsSheet({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className='space-y-3'>
-                    <DetailLine label='Entreprise' value={truck.tenantName} />
+                    <DetailLine label='Entreprise' value={truck.tenant_name} />
                     <DetailLine label='Site' value={truck.marketer} />
-                    <DetailLine label='Route' value={truck.assignedRoute} />
+                    <DetailLine label='Route' value={truck.assigned_route} />
                     <DetailLine
                       label='Position'
-                      value={truck.currentLocation}
+                      value={truck.current_location}
                     />
                     <DetailLine label='Destination' value={truck.destination} />
                     <div>
@@ -121,13 +121,13 @@ export function TruckDetailsSheet({
                           Progression
                         </span>
                         <span className='font-medium'>
-                          {telemetry.distanceKm} km restants
+                          {telemetry.distance_km} km restants
                         </span>
                       </div>
                       <div className='h-2 overflow-hidden rounded-full bg-muted'>
                         <div
                           className='h-full rounded-full bg-primary'
-                          style={{ width: `${telemetry.routeProgress}%` }}
+                          style={{ width: `${telemetry.route_progress}%` }}
                         />
                       </div>
                     </div>
@@ -144,15 +144,15 @@ export function TruckDetailsSheet({
                   <CardContent className='space-y-3'>
                     <DetailLine
                       label='Chauffeur'
-                      value={truck.assignedDriver}
+                      value={truck.assigned_driver}
                     />
-                    <DetailLine label='Telephone' value={truck.driverPhone} />
+                    <DetailLine label='Telephone' value={truck.driver_phone} />
                     <DetailLine
                       label='Fleet manager'
-                      value={truck.fleetManager}
+                      value={truck.fleet_manager}
                     />
-                    <DetailLine label='Region' value={truck.operatingRegion} />
-                    <DetailLine label='Depot' value={truck.homeDepot} />
+                    <DetailLine label='Region' value={truck.operating_region} />
+                    <DetailLine label='Depot' value={truck.home_depot} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -160,22 +160,22 @@ export function TruckDetailsSheet({
               <TabsContent value='docs' className='space-y-3'>
                 <DocumentStatus
                   label='Permis transport GPL'
-                  value={truck.permitExpiry}
+                  value={truck.permit_expiry}
                 />
                 <DocumentStatus
                   label='Assurance'
-                  value={truck.insuranceExpiry}
+                  value={truck.insurance_expiry}
                 />
                 <DocumentStatus
                   label='Visite technique'
-                  value={truck.technicalVisitExpiry}
+                  value={truck.technical_visit_expiry}
                 />
                 <Separator />
                 <DetailLine label='GPS IMEI' value={truck.gpsImei} />
-                <DetailLine label='Contrat' value={truck.contractTier} />
+                <DetailLine label='Contrat' value={truck.contract_tier} />
                 <DetailLine
                   label='Dernier ping'
-                  value={formatDateTime(truck.lastPing)}
+                  value={formatDateTime(truck.last_ping)}
                 />
               </TabsContent>
 
@@ -198,11 +198,11 @@ export function TruckDetailsSheet({
                     />
                     <DetailLine
                       label='Dernier service'
-                      value={formatDate(truck.lastServiceDate)}
+                      value={formatDate(truck.last_service_date)}
                     />
                     <DetailLine
                       label='Capacite citerne'
-                      value={`${truck.tankCapacityLiters.toLocaleString()} L`}
+                      value={`${truck.tank_capacity_liters.toLocaleString()} L`}
                     />
                     <DetailLine
                       label='Compartiments'
@@ -221,17 +221,17 @@ export function TruckDetailsSheet({
                   <MiniSignal
                     icon={<Thermometer className='size-4' />}
                     label='Temperature'
-                    value={`${telemetry.temperatureCelsius} C`}
+                    value={`${telemetry.temperature_celsius} C`}
                   />
                   <MiniSignal
                     icon={<MapPin className='size-4' />}
                     label='Distance'
-                    value={`${telemetry.distanceKm} km`}
+                    value={`${telemetry.distance_km} km`}
                   />
                   <MiniSignal
                     icon={<CalendarDays className='size-4' />}
                     label='Ping'
-                    value={formatDateTime(truck.lastPing)}
+                    value={formatDateTime(truck.last_ping)}
                   />
                 </div>
               </TabsContent>

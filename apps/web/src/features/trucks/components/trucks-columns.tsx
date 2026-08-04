@@ -71,11 +71,11 @@ export function getTrucksColumns({
 
         return [
           row.original.id,
-          row.original.plateNumber,
-          row.original.tenantName,
+          row.original.plate_number,
+          row.original.tenant_name,
           row.original.marketer,
-          row.original.assignedDriver,
-          row.original.currentLocation,
+          row.original.assigned_driver,
+          row.original.current_location,
           row.original.destination,
         ]
           .join(' ')
@@ -92,22 +92,22 @@ export function getTrucksColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'plateNumber',
+      accessorKey: 'plate_number',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Plaque' />
       ),
       cell: ({ row }) => (
-        <div className='font-mono text-xs'>{row.original.plateNumber}</div>
+        <div className='font-mono text-xs'>{row.original.plate_number}</div>
       ),
       meta: { label: 'Plaque', className: 'w-32' },
     },
     {
-      accessorKey: 'tenantName',
+      accessorKey: 'tenant_name',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Entreprise' />
       ),
       cell: ({ row }) => (
-        <LongText className='max-w-44'>{row.original.tenantName}</LongText>
+        <LongText className='max-w-44'>{row.original.tenant_name}</LongText>
       ),
       filterFn: (row, id, value) =>
         (value as string[]).includes(String(row.getValue(id))),
@@ -128,17 +128,17 @@ export function getTrucksColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'assignedDriver',
+      accessorKey: 'assigned_driver',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Chauffeur' />
       ),
       cell: ({ row }) => (
         <div className='space-y-0.5'>
           <LongText className='max-w-40 font-medium'>
-            {row.original.assignedDriver}
+            {row.original.assigned_driver}
           </LongText>
           <p className='text-xs text-muted-foreground'>
-            {row.original.driverPhone}
+            {row.original.driver_phone}
           </p>
         </div>
       ),
@@ -165,7 +165,7 @@ export function getTrucksColumns({
     },
     {
       id: 'lpgLevel',
-      accessorFn: (truck) => getTruckTelemetry(truck.id).lpgLevelPercent,
+      accessorFn: (truck) => getTruckTelemetry(truck.id).lpg_level_percent,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='LPG' />
       ),
@@ -176,13 +176,13 @@ export function getTrucksColumns({
             <div className='h-1.5 overflow-hidden rounded-full bg-muted'>
               <div
                 className='h-full rounded-full bg-emerald-500 transition-all duration-700'
-                style={{ width: `${telemetry.lpgLevelPercent}%` }}
+                style={{ width: `${telemetry.lpg_level_percent}%` }}
               />
             </div>
             <p className='text-xs text-muted-foreground'>
-              {telemetry.lpgLevelPercent}% -{' '}
+              {telemetry.lpg_level_percent}% -{' '}
               {Math.round(
-                (row.original.tankCapacityLiters * telemetry.lpgLevelPercent) /
+                (row.original.tank_capacity_liters * telemetry.lpg_level_percent) /
                   100
               ).toLocaleString()}{' '}
               L
@@ -193,7 +193,7 @@ export function getTrucksColumns({
       meta: { label: 'LPG', className: 'w-32' },
     },
     {
-      accessorKey: 'contractTier',
+      accessorKey: 'contract_tier',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Contrat' />
       ),
@@ -202,7 +202,7 @@ export function getTrucksColumns({
           variant='outline'
           className='border-transparent bg-muted/35 text-foreground'
         >
-          {row.original.contractTier}
+          {row.original.contract_tier}
         </Badge>
       ),
       filterFn: (row, id, value) =>
@@ -211,12 +211,12 @@ export function getTrucksColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'riskLevel',
+      accessorKey: 'risk_level',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Risque' />
       ),
       cell: ({ row }) => {
-        const risk = row.original.riskLevel
+        const risk = row.original.risk_level
         return (
           <Badge variant='outline' className={cn(riskClasses[risk])}>
             {riskLabels[risk]}
@@ -227,12 +227,12 @@ export function getTrucksColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'tankCapacityLiters',
+      accessorKey: 'tank_capacity_liters',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Capacite' />
       ),
       cell: ({ row }) => (
-        <span>{row.original.tankCapacityLiters.toLocaleString()} L</span>
+        <span>{row.original.tank_capacity_liters.toLocaleString()} L</span>
       ),
       meta: { label: 'Capacite' },
     },
@@ -257,19 +257,19 @@ export function getTrucksColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'permitExpiry',
+      accessorKey: 'permit_expiry',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Permis' />
       ),
-      cell: ({ row }) => <span>{formatDate(row.original.permitExpiry)}</span>,
+      cell: ({ row }) => <span>{formatDate(row.original.permit_expiry)}</span>,
       meta: { label: 'Expiration permis' },
     },
     {
-      accessorKey: 'lastPing',
+      accessorKey: 'last_ping',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Dernier ping' />
       ),
-      cell: ({ row }) => <span>{formatDateTime(row.original.lastPing)}</span>,
+      cell: ({ row }) => <span>{formatDateTime(row.original.last_ping)}</span>,
       meta: { label: 'Dernier ping' },
     },
     {

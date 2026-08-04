@@ -403,7 +403,7 @@ function createTruckGraphic(
       status: truck.status,
     },
     popupTemplate: {
-      title: `${truck.id} - ${truck.plateNumber}`,
+      title: `${truck.id} - ${truck.plate_number}`,
       content: createTruckPopupContent(truck, telemetry, mapTheme),
     },
   })
@@ -512,22 +512,22 @@ function createTruckPopupContent(
   mapTheme: MapTheme
 ) {
   const loadedLiters = Math.round(
-    (truck.tankCapacityLiters * telemetry.lpgLevelPercent) / 100
+    (truck.tank_capacity_liters * telemetry.lpg_level_percent) / 100
   )
 
   return `
     <div class="fleet-truck-popup" data-popup-theme="${mapTheme}">
-      ${popupLine('Entreprise', truck.tenantName)}
-      ${popupLine('Chauffeur', truck.assignedDriver)}
-      ${popupLine('Telephone', truck.driverPhone)}
+      ${popupLine('Entreprise', truck.tenant_name)}
+      ${popupLine('Chauffeur', truck.assigned_driver)}
+      ${popupLine('Telephone', truck.driver_phone)}
       ${popupLine('Statut', statusLabels[truck.status])}
-      ${popupLine('Position', truck.currentLocation)}
-      ${popupLine('Route', truck.assignedRoute)}
+      ${popupLine('Position', truck.current_location)}
+      ${popupLine('Route', truck.assigned_route)}
       ${popupLine('Destination', truck.destination)}
-      ${popupLine('Niveau GPL', `${telemetry.lpgLevelPercent}%`)}
+      ${popupLine('Niveau GPL', `${telemetry.lpg_level_percent}%`)}
       ${popupLine('Charge GPL', `${loadedLiters.toLocaleString('fr-FR')} L`)}
       ${popupLine('Pression', `${telemetry.pressureBar.toFixed(1)} bar`)}
-      ${popupLine('ETA', telemetry.etaText)}
+      ${popupLine('ETA', telemetry.eta_text)}
     </div>
   `
 }
@@ -574,7 +574,7 @@ function createRouteGraphic(truck: Truck, mapTheme: MapTheme) {
       paths: [
         [
           [truck.longitude, truck.latitude],
-          [truck.destinationLongitude, truck.destinationLatitude],
+          [truck.destination_longitude, truck.destination_latitude],
         ],
       ],
       spatialReference: { wkid: 4326 },

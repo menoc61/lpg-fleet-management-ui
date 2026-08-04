@@ -90,11 +90,11 @@ export function TrucksPage() {
           ? true
           : [
               truck.id,
-              truck.plateNumber,
-              truck.assignedDriver,
-              truck.tenantName,
+              truck.plate_number,
+              truck.assigned_driver,
+              truck.tenant_name,
               truck.marketer,
-              truck.currentLocation,
+              truck.current_location,
               truck.destination,
             ]
               .join(' ')
@@ -141,7 +141,7 @@ export function TrucksPage() {
   const avgLpg = useMemo(() => {
     const list = filteredTrucks.length > 0 ? filteredTrucks : trucks
     const sum = list.reduce((acc, truck) => {
-      return acc + getTruckTelemetry(truck.id).lpgLevelPercent
+      return acc + getTruckTelemetry(truck.id).lpg_level_percent
     }, 0)
     return Math.round(sum / list.length)
   }, [filteredTrucks])

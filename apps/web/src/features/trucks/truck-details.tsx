@@ -35,8 +35,8 @@ export function TruckDetailsPage() {
       ) : (
         <section className='mt-4 max-w-3xl space-y-4'>
           <PageHeader
-            title={`${truck.makeModel} · ${truck.plateNumber}`}
-            description={`${truck.id} — ${truck.tenantName}`}
+            title={`${truck.make_model} · ${truck.plate_number}`}
+            description={`${truck.id} — ${truck.tenant_name}`}
           />
           <TruckDetailsBody truck={truck} telemetry={telemetry} />
         </section>
