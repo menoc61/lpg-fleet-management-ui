@@ -6,7 +6,7 @@
  */
 
 import { curated, AUTH_FIXTURES } from '@lpg/mock-data'
-import type { ApiAdapter, AuthResult, Credentials, ListResult, RequestOptions } from './adapter.ts'
+import type { ApiAdapter, AuthResult, Credentials, ListResult } from './adapter.ts'
 
 function paginate<T>(items: T[], page = 1, limit = 20): ListResult<T> {
   const safePage = Math.max(1, page)
@@ -59,7 +59,7 @@ const COLLECTIONS: Record<string, unknown[]> = {
   rfid_tags: (curated as any).rfid_tags ?? [],
   user_site_assignments: (curated as any).user_site_assignments ?? [],
   custom_roles: (curated as any).custom_roles ?? [],
-  user_custom_roles: curated.user_custom_roles,
+  user_custom_roles: (curated as any).user_custom_roles ?? [],
   reports: [],
   audit_logs: [],
   settings: [],

@@ -1,82 +1,47 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
-import { DataTable, type FacetedFilterConfig } from '@lpg/ui'
+import { DataTable, type FacetedFilterConfig, Badge } from '@lpg/ui'
 import { getOrganizations, orgTypeLabel, orgStatusLabel, type Organization } from '@/features/organizations/organizations'
-import { Badge } from '@lpg/ui'
 
 const route = getRouteApi('/_authenticated/$role/$module')
 
 const STATUS_OPTIONS = [
-  { label: 'Actif', value: 'active' },
-  { label: 'En attente', value: 'pending' },
-  { label: 'Clôturé', value: 'closed' },
+  { label: 'Actif', value: 'ACTIVE' },
+  { label: 'En attente', value: 'ASSIGNED' },
+  { label: 'Suspendu', value: 'SUSPENDED' },
+  { label: 'Vérifié', value: 'VERIFIED' },
 ]
 
 const TYPE_OPTIONS = [
-  { label: 'Regulator', value: 'REGULATEUR' },
-  { label: 'Depot', value: 'DEPOT' },
+  { label: 'Régulateur', value: 'REGULATEUR' },
+  { label: 'Dépôt', value: 'DEPOT' },
   { label: 'Marketeur', value: 'MARKETEUR' },
   { label: 'Transporteur', value: 'TRANSPORTEUR' },
   { label: 'Client', value: 'CLIENT' },
 ]
 
 const REGIONS = [
-  'Centre',
-  'Littoral',
-  'Nord',
-  'Extrême-Nord',
-  'Ouest',
-  'Sud-Ouest',
-  'Est',
-  'Adamaoua',
+  'CENTRE',
+  'LITTORAL',
+  'NORD',
+  'EXTREMENORD',
+  'OUEST',
+  'SUDOUEST',
+  'EST',
+  'ADAMAOUA',
 ]
-
-type Filters = {
-  q: string
-  type: string[]
-  status: string[]
-  region: string[]
-}
 
 export function SuperAdminOrganizationsScreen() {
   const navigate = route.useNavigate()
-  const [filters, _setFilters] = useState<Filters>({ q: '', type: [], status: [], region: [] })
-
   const rows = useMemo(() => getOrganizations(), [])
-
-  const filtered = useMemo(() => {
-    const q = filters.q.trim().toLowerCase()
-    return rows.filter((row) => {
-      if (q) {
-        const haystack = `${row.name} ${row.city} ${row.region} ${row.id}`.toLowerCase()
-        if (!haystack.includes(q)) return false
-      }
-      if (filters.type.length && !filters.type.includes(row.type)) return false
-      if (filters.status.length && !filters.status.includes(row.status)) return false
-      if (filters.region.length && !filters.region.includes(row.region)) return false
-      return true
-    })
-  }, [rows, filters])
 
   const facetedFilters: FacetedFilterConfig[] = useMemo(
     () => [
-      {
-        columnId: 'type',
-        title: 'Type',
-        options: TYPE_OPTIONS,
-      },
-      {
-        columnId: 'status',
-        title: 'Statut',
-        options: STATUS_OPTIONS,
-      },
-      {
-        columnId: 'region',
-        title: 'Région',
-        options: REGIONS.map((r) => ({ label: r, value: r })),
-      },
+      { columnId: 'type', title: 'Type', options: TYPE_OPTIONS },
+      { columnId: 'status', title: 'Statut', options: STATUS_OPTIONS },
+      { columnId: 'region', title: 'Région', options: REGIONS.map((r) => ({ label: r, value: r })) },
     ],
     []
   )
@@ -89,8 +54,8 @@ export function SuperAdminOrganizationsScreen() {
         sortable: true,
         render: (row: Organization) => (
           <div>
-            <div className="font-medium text-sm">{row.name}</div>
-            <div className="text-xs text-muted-foreground">{row.id}</div>
+            <div className='font-medium text-sm'>{row.name}</div>
+            <div className='text-xs text-muted-foreground'>{row.id}</div>
           </div>
         ),
       },
@@ -98,18 +63,13 @@ export function SuperAdminOrganizationsScreen() {
         key: 'type',
         header: 'Type',
         sortable: true,
-        render: (row: Organization) => <Badge variant="outline">{orgTypeLabel(row.type)}</Badge>,
+        render: (row: Organization) => <Badge variant='outline'>{orgTypeLabel(row.type)}</Badge>,
       },
       {
         key: 'status',
         header: 'Statut',
         sortable: true,
-        render: (row: Organization) => {
-          const label = orgStatusLabel(row.status)
-          const color =
-            row.status === 'active' ? 'success' : row.status === 'pending' ? 'warning' : 'secondary'
-          return <Badge color={color}>{label}</Badge>
-        },
+        render: (row: Organization) => <Badge variant='outline'>{orgStatusLabel(row.status)}</Badge>,
       },
       {
         key: 'region',
@@ -127,12 +87,12 @@ export function SuperAdminOrganizationsScreen() {
         sortable: true,
       },
       {
-        key: 'createdAt',
+        key: 'created_at',
         header: 'Créé le',
         sortable: true,
       },
       {
-        key: 'updatedAt',
+        key: 'updated_at',
         header: 'Modifié le',
         sortable: true,
       },
@@ -142,17 +102,14 @@ export function SuperAdminOrganizationsScreen() {
 
   return (
     <PageShell>
-      <PageHeader
-        title="Organisations"
-        description={`${filtered.length} entité(s) trouvée(s).`}
-      />
+      <PageHeader title='Organisations' description={`${rows.length} entité(s) chargée(s) depuis les fixtures curées.`} />
       <SectionCard>
         <DataTable
-          data={filtered}
+          data={rows}
           columns={columns}
-          search={{ placeholder: 'Rechercher une organisation, une ville, un ID...', searchKey: 'q' }}
+          search={{ placeholder: 'Rechercher une organisation...', searchKey: 'q' }}
           facetedFilters={facetedFilters}
-          filename="organisations"
+          filename='organisations'
           searchState={{} as any}
           navigate={navigate as any}
         />
