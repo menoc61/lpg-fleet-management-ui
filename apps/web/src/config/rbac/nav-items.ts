@@ -31,7 +31,6 @@ import {
   Bell,
   Building2,
   Camera,
-  ClipboardCheck,
   ClipboardList,
   Database,
   FileBarChart,
@@ -144,10 +143,10 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     requires: ['orgs.read'],
   },
   {
-    id: 'marketeurs',
+    id: 'marketers',
     label: 'Marketeurs',
     icon: Building2,
-    path: 'marketeurs',
+    path: 'marketers',
     requires: ['markets.read'],
   },
   {
@@ -695,13 +694,6 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
   },
 
   /* ----------- Visits / show screens ----------- */
-  {
-    id: 'site-verifications-queue',
-    label: 'Vérification sites',
-    icon: ClipboardCheck,
-    path: 'site-verifications',
-    requires: ['sites.verify'],
-  },
 ] as const
 
 /* --------------------------------------------------------------------------
@@ -737,9 +729,9 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
       {
         title: 'Entités',
         items: [
-          'organizations',
-          'marketeurs',
-          'transporters',
+           'organizations',
+           'marketers',
+           'transporters',
           'depots',
           'sites',
           'client-sites',
@@ -781,7 +773,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   ADMIN: {
     groups: [
-      { title: 'Gestion', items: ['overview', 'users', 'marketeurs', 'transporters'] },
+       { title: 'Gestion', items: ['overview', 'users', 'marketers', 'transporters'] },
       {
         title: 'Validation & Contrôle',
         items: ['site-verifications', 'pickups', 'declarations', 'reconciliations'],
@@ -819,7 +811,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   AGENT: {
     groups: [
-      { title: 'Suivi terrain', items: ['overview', 'marketeurs', 'client-sites'] },
+       { title: 'Suivi terrain', items: ['overview', 'marketers', 'client-sites'] },
       {
         title: 'Investigation (Piste métier)',
         items: ['declarations', 'anomalies-investigation', 'tours', 'visits'],

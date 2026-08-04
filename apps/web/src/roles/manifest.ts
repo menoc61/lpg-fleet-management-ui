@@ -26,7 +26,6 @@ import { MarketeurDeliveryToursScreen } from '@/roles/marketeur/delivery-tours-s
 import { MarketeurSupplyScreen } from '@/roles/marketeur/supply-screen'
 import { SuperAdminOverviewScreen } from '@/roles/super-admin/overview-screen'
 import { SuperAdminOrganizationsScreen } from '@/roles/super-admin/organizations-screen'
-import { SuperAdminTransportersScreen } from '@/roles/super-admin/transporters-screen'
 import { SuperAdminMapScreen } from '@/roles/super-admin/map-screen'
 import { SuperAdminRiskDashboardScreen } from '@/roles/super-admin/risk-dashboard-screen'
 import { SuperAdminCustomRolesScreen } from '@/roles/super-admin/custom-roles-screen'
@@ -55,7 +54,6 @@ type BespokeCatalog = {
 const BESPOKE_SCREENS: ReadonlyArray<BespokeCatalog> = [
   { module: 'overview', component: SuperAdminOverviewScreen, requires: ['reports.read'] },
   { module: 'organizations', component: SuperAdminOrganizationsScreen, requires: ['orgs.read'] },
-  { module: 'transporters', component: SuperAdminTransportersScreen, requires: ['transporters.read'] },
   { module: 'map', component: SuperAdminMapScreen, requires: ['sites.read', 'tours.read'] },
   { module: 'risks', component: SuperAdminRiskDashboardScreen, requires: ['risks.read'] },
   { module: 'custom-roles', component: SuperAdminCustomRolesScreen, requires: ['custom-roles.manage'] },
@@ -85,7 +83,6 @@ const ROLE_BESPOKE_BY_MODULE: Record<string, { role: WebRole; decl: BespokeCatal
     { role: 'TRANSPORTEUR', decl: BESPOKE_SCREENS.find((s) => s.module === 'transporteur-overview')! },
   ],
   organizations: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'organizations')! }],
-  transporters: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'transporters')! }],
   map: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'map')! }],
   risks: [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'risks')! }],
   'custom-roles': [{ role: 'SUPERADMIN', decl: BESPOKE_SCREENS.find((s) => s.module === 'custom-roles')! }],
