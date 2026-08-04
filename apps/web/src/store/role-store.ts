@@ -10,9 +10,9 @@ type RoleState = {
 export const useRoleStore = create<RoleState>()(
   persist(
     (set) => ({
-      activeRole: 'SUPER_ADMIN',
-      setActiveRole: (role) => set({ activeRole: role }),
-    }),
+    activeRole: 'SUPERADMIN',
+    setActiveRole: (role) => set({ activeRole: role }),
+  }),
     {
       name: 'lpg-active-role',
       partialize: (state) => ({ activeRole: state.activeRole }),

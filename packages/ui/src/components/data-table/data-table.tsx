@@ -75,8 +75,8 @@ export type DataTableProps<TData> = {
   }
   exportable?: boolean
   filename?: string
-  searchState: Record<string, unknown>
-  navigate: NavigateFn
+  searchState?: Record<string, string | number | boolean | undefined | null>
+  navigate?: NavigateFn
   onRowClick?: (row: TData) => void
   renderBulkActions?: (props: { table: ReturnType<typeof useReactTable<TData>> }) => React.ReactNode
 }

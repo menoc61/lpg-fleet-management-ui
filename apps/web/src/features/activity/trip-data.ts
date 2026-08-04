@@ -1,5 +1,5 @@
-import { curated } from '@lpg/mock-data'
-import type { DeliveryTour as CuratedDeliveryTour } from '@lpg/types'
+import { curated, delivery_tours, checkpoints, vehicles, regions } from '@lpg/mock-data'
+import type { DeliveryTour, Checkpoint, Vehicle, Region } from '@lpg/types'
 
 export type TripStatus = 'Planifié' | 'En transit' | 'En livraison' | 'Livré' | 'Retardé'
 
@@ -25,7 +25,7 @@ export interface Trip {
   tour_id: string
 }
 
-const REGION_CITY: Record<string, string> = {
+const REGION_CITY: Record<Region, string> = {
   ADAMAOUA: 'Ngaoundéré',
   CENTRE: 'Yaoundé',
   EST: 'Bertoua',
@@ -38,7 +38,9 @@ const REGION_CITY: Record<string, string> = {
   SUDOUEST: 'Buéa',
 }
 
-function statusFromTour(status: string): TripStatus {
+const TRIP_STATUS_FALLBACK: TripStatus = 'Planifié'
+
+function tripStatusFor(status: DeliveryTour['status']): TripStatus {
   switch (status) {
     case 'INPROGRESS':
       return 'En transit'
@@ -50,63 +52,82 @@ function statusFromTour(status: string): TripStatus {
     case 'ACKNOWLEDGED':
       return 'Planifié'
     default:
-      return 'Planifié'
+      return TRIP_STATUS_FALLBACK
   }
 }
 
-function progressFor(status: string): number {
+function tripProgressFor(status: DeliveryTour['status']): number {
   switch (status) {
-    case 'INPROGRESS': return 50
-    case 'CHECKPOINTACTIVE': return 80
-    case 'CLOSED': return 100
-    case 'ACKNOWLEDGED': return 20
-    default: return 0
+    case 'INPROGRESS':
+      return 50
+    case 'CHECKPOINTACTIVE':
+      return 80
+    case 'CLOSED':
+      return 100
+    case 'ACKNOWLEDGED':
+      return 20
+    default:
+      return 0
   }
 }
 
-const CHECKPOINTS = curated.checkpoints as any[]
-const VEHICLES = curated.vehicles as any[]
+const regionCodes = regions.map((r) => r.code as Region)
 
-export const trips: Trip[] = (curated.delivery_tours as CuratedDeliveryTour[]).slice(0, 12).map((tour, idx) => {
-  const cps = CHECKPOINTS.filter((cp) => cp.tournee_id === tour.id)
-  const cp = cps[0]
-  const region = (tour as any).region || 'CENTRE'
-  const vehicle = VEHICLES[idx % VEHICLES.length]
+function cityFor(idx: number): string {
+  const code = regionCodes[idx % regionCodes.length] ?? 'CENTRE' as Region
+  return REGION_CITY[code] ?? '—'
+}
+
+function buildTrip(tour: DeliveryTour, checkpoint: Checkpoint | undefined, vehicle: Vehicle | undefined, idx: number): Trip {
+  const start = tour.started_at ? new Date(tour.started_at) : null
+  const eta = start
+    ? new Date(start.getTime() + 4 * 3600 * 1000).toISOString().slice(11, 16)
+    : '—'
   return {
     id: tour.id,
-    status: statusFromTour(tour.status),
-    progress: progressFor(tour.status),
-    origin: { city: REGION_CITY['CENTRE'] ?? '—', name: 'Centre emplisseur', lat: null, lng: null },
+    status: tripStatusFor(tour.status),
+    progress: tripProgressFor(tour.status),
+    origin: { city: REGION_CITY.CENTRE, name: 'Centre emplisseur', lat: null, lng: null },
     destination: {
-      city: REGION_CITY[region] ?? REGION_CITY.CENTRE ?? '—',
-      name: cp?.site_id ? 'Client site' : 'Marketeur',
+      city: cityFor(idx),
+      name: checkpoint?.site_id ? 'Client site' : 'Marketeur',
       lat: null,
       lng: null,
     },
     cargo: tour.type === 'VRAC' ? 'GPL vrac' : 'Bouteilles 50 kg',
     volume: `${tour.requested_quantity ?? 0} ${tour.type === 'VRAC' ? 't' : 'btl'}`,
-    eta: tour.started_at ? new Date(new Date(tour.started_at).getTime() + 4 * 3600 * 1000).toISOString().slice(11, 16) : '—',
+    eta,
     etaMeta: 'ETA',
     driver_name: '—',
     license_plate: vehicle?.license_plate ?? '—',
     tour_id: tour.id,
   }
-})
-
-if (trips.length === 0) {
-  // Fallback so the screen can still mount with an empty list
-  trips.push({
-    id: 'tour-stub-1',
-    status: 'Planifié',
-    progress: 0,
-    origin: { city: 'Yaoundé', name: 'Centre', lat: null, lng: null },
-    destination: { city: 'Douala', name: 'Client', lat: null, lng: null },
-    cargo: 'GPL vrac',
-    volume: '18 t',
-    eta: '—',
-    etaMeta: null,
-    driver_name: '—',
-    license_plate: '—',
-    tour_id: 'tour-stub-1',
-  })
 }
+
+const SAMPLE_SIZE = 12
+const FALLBACK_TRIP: Trip = {
+  id: 'tour-stub-1',
+  status: 'Planifié',
+  progress: 0,
+  origin: { city: 'Yaoundé', name: 'Centre', lat: null, lng: null },
+  destination: { city: 'Douala', name: 'Client', lat: null, lng: null },
+  cargo: 'GPL vrac',
+  volume: '18 t',
+  eta: '—',
+  etaMeta: null,
+  driver_name: '—',
+  license_plate: '—',
+  tour_id: 'tour-stub-1',
+}
+
+export const trips: readonly Trip[] = (() => {
+  if (delivery_tours.length === 0) return [FALLBACK_TRIP]
+  return delivery_tours.slice(0, SAMPLE_SIZE).map((tour, idx) => {
+    const tourCheckpoints = checkpoints.filter((cp) => cp.tournee_id === tour.id)
+    const firstCheckpoint = tourCheckpoints[0]
+    const vehicle = vehicles[idx % Math.max(vehicles.length, 1)]
+    return buildTrip(tour, firstCheckpoint, vehicle, idx)
+  })
+})()
+
+export { curated }

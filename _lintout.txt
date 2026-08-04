@@ -1,0 +1,14 @@
+﻿node.exe : 
+At C:\Users\DTA_WorkStation\Documents\manga\lpg-fleet-management-ui\node_modules\.bin\eslint.ps1:36 char:5
++     & "node$exe"  "$basedir/../eslint/bin/eslint.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Oops! Something went wrong! :(
+
+ESLint: 10.8.0
+
+No files matching the pattern "src" were found.
+Please check for typing mistakes in the pattern.
+

@@ -1,33 +1,44 @@
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import { Badge, Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from '@lpg/ui'
-import { trucksHooks, toursHooks, sitesHooks, declarationsHooks } from '@/lib/api/use-resources'
+import {
+  vehiclesHooks as trucksHooks,
+  deliveryToursHooks as toursHooks,
+  sitesHooks,
+  declarationsHooks,
+} from '@/lib/api/use-resources'
+import type { DeliveryTour } from '@lpg/types'
+
+interface MetricCard {
+  key: string
+  title: string
+  value: number
+  trend: string
+  up: boolean
+  detail: string
+  footer: string
+}
 
 export function SectionCards() {
-  const { data: trucksResult } = trucksHooks.useList()
-  const { data: toursResult } = toursHooks.useList()
-  const { data: sitesResult } = sitesHooks.useList()
-  const { data: declarationsResult } = declarationsHooks.useList()
+  const trucks = trucksHooks.useList().data ?? []
+  const tours = toursHooks.useList().data ?? []
+  const sites = sitesHooks.useList().data ?? []
+  const declarations = declarationsHooks.useList().data ?? []
 
-  const trucks = (trucksResult?.data ?? []) as any[]
-  const tours = (toursResult?.data ?? []) as any[]
-  const sites = (sitesResult?.data ?? []) as any[]
-  const declarations = (declarationsResult?.data ?? []) as any[]
+  const activeTours = tours.filter((t: DeliveryTour) => t.status === 'INPROGRESS').length
 
-  const activeTours = tours.filter((t: any) => t.status === 'INPROGRESS').length
-
-  const cards = [
+  const cards: MetricCard[] = [
     {
       key: 'trucks',
       title: 'Total camions',
       value: trucks.length,
       trend: '+8.2%',
       up: true,
-      footer: 'Flotte enregistree',
+      footer: 'Flotte enregistrée',
       detail: 'En hausse ce mois',
     },
     {
       key: 'tours',
-      title: 'Tournees actives',
+      title: 'Tournées actives',
       value: activeTours,
       trend: '+12.5%',
       up: true,
@@ -36,16 +47,16 @@ export function SectionCards() {
     },
     {
       key: 'sites',
-      title: 'Citernes',
+      title: 'Sites',
       value: sites.length,
       trend: '-2.4%',
       up: false,
-      footer: 'Sites de stockage',
+      footer: 'Sites opérationnels',
       detail: 'En baisse ce mois',
     },
     {
       key: 'declarations',
-      title: 'Declarations',
+      title: 'Déclarations',
       value: declarations.length,
       trend: '+24.8%',
       up: true,

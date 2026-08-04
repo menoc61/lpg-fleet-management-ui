@@ -11,6 +11,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useState } from 'react'
 import { useRoleStore } from '@/store/role-store'
 import { getSidebarData } from '@/config/rbac/sidebar-by-role'
+import type { Role } from '@lpg/permissions'
 import { trucks } from '@/features/trucks/trucks'
 import { sites } from '@/features/sites/data/sites'
 import { transporters } from '@/features/transporters/transporters'
@@ -62,9 +63,9 @@ function addRecent(entry: RecentEntry) {
   writeRecent(next)
 }
 
-function getSitesUrlForRole(role: string): string | null {
+function getSitesUrlForRole(role: Role): string | null {
   try {
-    const data = getSidebarData(role as any)
+    const data = getSidebarData(role)
     for (const group of data.navGroups) {
       for (const item of group.items) {
         if (
@@ -83,11 +84,11 @@ function getSitesUrlForRole(role: string): string | null {
   return null
 }
 
-function buildLiveIndex(role: string): SearchItem[] {
+function buildLiveIndex(role: Role): SearchItem[] {
   const items: SearchItem[] = []
 
   try {
-    const data = getSidebarData(role as any)
+    const data = getSidebarData(role)
     for (const group of data.navGroups) {
       for (const item of group.items) {
         if ('url' in item && typeof (item as { url: string }).url === 'string') {

@@ -1,11 +1,8 @@
 import { useMemo } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { DataTable, type FacetedFilterConfig, Badge } from '@lpg/ui'
 import { getOrganizations, orgTypeLabel, orgStatusLabel, type Organization } from '@/features/organizations/organizations'
-
-const route = getRouteApi('/_authenticated/$role/$module')
 
 const STATUS_OPTIONS = [
   { label: 'Actif', value: 'ACTIVE' },
@@ -31,16 +28,15 @@ const REGIONS = [
   'SUDOUEST',
   'EST',
   'ADAMAOUA',
-]
+] as const
 
 export function SuperAdminOrganizationsScreen() {
-  const navigate = route.useNavigate()
   const rows = useMemo(() => getOrganizations(), [])
 
   const facetedFilters: FacetedFilterConfig[] = useMemo(
     () => [
-      { columnId: 'type', title: 'Type', options: TYPE_OPTIONS },
-      { columnId: 'status', title: 'Statut', options: STATUS_OPTIONS },
+      { columnId: 'type', title: 'Type', options: [...TYPE_OPTIONS] },
+      { columnId: 'status', title: 'Statut', options: [...STATUS_OPTIONS] },
       { columnId: 'region', title: 'Région', options: REGIONS.map((r) => ({ label: r, value: r })) },
     ],
     []
@@ -107,11 +103,9 @@ export function SuperAdminOrganizationsScreen() {
         <DataTable
           data={rows}
           columns={columns}
-          search={{ placeholder: 'Rechercher une organisation...', searchKey: 'q' }}
+          search={{ placeholder: 'Rechercher une organisation…', searchKey: 'q' }}
           facetedFilters={facetedFilters}
           filename='organisations'
-          searchState={{} as any}
-          navigate={navigate as any}
         />
       </SectionCard>
     </PageShell>

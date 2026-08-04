@@ -117,7 +117,7 @@ export function buildCustomScreenRegistry(): Record<string, CustomScreenComponen
  */
 export const ROLE_MANIFEST: Record<Role, RoleScreenRegistration[]> = (() => {
   const roleKeys: WebRole[] = ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTEGRATEUR', 'AGENT', 'MARKETEUR', 'TRANSPORTEUR']
-  const out = {} as Record<Role, RoleScreenRegistration[]>
+  const out: Partial<Record<Role, RoleScreenRegistration[]>> = {}
   for (const roleKey of roleKeys) {
     const entries: RoleScreenRegistration[] = []
     for (const { module, registrations } of Object.entries(ROLE_BESPOKE_BY_MODULE)) {
@@ -131,9 +131,9 @@ export const ROLE_MANIFEST: Record<Role, RoleScreenRegistration[]> = (() => {
         }
       }
     }
-    if (roleKey in out || entries.length > 0) {
-      ;(out as any)[roleKey] = entries
+    if (entries.length > 0) {
+      out[roleKey] = entries
     }
   }
-  return out
+  return out as Record<Role, RoleScreenRegistration[]>
 })()

@@ -36,14 +36,14 @@ export function RoleLayout() {
                 {group.title}
               </div>
               <ul className='space-y-0.5'>
-                {group.items.map((item: any) => {
+                {group.items.map((item) => {
                   const href = 'url' in item ? item.url : item.items?.[0]?.url
                   if (!href) return null
                   const active = isActive(href)
                   return (
                     <li key={`${item.title}-${href}`}>
                       <Link
-                        to={href as any}
+                        to={href}
                         className={`flex items-center rounded-md px-2 py-1.5 text-sm transition-colors ${
                           active
                             ? 'bg-secondary text-foreground'

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { useMemo, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 import {
   Card,
@@ -22,35 +22,41 @@ import {
 } from '@lpg/ui'
 import { Button } from '@lpg/ui'
 import { declarationsHooks } from '@/lib/api/use-resources'
+import type { Declaration } from '@lpg/types'
 
 const chartConfig = {
   declarations: {
-    label: 'Declarations',
+    label: 'Déclarations',
     color: 'var(--primary)',
   },
 } satisfies ChartConfig
 
+interface ChartPoint {
+  date: string
+  declarations: number
+}
+
 export function ChartAreaInteractive() {
-  const [timeRange, setTimeRange] = React.useState('90d')
-  const { data: declarationsResult } = declarationsHooks.useList()
+  const [timeRange, setTimeRange] = useState('90d')
+  const declarations = declarationsHooks.useList().data ?? []
 
-  const declarations = (declarationsResult?.data ?? []) as any[]
-
-  const chartData = React.useMemo(() => {
-    if (!declarations.length) return []
+  const chartData = useMemo<ChartPoint[]>(() => {
+    if (declarations.length === 0) return []
     const byDate = new Map<string, number>()
-    declarations.forEach((d: any) => {
-      const date = d.declaredAt?.split('T')[0] ?? d.createdAt?.split('T')[0]
+    for (const declaration of declarations as Declaration[]) {
+      const date = (declaration.created_at ?? '').split('T')[0]
       if (date) byDate.set(date, (byDate.get(date) ?? 0) + 1)
-    })
+    }
     return Array.from(byDate.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, count]) => ({ date, declarations: count }))
   }, [declarations])
 
-  const filteredData = React.useMemo(() => {
-    if (!chartData.length) return []
-    const referenceDate = new Date(chartData[chartData.length - 1].date)
+  const filteredData = useMemo<ChartPoint[]>(() => {
+    if (chartData.length === 0) return []
+    const last = chartData[chartData.length - 1]
+    if (!last) return []
+    const referenceDate = new Date(last.date)
     let days = 90
     if (timeRange === '30d') days = 30
     if (timeRange === '7d') days = 7

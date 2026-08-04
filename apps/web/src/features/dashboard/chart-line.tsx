@@ -1,46 +1,49 @@
-import * as React from 'react'
+import { useMemo } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@lpg/ui'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@lpg/ui'
-import { toursHooks } from '@/lib/api/use-resources'
+import { deliveryToursHooks as toursHooks } from '@/lib/api/use-resources'
+import type { DeliveryTour } from '@lpg/types'
 
 const chartConfig = {
-  completed: { label: 'Terminees', color: 'var(--chart-1)' },
-  planned: { label: 'Planifiees', color: 'var(--chart-2)' },
+  CLOSED: { label: 'Terminées', color: 'var(--chart-1)' },
+  PLANNED: { label: 'Planifiées', color: 'var(--chart-2)' },
 } satisfies ChartConfig
 
-export function ChartLine() {
-  const { data: toursResult } = toursHooks.useList()
-  const tours = (toursResult?.data ?? []) as any[]
+interface ChartPoint {
+  date: string
+  CLOSED: number
+  PLANNED: number
+}
 
-  const chartData = React.useMemo(() => {
-    if (!tours.length) return []
-    const byDateCompleted = new Map<string, number>()
-    const byDatePlanned = new Map<string, number>()
-    tours.forEach((t: any) => {
-      const date = t.scheduledDate?.split('T')[0] ?? t.createdAt?.split('T')[0]
-      if (!date) return
-      if (t.status === 'completed') {
-        byDateCompleted.set(date, (byDateCompleted.get(date) ?? 0) + 1)
-      } else {
-        byDatePlanned.set(date, (byDatePlanned.get(date) ?? 0) + 1)
-      }
-    })
-    const allDates = new Set([...byDateCompleted.keys(), ...byDatePlanned.keys()])
+export function ChartLine() {
+  const tours = toursHooks.useList().data ?? []
+
+  const chartData = useMemo<ChartPoint[]>(() => {
+    if (tours.length === 0) return []
+    const closedByDate = new Map<string, number>()
+    const plannedByDate = new Map<string, number>()
+    for (const tour of tours as DeliveryTour[]) {
+      const date = (tour.created_at ?? '').split('T')[0]
+      if (!date) continue
+      const bucket = tour.status === 'CLOSED' ? closedByDate : plannedByDate
+      bucket.set(date, (bucket.get(date) ?? 0) + 1)
+    }
+    const allDates = new Set<string>([...closedByDate.keys(), ...plannedByDate.keys()])
     return Array.from(allDates)
       .sort()
       .map((date) => ({
         date,
-        completed: byDateCompleted.get(date) ?? 0,
-        planned: byDatePlanned.get(date) ?? 0,
+        CLOSED: closedByDate.get(date) ?? 0,
+        PLANNED: plannedByDate.get(date) ?? 0,
       }))
   }, [tours])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Evolution des tournees</CardTitle>
-        <CardDescription>Tournees planifiees vs terminees par jour</CardDescription>
+        <CardTitle>Évolution des tournées</CardTitle>
+        <CardDescription>Tournées planifiées vs terminées par jour</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
@@ -52,23 +55,23 @@ export function ChartLine() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) =>
+              tickFormatter={(value: string) =>
                 new Date(value).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' })
               }
             />
             <YAxis tickLine={false} axisLine={false} tickMargin={8} allowDecimals={false} />
             <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
             <Line
-              dataKey="planned"
+              dataKey="PLANNED"
               type="monotone"
-              stroke="var(--color-planned)"
+              stroke="var(--color-PLANNED)"
               strokeWidth={2}
               dot={false}
             />
             <Line
-              dataKey="completed"
+              dataKey="CLOSED"
               type="monotone"
-              stroke="var(--color-completed)"
+              stroke="var(--color-CLOSED)"
               strokeWidth={2}
               dot={false}
             />

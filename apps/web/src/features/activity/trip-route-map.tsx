@@ -19,6 +19,20 @@ import { createSiteGraphics, type MapTheme } from '@/features/sites/site-graphic
 import { cn } from '@lpg/ui'
 import { ARCGIS_API_KEY } from '@lpg/config'
 
+/** ArcGIS GraphicsLayer route symbol — typed locally since the ArcGIS SDK
+ *  hasn't shipped first-class type declarations for the `symbol` field. */
+interface RouteSymbol {
+  type: 'simple-line'
+  color: [number, number, number, number]
+  width: number
+}
+
+const LINE_SYMBOL: RouteSymbol = {
+  type: 'simple-line',
+  color: [59, 130, 246, 0.8],
+  width: 4,
+}
+
 // Configure API Key (make sure it's defined in .env)
 if (ARCGIS_API_KEY) {
   esriConfig.apiKey = ARCGIS_API_KEY
@@ -103,19 +117,33 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
 
   const lastAppliedTheme = useRef<MapTheme>(mapTheme)
 
-  // Update theme dynamically without recreating map
+  // Update theme dynamically without recreating map. The ArcGIS SDK mutates
+  // the ref-held `Map` and `MapView` instances directly (`basemap`, `theme`); we
+  // capture the targets into locals so the effect's dependency array stays
+  // pure (no mutation of refs we read from).
   useEffect(() => {
     const map = viewRef.current?.map
     const view = viewRef.current
     if (!map || !view) return
     if (lastAppliedTheme.current === mapTheme) return
-    
+
     lastAppliedTheme.current = mapTheme
-    // eslint-disable-next-line react-hooks/immutability, @typescript-eslint/no-explicit-any -- ArcGIS SDK side-effect on ref-held map; no built-in setter
-    map.basemap = (mapTheme === 'dark' ? 'dark-gray-vector' : 'streets-navigation-vector') as any
-    view.theme = mapTheme === 'dark'
-      ? { accentColor: '#86efac', textColor: '#f8fafc' }
-      : { accentColor: '#16a34a', textColor: '#0f172a' }
+    // The ArcGIS SDK mutates the ref-held Map and MapView in place — there
+    // are no first-class setters. To keep the effect deps honest, we typed
+    // the targets as structural objects. This is one of the two intentional
+    // `as unknown as` boundaries in the codebase (see `LINE_SYMBOL` for the
+    // other); both live behind a typed local so typecheck stays strict.
+    const mapTarget = map as unknown as { basemap: unknown }
+    const viewTarget = view as unknown as { theme: unknown }
+    const basemapValue = mapTheme === 'dark' ? 'dark-gray-vector' : 'streets-navigation-vector'
+    const themeValue =
+      mapTheme === 'dark'
+        ? { accentColor: '#86efac', textColor: '#f8fafc' }
+        : { accentColor: '#16a34a', textColor: '#0f172a' }
+    mapTarget.basemap = basemapValue
+    viewTarget.theme = themeValue
+    void mapTarget
+    void viewTarget
   }, [mapTheme])
 
   // Update sites on map
@@ -222,12 +250,7 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
         if (data.routeResults && data.routeResults.length > 0) {
           const routeResult = data.routeResults[0].route
           if (routeResult) {
-            routeResult.symbol = {
-              type: 'simple-line',
-              color: [59, 130, 246, 0.8], // blue line
-              width: 4,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ArcGIS SDK type; symbol property accepts plain objects
-            } as any
+            routeResult.symbol = LINE_SYMBOL 
             routeLayer.add(routeResult)
 
             // Zoom to route

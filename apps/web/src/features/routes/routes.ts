@@ -580,7 +580,7 @@ function requireSite(siteId: string) {
   if (!fallback) {
     throw new Error(`No sites available to satisfy site id "${siteId}"`)
   }
-  return { ...(fallback as any), id: siteId, name: siteId } as any
+  return { ...fallback, id: siteId, name: siteId }
 }
 
 function requireTruck(truckId: string) {
@@ -597,22 +597,23 @@ function requireTruck(truckId: string) {
   if (!fallback) {
     throw new Error(`No trucks available to satisfy truck id "${truckId}"`)
   }
+  const f = fallback
   return {
-    ...(fallback as any),
+    ...f,
     id: truckId,
     plate_number: truckId,
     plateNumber: truckId,
-    tenant_name: (fallback as any).tenant_name ?? '—',
-    tenantName: (fallback as any).tenant_name ?? '—',
-    assigned_driver: (fallback as any).assigned_driver ?? '—',
-    assignedDriver: (fallback as any).assigned_driver ?? '—',
-    driver_phone: (fallback as any).driver_phone ?? '—',
-    driverPhone: (fallback as any).driver_phone ?? '—',
-    latitude: (fallback as any).latitude ?? 3.85,
-    longitude: (fallback as any).longitude ?? 11.5,
-    current_location: (fallback as any).current_location ?? '—',
-    currentLocation: (fallback as any).current_location ?? '—',
-  } as any
+    tenant_name: f.tenant_name ?? '—',
+    tenantName: f.tenant_name ?? '—',
+    assigned_driver: f.assigned_driver ?? '—',
+    assignedDriver: f.assigned_driver ?? '—',
+    driver_phone: f.driver_phone ?? '—',
+    driverPhone: f.driver_phone ?? '—',
+    latitude: f.latitude ?? 3.85,
+    longitude: f.longitude ?? 11.5,
+    current_location: f.current_location ?? '—',
+    currentLocation: f.current_location ?? '—',
+  }
 }
 
 function getHighestSeverity(events: readonly RouteEvent[]): RouteEventSeverity {

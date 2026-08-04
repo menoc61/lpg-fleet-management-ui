@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { DataTable, type FacetedFilterConfig, Badge } from '@lpg/ui'
@@ -13,8 +12,6 @@ import {
 import { toast } from 'sonner'
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 
-const route = getRouteApi('/_authenticated/$role/$module')
-
 const STATUS_OPTIONS = transporterStatusOptions
 
 const ACK_OPTIONS: { label: string; value: TransporterAckStatus }[] = ackStatusOptions
@@ -22,7 +19,6 @@ const ACK_OPTIONS: { label: string; value: TransporterAckStatus }[] = ackStatusO
 const REGIONS = ['CENTRE', 'LITTORAL', 'NORD', 'EXTREMENORD', 'OUEST', 'SUDOUEST', 'EST', 'ADAMAOUA']
 
 export function SuperAdminTransportersScreen() {
-  const navigate = route.useNavigate()
   const [data, setData] = useState<Transporter[]>(transporters)
 
   const facetedFilters: FacetedFilterConfig[] = useMemo(
@@ -148,8 +144,6 @@ export function SuperAdminTransportersScreen() {
           search={{ placeholder: 'Rechercher un transporteur, région, email...', searchKey: 'q' }}
           facetedFilters={facetedFilters}
           filename='transporteurs'
-          searchState={{} as any}
-          navigate={navigate as any}
         />
       </SectionCard>
     </PageShell>
