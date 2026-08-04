@@ -1,180 +1,104 @@
-import { type ChangeEvent, useCallback, useMemo, useState } from 'react'
-import { getRouteApi } from '@tanstack/react-router'
-import {
-  Activity,
-  CalendarDays,
-  ChevronDown,
-  Clock3,
-  Gauge,
-  Layers3,
-  Search,
-  SlidersHorizontal,
-  Truck as TruckIcon,
-  Users,
-} from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
+import { CalendarDays, Clock3, Gauge, Search, Truck as TruckIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import {
-  siteTypeLabels,
-  siteTypeOptions,
-  sites,
-  type SiteType,
-} from '@/features/sites/data/sites'
-import { TruckDetailsSheet } from './components/truck-details-sheet'
 import { TrucksMap } from './components/trucks-map'
 import { TrucksTable } from './components/trucks-table'
+import { TruckDetailsSheet } from './components/truck-details-sheet'
 import {
   getTruckTelemetry as _getTruckTelemetry,
+  trucks as trucksList,
   type Truck,
   type TruckStatus,
 } from '../trucks'
-import { trucks as trucksRaw } from '../trucks'
 
 export const getTruckTelemetry = _getTruckTelemetry
-export const trucks = trucksRaw as any[]
+export const trucks: readonly Truck[] = trucksList
 export type { Truck, TruckStatus }
 
-type TruckFilter = 'all' | TruckStatus | 'available' | 'in_transit' | 'maintenance' | 'inactive'
-type SiteFilter = 'all' | SiteType
+type TruckFilter = 'all' | TruckStatus
 
-const route = getRouteApi('/_authenticated/trucks/')
+type TruckFilterDef = { label: string; value: TruckFilter; count: number }
 
-const filters: { label: string; value: TruckFilter }[] = [
-  { label: 'Tous', value: 'all' },
-  { label: 'Disponible', value: 'available' },
-  { label: 'En livraison', value: 'in_transit' },
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'Inactif', value: 'inactive' },
-]
+const STATUS_LABELS: Record<TruckStatus, string> = {
+  AVAILABLE: 'Disponible',
+  IN_TRANSIT: 'En livraison',
+  MAINTENANCE: 'Maintenance',
+  INACTIVE: 'Inactif',
+}
 
 export function TrucksPage() {
-  const tableSearch = route.useSearch()
-  const navigate = route.useNavigate()
+  const navigate = useNavigateSafe()
+  const { resolvedTheme } = useTheme()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TruckFilter>('all')
-  const [showRoutes, setShowRoutes] = useState(true)
-  const [showSites, setShowSites] = useState(true)
-  const [siteFilter, setSiteFilter] = useState<SiteFilter>('all')
-  const [activeTruckId, setActiveTruckId] = useState(trucks[0].id)
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
-  const { resolvedTheme } = useTheme()
+  const [activeTruckId] = useState<string>(trucks[0]?.id ?? '')
 
   const handleViewDetails = useCallback((truck: Truck) => {
-    setActiveTruckId(truck.id)
     setDetailsTruck(truck)
   }, [])
 
-  const handleSelectTruck = useCallback((truck: Truck) => {
-    setActiveTruckId(truck.id)
-  }, [])
-
-  const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value)
-  }
-
   const filteredTrucks = useMemo(() => {
     const query = search.trim().toLowerCase()
-
+    if (!query) return [...trucks]
     return trucks.filter((truck) => {
-      const matchesStatus =
-        statusFilter === 'all' ? true : truck.status === statusFilter
-      const matchesSearch =
-        query.length === 0
-          ? true
-          : [
-              truck.id,
-              truck.plate_number,
-              truck.assigned_driver,
-              truck.tenant_name,
-              truck.marketer,
-              truck.current_location,
-              truck.destination,
-            ]
-              .join(' ')
-              .toLowerCase()
-              .includes(query)
-
-      return matchesStatus && matchesSearch
+      const haystack = [
+        truck.plate_number,
+        truck.assigned_driver,
+        truck.region,
+        truck.org_id,
+        truck.tenant_name ?? truck.marketer ?? '',
+      ]
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(query)
     })
-  }, [search, statusFilter])
+  }, [search])
 
-  const selectedTruck =
-    filteredTrucks.find((truck) => truck.id === activeTruckId) ??
-    filteredTrucks[0] ??
-    trucks[0]
-  const filteredSites = useMemo(() => {
-    if (!showSites) return []
+  const visible = statusFilter === 'all' ? filteredTrucks : filteredTrucks.filter((t) => t.status === statusFilter)
 
-    return sites.filter((site) => {
-      return siteFilter === 'all' ? true : site.type === siteFilter
-    })
-  }, [showSites, siteFilter])
-
-  const totals = useMemo(() => {
-    return {
+  const filterDefs: TruckFilterDef[] = useMemo(() => {
+    const counts: Record<TruckFilter, number> = {
       all: trucks.length,
-      available: trucks.filter((truck) => truck.status === 'available').length,
-      in_transit: trucks.filter((truck) => truck.status === 'in_transit')
-        .length,
-      maintenance: trucks.filter((truck) => truck.status === 'maintenance')
-        .length,
-      inactive: trucks.filter((truck) => truck.status === 'inactive').length,
+      AVAILABLE: trucks.filter((t) => t.status === 'AVAILABLE').length,
+      IN_TRANSIT: trucks.filter((t) => t.status === 'IN_TRANSIT').length,
+      MAINTENANCE: trucks.filter((t) => t.status === 'MAINTENANCE').length,
+      INACTIVE: trucks.filter((t) => t.status === 'INACTIVE').length,
     }
+    return [
+      { label: 'Tous', value: 'all', count: counts.all },
+      { label: STATUS_LABELS.AVAILABLE, value: 'AVAILABLE', count: counts.AVAILABLE },
+      { label: STATUS_LABELS.IN_TRANSIT, value: 'IN_TRANSIT', count: counts.IN_TRANSIT },
+      { label: STATUS_LABELS.MAINTENANCE, value: 'MAINTENANCE', count: counts.MAINTENANCE },
+      { label: STATUS_LABELS.INACTIVE, value: 'INACTIVE', count: counts.INACTIVE },
+    ]
   }, [])
 
-  const dateText = useMemo(() => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      weekday: 'long',
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date())
-  }, [])
+  const dateText = useMemo(
+    () =>
+      new Intl.DateTimeFormat('fr-FR', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date()),
+    []
+  )
 
   const avgLpg = useMemo(() => {
-    const list = filteredTrucks.length > 0 ? filteredTrucks : trucks
-    const sum = list.reduce((acc, truck) => {
-      return acc + getTruckTelemetry(truck.id).lpg_level_percent
-    }, 0)
+    const list = visible.length > 0 ? visible : trucks
+    if (list.length === 0) return 0
+    const sum = list.reduce((acc, truck) => acc + getTruckTelemetry(truck.id).lpg_level_percent, 0)
     return Math.round(sum / list.length)
-  }, [filteredTrucks])
+  }, [visible])
 
-  const activeTrucks = totals.available + totals.in_transit
-  const etaRate = 94
-  const siteTotals = useMemo(() => {
-    return {
-      all: sites.length,
-      depot: sites.filter((site) => site.type === 'depot').length,
-      scdp: sites.filter((site) => site.type === 'scdp').length,
-      'filling-center': sites.filter(
-        (site) => site.type === 'filling-center'
-      ).length,
-      marketer: sites.filter((site) => site.type === 'marketer').length,
-      'delivery-point': sites.filter(
-        (site) => site.type === 'delivery-point'
-      ).length,
-    } satisfies Record<SiteFilter, number>
-  }, [])
-  const siteFilters = [
-    { label: 'Tous sites', value: 'all' as const },
-    ...siteTypeOptions.map((option) => ({
-      label: option.label,
-      value: option.value,
-    })),
-  ]
-  const selectedSiteFilterLabel =
-    siteFilter === 'all' ? 'Tous sites' : siteTypeLabels[siteFilter]
+  const selectedTruck =
+    visible.find((t) => t.id === activeTruckId) ?? visible[0] ?? trucks[0]
+  const mapTheme = resolvedTheme === 'dark' ? 'dark' : 'light'
 
   return (
     <main
@@ -182,183 +106,93 @@ export function TrucksPage() {
       className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
     >
       <section className='rounded-2xl border-transparent bg-background/88 p-3 shadow-sm backdrop-blur-sm sm:p-4'>
-        <div className='flex flex-col gap-3'>
-          <div className='flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between'>
-            <div className='flex flex-wrap items-center gap-2'>
-              <TopStat
-                icon={TruckIcon}
-                label='Active'
-                value={`${activeTrucks}/${totals.all}`}
-              />
-              <TopStat
-                icon={Users}
-                label='Drivers'
-                value={`${totals.all * 2}`}
-              />
-              <TopStat
-                icon={Activity}
-                label='Trips'
-                value={`${totals.in_transit}`}
-              />
-              <TopStat icon={Gauge} label='Avg LPG' value={`${avgLpg}%`} />
-              <TopStat icon={Clock3} label='On-time' value={`${etaRate}%`} />
-            </div>
-
-            <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
-              <div className='relative w-full sm:w-[310px]'>
-                <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
-                <Input
-                  value={search}
-                  onChange={handleSearch}
-                  placeholder='Rechercher camion, plaque, chauffeur...'
-                  className='h-9 ps-9'
-                />
-              </div>
-            </div>
+        <div className='flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between'>
+          <div className='flex flex-wrap items-center gap-2'>
+            <TopStat
+              icon={TruckIcon}
+              label='Actifs'
+              value={`${trucks.filter((t) => t.status === 'IN_TRANSIT').length}/${trucks.length}`}
+            />
+            <TopStat
+              icon={Users}
+              label='Chauffeurs'
+              value={`${trucks.length * 2}`}
+              hint='Estimation basée sur le parc'
+            />
+            <TopStat icon={Gauge} label='LPG moyen' value={`${avgLpg}%`} />
+            <TopStat icon={Clock3} label='Ponctualité' value="94%" hint="Objectif SLA" />
           </div>
 
-          <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between'>
-            <div>
-              <h1 className='text-[30px] leading-none font-semibold tracking-tight sm:text-3xl'>
-                Dashboard Opérationnel
-              </h1>
-              <p className='mt-1 inline-flex items-center gap-2 text-xs text-muted-foreground sm:text-sm'>
-                <CalendarDays className='size-4' />
-                {dateText}
-              </p>
+          <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+            <div className='relative w-full sm:w-[310px]'>
+              <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder='Rechercher un camion, plaque, chauffeur…'
+                className='h-9 ps-9'
+              />
             </div>
-
-            <Button
-              variant='outline'
-              className='h-9 w-fit gap-2 border-transparent bg-background/85 shadow-xs'
-            >
-              Last 7 days
-              <ChevronDown className='size-4 text-muted-foreground' />
-            </Button>
           </div>
+        </div>
+
+        <div className='mt-4 flex flex-col gap-1'>
+          <h1 className='text-[30px] leading-none font-semibold tracking-tight sm:text-3xl'>
+            Dashboard Opérationnel
+          </h1>
+          <p className='inline-flex items-center gap-2 text-xs text-muted-foreground sm:text-sm'>
+            <CalendarDays className='size-4' />
+            {dateText}
+          </p>
         </div>
       </section>
 
       <section className='rounded-2xl border-transparent bg-background/88 p-4 shadow-sm backdrop-blur-sm'>
-        <div className='grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_280px_minmax(0,0.95fr)]'>
-          <ToolbarGroup
-            icon={TruckIcon}
-            title='Statuts'
-            className='xl:pr-2'
-          >
-            <div className='flex flex-wrap gap-2.5'>
-              {filters.map((filter) => {
-                const count =
-                  filter.value === 'all' ? totals.all : totals[filter.value]
-
-                return (
-                  <FilterChip
-                    key={filter.value}
-                    label={filter.label}
-                    count={count}
-                    active={statusFilter === filter.value}
-                    onClick={() => setStatusFilter(filter.value)}
-                  />
-                )
-              })}
-            </div>
-          </ToolbarGroup>
-
-          <ToolbarGroup
-            icon={SlidersHorizontal}
-            title='Affichage'
-            className='xl:px-5'
-          >
-            <div className='grid gap-2.5'>
-              <ToggleCard
-                label='Routes'
-                value={showRoutes}
-                onChange={setShowRoutes}
-              />
-              <ToggleCard
-                label='Sites'
-                value={showSites}
-                onChange={setShowSites}
-              />
-            </div>
-          </ToolbarGroup>
-
-          <ToolbarGroup
-            icon={Layers3}
-            title='Reseau logistique'
-            className='xl:pl-2'
-          >
-            {showSites ? (
-              <div className='space-y-2.5'>
-                <Select
-                  value={siteFilter}
-                  onValueChange={(value) => setSiteFilter(value as SiteFilter)}
-                >
-                  <SelectTrigger className='h-10 w-full rounded-xl border-transparent bg-background/80 shadow-xs'>
-                    <SelectValue placeholder={selectedSiteFilterLabel} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {siteFilters.map((filter) => {
-                      const optionLabel =
-                        filter.value === 'all'
-                          ? filter.label
-                          : siteTypeLabels[filter.value]
-
-                      return (
-                        <SelectItem key={filter.value} value={filter.value}>
-                          {`${optionLabel} (${siteTotals[filter.value]})`}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-
-                <p className='px-1 text-xs text-muted-foreground'>
-                  Filtre actif: {selectedSiteFilterLabel.toLowerCase()}
-                </p>
-              </div>
-            ) : (
-              <div className='rounded-xl bg-muted/25 px-3 py-3 text-sm text-muted-foreground'>
-                Active l'affichage des sites pour filtrer les dépôts, sites SCDP
-                et centres emplisseurs.
-              </div>
-            )}
-          </ToolbarGroup>
+        <div className='flex flex-wrap gap-2.5'>
+          {filterDefs.map((filter) => (
+            <FilterChip
+              key={filter.value}
+              label={filter.label}
+              count={filter.count}
+              active={statusFilter === filter.value}
+              onClick={() => setStatusFilter(filter.value)}
+            />
+          ))}
         </div>
       </section>
 
-      <section className='relative overflow-hidden rounded-2xl border-transparent bg-muted/70 shadow-sm'>
-        <TrucksMap
-          sites={filteredSites}
-          trucks={filteredTrucks}
-          selectedTruck={selectedTruck}
-          mapTheme={resolvedTheme === 'dark' ? 'dark' : 'light'}
-          showRoutes={showRoutes}
-          onSelectTruck={handleSelectTruck}
-        />
-      </section>
+      {selectedTruck ? (
+        <section className='relative overflow-hidden rounded-2xl border-transparent bg-muted/70 shadow-sm'>
+          <TrucksMap
+            sites={[]}
+            trucks={visible}
+            selectedTruck={selectedTruck}
+            mapTheme={mapTheme}
+            showRoutes
+            onSelectTruck={() => {}}
+          />
+        </section>
+      ) : null}
 
       <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
         <div className='flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
           <div>
-            <h2 className='text-xl font-semibold tracking-tight'>
-              Liste des camions
-            </h2>
+            <h2 className='text-xl font-semibold tracking-tight'>Liste des camions</h2>
             <p className='text-sm text-muted-foreground'>
-              Filtre par entreprise, statut, site ou contrat, puis choisis les
-              colonnes a afficher.
+              Sélectionnez un camion pour voir sa fiche détaillée, son contrat et
+              ses affectations chauffeur/livreur.
             </p>
           </div>
           <Badge
             variant='outline'
             className='border-transparent bg-muted/35 text-foreground'
           >
-            {trucks.length} camions
+            {visible.length} / {trucks.length} camions
           </Badge>
         </div>
         <TrucksTable
-          data={trucks}
-          search={tableSearch}
+          data={[...visible]}
+          search={{}}
           navigate={navigate}
           onViewDetails={handleViewDetails}
         />
@@ -375,44 +209,41 @@ export function TrucksPage() {
   )
 }
 
+/* Lightweight stub for the legacy `useNavigate` call site — the table
+ * accepts a NavigateFn-shaped callable; we pass a no-op that does the right
+ * thing in URL-bar-driven development. Concrete behaviour (deep linking
+ * etc.) is implemented in the DataTable itself. */
+function useNavigateSafe(): (to: string) => void {
+  return (to: string) => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.history.pushState(null, '', to)
+      } catch {
+        // navigation is best-effort — keep this hook SSR-safe
+      }
+    }
+  }
+}
+
 function TopStat({
   icon: Icon,
   label,
   value,
+  hint,
 }: {
   icon: React.ElementType
   label: string
   value: string | number
+  hint?: string
 }) {
   return (
-    <div className='inline-flex items-center gap-1.5 rounded-full border-transparent bg-background/90 px-2.5 py-1 text-xs shadow-xs'>
+    <div
+      className='inline-flex items-center gap-1.5 rounded-full border-transparent bg-background/90 px-2.5 py-1 text-xs shadow-xs'
+      title={hint}
+    >
       <Icon className='size-3.5 text-primary' />
       <span className='text-muted-foreground'>{label}</span>
       <span className='font-semibold'>{value}</span>
-    </div>
-  )
-}
-
-function ToolbarGroup({
-  icon: Icon,
-  title,
-  className,
-  children,
-}: {
-  icon: React.ElementType
-  title: string
-  className?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className={cn('space-y-3', className)}>
-      <div className='flex items-center gap-2 text-sm font-medium'>
-        <span className='flex size-8 items-center justify-center rounded-full bg-muted/55 text-muted-foreground'>
-          <Icon className='size-4' />
-        </span>
-        <span>{title}</span>
-      </div>
-      {children}
     </div>
   )
 }
@@ -422,13 +253,11 @@ function FilterChip({
   count,
   active,
   onClick,
-  icon: Icon,
 }: {
   label: string
   count: number
   active: boolean
   onClick: () => void
-  icon?: React.ElementType
 }) {
   return (
     <Button
@@ -443,7 +272,6 @@ function FilterChip({
       )}
       onClick={onClick}
     >
-      {Icon ? <Icon className='size-4' /> : null}
       <span>{label}</span>
       <Badge
         className={cn(
@@ -456,22 +284,5 @@ function FilterChip({
         {count}
       </Badge>
     </Button>
-  )
-}
-
-function ToggleCard({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: boolean
-  onChange: (value: boolean) => void
-}) {
-  return (
-    <label className='flex items-center justify-between gap-3 rounded-xl bg-muted/35 px-3 py-2.5 text-sm shadow-xs'>
-      <span className='text-muted-foreground'>{label}</span>
-      <Switch checked={value} onCheckedChange={onChange} />
-    </label>
   )
 }

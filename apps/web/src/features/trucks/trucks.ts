@@ -1,5 +1,6 @@
-import { curated } from '@lpg/mock-data'
-import type { Vehicle as CuratedVehicle, Region } from '@lpg/types'
+import { curated, organizations, drivers } from '@lpg/mock-data'
+import type { Vehicle as CuratedVehicle, Organization as CuratedOrganization, Region } from '@lpg/types'
+
 
 export type TruckStatus = 'AVAILABLE' | 'IN_TRANSIT' | 'MAINTENANCE' | 'INACTIVE'
 
@@ -26,8 +27,8 @@ export interface Truck {
   risk_level: TruckRiskLevel
   marketer?: string
   tenant_name?: string
-  // Legacy camelCase aliases — preserved so existing screens (global-search,
-  // trucks-* components, routes.ts) compile without a separate migration.
+  /** Legacy camelCase aliases — preserved so existing screens (global-search,
+   * trucks-* components, routes.ts) compile without a separate migration. */
   plateNumber: string
   makeModel: string
   assignedDriver: string
@@ -37,7 +38,6 @@ export interface Truck {
   currentLocation: string
   contractTier: ContractTier
   riskLevel: TruckRiskLevel
-  /** Centre point, derived from a deterministic hash for map rendering. */
   latitude: number
   longitude: number
 }
@@ -77,37 +77,48 @@ export const riskClasses: Record<TruckRiskLevel, string> = {
   high: 'bg-red-500/10 text-red-700 dark:text-red-300',
 }
 
-export const truckStatusOptions = [
+export const truckStatusOptions: readonly { label: string; value: string }[] = [
   { label: 'Disponible', value: 'AVAILABLE' },
   { label: 'En livraison', value: 'IN_TRANSIT' },
   { label: 'Maintenance', value: 'MAINTENANCE' },
   { label: 'Inactif', value: 'INACTIVE' },
 ]
 
-export const contractTierOptions = [
+export const contractTierOptions: readonly { label: string; value: ContractTier }[] = [
   { label: 'Starter', value: 'Starter' },
   { label: 'Growth', value: 'Growth' },
   { label: 'Enterprise', value: 'Enterprise' },
 ]
 
-const STATUS_BY_INDEX: TruckStatus[] = ['AVAILABLE', 'IN_TRANSIT', 'MAINTENANCE', 'INACTIVE']
-const REGIONS: Region[] = ['CENTRE', 'LITTORAL', 'NORD', 'EXTREMENORD', 'OUEST', 'SUDOUEST', 'EST', 'ADAMAOUA']
+const STATUS_BY_INDEX: readonly TruckStatus[] = ['AVAILABLE', 'IN_TRANSIT', 'MAINTENANCE', 'INACTIVE']
+const REGIONS: readonly Region[] = [
+  'CENTRE', 'LITTORAL', 'NORD', 'EXTREMENORD', 'OUEST', 'SUDOUEST', 'EST', 'ADAMAOUA',
+]
+
+function hashLocationKey(key: string): number {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
+  return h
+}
 
 export function getTrucks(): Truck[] {
   const vehicles = curated.vehicles as CuratedVehicle[]
-  const drivers = curated.drivers
-  const orgs = (curated.organizations as any[]).filter((o) => o.is_active)
-  return vehicles.map((v, idx) => {
-    const driver = drivers[idx % drivers.length]
-    const status = STATUS_BY_INDEX[idx % STATUS_BY_INDEX.length]
-    const region = REGIONS[idx % REGIONS.length]
-    const org = orgs[idx % orgs.length]
+  const activeOrgs: CuratedOrganization[] = organizations.filter((o) => o.is_active)
+  return vehicles.map((v, idx): Truck => {
+    const driver = drivers[Math.min(idx, drivers.length - 1)]
+    const status: TruckStatus = STATUS_BY_INDEX[idx % STATUS_BY_INDEX.length] ?? 'AVAILABLE'
+    const region: Region = REGIONS[idx % REGIONS.length] ?? 'CENTRE'
+    const org: CuratedOrganization | undefined = activeOrgs[idx % Math.max(activeOrgs.length, 1)] 
     const plate_number = v.license_plate
-    const assigned_driver = driver ? `${driver.first_name} ${driver.last_name}` : '—'
-    const tenant = org?.name ?? '—'
-    // Deterministic Yaoundé-area fallback so map consumers have a center to plot.
-    const latitude = 3.4 + ((idx * 0.27) % 1.0)
-    const longitude = 10.8 + ((idx * 0.41) % 1.4)
+    const driver_name = driver ? `${driver.first_name} ${driver.last_name}` : '—'
+    const org_name: string = org?.name ?? '—'
+    const seed = hashLocationKey(plate_number)
+    const latitude = 3.4 + ((seed * 0.27) % 1.0) / 1
+    const longitude = 10.8 + ((seed * 0.41) % 1.4) / 1
+    const contractIdx = idx % 3
+    const tier: ContractTier = contractIdx === 0 ? 'Enterprise' : contractIdx === 1 ? 'Growth' : 'Starter'
+    const riskIdx = idx % 4
+    const risk: TruckRiskLevel = riskIdx === 0 ? 'high' : riskIdx === 3 ? 'medium' : 'low'
     return {
       id: v.id,
       plate_number,
@@ -119,43 +130,48 @@ export function getTrucks(): Truck[] {
       certificate_number: v.certificate_number ?? `CERT-${v.id}`,
       org_id: v.org_id,
       region,
-      assigned_driver,
+      assigned_driver: driver_name,
       driver_phone: '+237 6 XX XX XX XX',
       fleet_manager: '—',
       operating_region: region,
       current_location: '—',
-      contract_tier: idx % 3 === 0 ? 'Enterprise' : idx % 3 === 1 ? 'Growth' : 'Starter',
-      risk_level: idx % 4 === 0 ? 'high' : idx % 3 === 0 ? 'medium' : 'low',
-      marketer: tenant,
-      tenant_name: tenant,
+      contract_tier: tier,
+      risk_level: risk,
+      marketer: org_name,
+      tenant_name: org_name,
       plateNumber: plate_number,
       makeModel: `${v.type} ${plate_number}`,
-      assignedDriver: assigned_driver,
+      assignedDriver: driver_name,
       driverPhone: '+237 6 XX XX XX XX',
       fleetManager: '—',
       operatingRegion: region,
       currentLocation: '—',
-      contractTier: idx % 3 === 0 ? 'Enterprise' : idx % 3 === 1 ? 'Growth' : 'Starter',
-      riskLevel: idx % 4 === 0 ? 'high' : idx % 3 === 0 ? 'medium' : 'low',
+      contractTier: tier,
+      riskLevel: risk,
       latitude,
       longitude,
-    } as Truck
+    }
   })
 }
 
-export const trucks: Truck[] = getTrucks()
+export const trucks: readonly Truck[] = getTrucks()
 
-export const truckTenantOptions = (list: Truck[] = trucks) =>
-  Array.from(new Set(list.map((truck) => truck.tenant_name ?? '').filter(Boolean))).map((tenant_name) => ({
-    label: tenant_name,
-    value: tenant_name,
-  }))
+export interface SelectOption<T extends string = string> {
+  label: string
+  value: T
+}
 
-export const truckMarketerOptions = (list: Truck[] = trucks) =>
-  Array.from(new Set(list.map((truck) => truck.marketer ?? '').filter(Boolean))).map((marketer) => ({
-    label: marketer,
-    value: marketer,
-  }))
+export const truckTenantOptions: readonly SelectOption[] = (() => {
+  const set = new Set<string>()
+  for (const t of trucks) if (t.tenant_name) set.add(t.tenant_name)
+  return Array.from(set, (tenant_name) => ({ label: tenant_name, value: tenant_name }))
+})()
+
+export const truckMarketerOptions: readonly SelectOption[] = (() => {
+  const set = new Set<string>()
+  for (const t of trucks) if (t.marketer) set.add(t.marketer)
+  return Array.from(set, (marketer) => ({ label: marketer, value: marketer }))
+})()
 
 export function getTruckById(id: string): Truck | undefined {
   return trucks.find((t) => t.id === id)

@@ -110,17 +110,17 @@ export function getMarketersColumns({
         <DataTableColumnHeader column={column} title='Email' />
       ),
       cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contactEmail}</div>
+        <div className='text-muted-foreground'>{row.original.contact_email}</div>
       ),
       meta: { label: 'Email' },
     },
     {
-      accessorKey: 'contactPhone',
+      accessorKey: 'contact_phone',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Téléphone' />
       ),
       cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contactPhone}</div>
+        <div className='text-muted-foreground'>{row.original.contact_phone}</div>
       ),
       meta: { label: 'Téléphone' },
     },

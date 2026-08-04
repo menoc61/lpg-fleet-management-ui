@@ -28,6 +28,7 @@ import {
 import {
   Activity,
   AlertTriangle,
+  Bell,
   Building2,
   Camera,
   ClipboardCheck,

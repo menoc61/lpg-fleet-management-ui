@@ -7,6 +7,36 @@
  */
 
 export { curated } from './curated.ts'
+export {
+  organizations,
+  users,
+  sites,
+  clients,
+  client_sites,
+  vehicles,
+  drivers,
+  devices,
+  transporter_contracts,
+  pickup_requests,
+  delivery_tours,
+  checkpoints,
+  scan_events,
+  declarations,
+  reconciliations,
+  redressements,
+  risk_scores,
+  anomalies,
+  anomaly_assignments,
+  notification_groups,
+  notification_group_members,
+  notification_rules,
+  notifications,
+  user_mfa,
+  integration_auth,
+  system_roles,
+  permissions,
+} from './entities.ts'
+
 export type {
   Region,
   Organization,

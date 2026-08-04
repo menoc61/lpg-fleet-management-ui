@@ -25,11 +25,18 @@
       "@lpg/ui": ["../../packages/ui/src/index.ts"]
     },
 
-    /* Linting */
+    /* Linting / hardening */
     "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": false,
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"]
