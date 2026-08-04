@@ -140,6 +140,8 @@ export function DataTable<TData>({
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
+    globalFilter,
+    onGlobalFilterChange,
     ensurePageInRange,
   } = useTableUrlState({
     search: searchState,
@@ -159,10 +161,12 @@ export function DataTable<TData>({
       columnFilters,
       columnVisibility,
       grouping,
+      globalFilter,
     },
     enableRowSelection: true,
     onPaginationChange,
     onColumnFiltersChange,
+    onGlobalFilterChange,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
@@ -194,13 +198,13 @@ export function DataTable<TData>({
             value={
               search?.columnId
                 ? ((table.getColumn(search.columnId)?.getFilterValue() as string) ?? '')
-                : (table.getState().globalFilter ?? '')
+                : (globalFilter ?? '')
             }
             onChange={(e) => {
               if (search?.columnId) {
                 table.getColumn(search.columnId)?.setFilterValue(e.target.value)
               } else {
-                table.setGlobalFilter(e.target.value)
+                onGlobalFilterChange?.(e.target.value)
               }
             }}
             className='h-8 w-37.5 lg:w-62.5'
@@ -262,7 +266,7 @@ export function DataTable<TData>({
               variant='ghost'
               onClick={() => {
                 table.resetColumnFilters()
-                table.setGlobalFilter('')
+                onGlobalFilterChange?.('')
                 setGrouping([])
                 setDateRange({ from: undefined, to: undefined })
                 navigate({

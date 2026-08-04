@@ -68,7 +68,7 @@ const ROLE_SETTINGS: Record<string, SettingCard[]> = {
     { to: '/settings', icon: Truck, title: 'Paramètres flotte', description: 'Configuration des camions et transporteurs.' },
     { to: '/settings', icon: RouteIcon, title: 'Règles de tournée', description: 'Définir quotas, horaires et zones de livraison.' },
   ],
-  LIVREUR: [
+  TRANSPORTEUR: [
     { to: '/settings/profile', icon: User, title: 'Profil', description: 'Gérer vos informations personnelles.' },
     { to: '/settings', icon: Palette, title: 'Apparence', description: 'Thème, police et préférences d’affichage.' },
     { to: '/settings', icon: Smartphone, title: 'Préférences PDA', description: 'Paramètres de synchronisation et scan.' },

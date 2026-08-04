@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ModuleScreen } from '@/module/module-screen'
 import { roleFromSlug } from '@/config/rbac/sidebar-by-role'
 import { getCustomScreen } from '@/module/custom-screens'
-import type { Role } from '@lpg/permissions'
+import type { Role } from '@/config/rbac/roles'
 
 export const Route = createFileRoute('/_authenticated/$role/$module')({
   component: ModuleWrapper,

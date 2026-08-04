@@ -1,14 +1,10 @@
-import { type ElementType, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  AlertTriangle,
   ArrowDownToLine,
   ArrowDownRight,
   ArrowUpRight,
   CalendarRange,
   ChevronRight,
-  PackageCheck,
-  Truck,
-  Warehouse,
 } from 'lucide-react'
 import {
   Bar,
@@ -32,6 +28,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { type Role } from '@/config/rbac/roles'
 import { Main } from '@/components/layout/main'
 import {
   buildDashboardView,
@@ -44,58 +41,55 @@ import {
   type DashboardRouteContribution,
 } from './data/dashboard'
 
-type DashboardDetailId = 'transported' | 'reserve' | 'delivered' | 'alerts'
-
-const metricIcons: Record<string, ElementType> = {
-  transported: Truck,
-  reserve: Warehouse,
-  delivered: PackageCheck,
-  alerts: AlertTriangle,
-}
-
-const activityStatusClasses: Record<DashboardActivityStatus, string> = {
-  completed:
-    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  attention:
-    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  planned:
-    'border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300',
-}
-
-const reserveStatusClasses = {
-  healthy:
-    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  watch:
-    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  critical:
-    'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300',
-} as const
-
-const routeStatusLabels: Record<DashboardRouteContribution['status'], string> =
-  {
-    planned: 'Planifiée',
-    'in-progress': 'En cours',
-    completed: 'Terminée',
-    incident: 'Incident',
-  }
-
-export function DashboardPage() {
+export function DashboardPage({ role }: { role?: Role } = {}) {
   const dashboard = useMemo(() => buildDashboardView(), [])
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')
   const monthlySeries = dashboard.trendByPeriod.monthly
   const dailyAlerts = dashboard.trendByPeriod.daily
 
+  const heading =
+    role === 'SUPER_ADMIN'
+      ? 'Pilotage national'
+      : role === 'ADMIN'
+        ? 'Tableau de bord administration'
+        : role === 'SUPERVISOR'
+          ? 'Métriques système'
+          : role === 'INTEGRATEUR'
+            ? 'Activation matériel'
+            : role === 'AGENT'
+              ? 'Vue consolidée agent'
+              : role === 'MARKETEUR'
+                ? 'Pilotage marketeur'
+                : role === 'TRANSPORTEUR'
+                  ? 'État de la flotte'
+                  : 'Tableau de bord global'
+  const subtitle =
+    role === 'SUPER_ADMIN'
+      ? 'Vue nationale des volumes, traçabilité et anomalies agrégées.'
+      : role === 'ADMIN'
+        ? 'Administration des utilisateurs, marketeurs et validations.'
+        : role === 'SUPERVISOR'
+          ? 'Santé services, alertes infrastructure et risques.'
+          : role === 'INTEGRATEUR'
+            ? 'Parc PDA/GPS/RFID et authentification des appareils.'
+            : role === 'AGENT'
+              ? 'Suivi marketeurs assignés et visites terrain.'
+              : role === 'MARKETEUR'
+                ? 'Flotte, quotas, tournées et clients.'
+                : role === 'TRANSPORTEUR'
+                  ? 'Flotte, tournées, scans et points de contrôle.'
+                  : 'Pilotage consolidé des volumes transportés, de la réserve utile et des signaux récents du réseau GPL.'
+
   return (
     <Main fluid className='space-y-6 bg-muted/20'>
       <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
         <div className='space-y-1'>
           <h1 className='font-manrope text-3xl font-semibold tracking-tight'>
-            Tableau de bord global
+            {heading}
           </h1>
           <p className='max-w-3xl text-sm text-muted-foreground sm:text-base'>
-            Pilotage consolidé des volumes transportés, de la réserve utile et
-            des signaux récents du réseau GPL.
+            {subtitle}
           </p>
         </div>
 
@@ -166,6 +160,34 @@ export function DashboardPage() {
   )
 }
 
+type DashboardDetailId = 'transported' | 'reserve' | 'delivered' | 'alerts'
+
+const activityStatusClasses: Record<DashboardActivityStatus, string> = {
+  completed:
+    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  attention:
+    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  planned:
+    'border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300',
+}
+
+const reserveStatusClasses = {
+  healthy:
+    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  watch:
+    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  critical:
+    'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+} as const
+
+const routeStatusLabels: Record<DashboardRouteContribution['status'], string> =
+  {
+    planned: 'Planifiée',
+    'in-progress': 'En cours',
+    completed: 'Terminée',
+    incident: 'Incident',
+  }
+
 function MetricCard({
   metric,
   sparkline,
@@ -177,7 +199,6 @@ function MetricCard({
   selected: boolean
   onSelect: () => void
 }) {
-  const Icon = metricIcons[metric.id] ?? Truck
   const DeltaIcon =
     metric.deltaDirection === 'down' ? ArrowDownRight : ArrowUpRight
 
@@ -191,7 +212,7 @@ function MetricCard({
       <CardHeader className='gap-3 pb-3'>
         <div className='flex items-center justify-between gap-3'>
           <div className='flex size-10 items-center justify-center rounded-xl border bg-muted/30'>
-            <Icon className='size-4 text-muted-foreground' />
+            <div className='size-4 rounded-full bg-primary/20' />
           </div>
           {metric.id === 'alerts' ? (
             <Badge className='border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'>
@@ -507,9 +528,7 @@ function ReserveDetailTable({ sites }: { sites: DashboardReserveSite[] }) {
                 </p>
               </td>
               <td className='px-4 py-3 text-right'>
-                <p className='font-medium'>
-                  {formatKg(site.scheduledInboundKg)}
-                </p>
+                <p className='font-medium'>{formatKg(site.scheduledInboundKg)}</p>
                 <p className='text-xs text-muted-foreground'>
                   sorties {formatKg(site.outboundKg)}
                 </p>
@@ -545,9 +564,7 @@ function AlertDetailList({
           <div className='flex items-start justify-between gap-3'>
             <div className='space-y-1'>
               <p className='font-medium'>{alert.title}</p>
-              <p className='text-sm text-muted-foreground'>
-                {alert.description}
-              </p>
+              <p className='text-sm text-muted-foreground'>{alert.description}</p>
             </div>
             <Badge
               className={cn(
@@ -831,9 +848,7 @@ function ReserveSummaryCard({
             <p className='text-xs tracking-[0.18em] text-muted-foreground uppercase'>
               Réserve utile
             </p>
-            <p className='text-3xl font-semibold'>
-              {formatTons(totalReserveKg)}
-            </p>
+            <p className='text-3xl font-semibold'>{formatTons(totalReserveKg)}</p>
           </div>
         </div>
 
@@ -850,9 +865,7 @@ function ReserveSummaryCard({
                 />
                 <span className='font-medium'>{item.label}</span>
               </div>
-              <span className='text-muted-foreground'>
-                {item.sharePercent}%
-              </span>
+              <span className='text-muted-foreground'>{item.sharePercent}%</span>
             </div>
           ))}
         </div>
@@ -900,9 +913,7 @@ function RecentActivitiesCard({
                       : 'Planifié'}
                 </Badge>
               </div>
-              <p className='text-sm text-muted-foreground'>
-                {activity.description}
-              </p>
+              <p className='text-sm text-muted-foreground'>{activity.description}</p>
               <div className='flex flex-wrap items-center gap-3 text-xs text-muted-foreground'>
                 <span>{activity.location}</span>
                 <span>{activity.owner}</span>
@@ -914,9 +925,7 @@ function RecentActivitiesCard({
               <p className='text-sm font-medium'>
                 {activity.volumeKg ? formatKg(activity.volumeKg) : '--'}
               </p>
-              <p className='mt-1 text-xs text-muted-foreground'>
-                impact estimé
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>impact estimé</p>
             </div>
           </div>
         ))}
@@ -957,9 +966,7 @@ function ReserveSitesCard({ sites }: { sites: DashboardReserveSite[] }) {
                 </p>
               </div>
               <div className='text-right'>
-                <p className='text-sm font-medium'>
-                  {formatKg(site.reserveKg)}
-                </p>
+                <p className='text-sm font-medium'>{formatKg(site.reserveKg)}</p>
                 <p className='text-xs text-muted-foreground'>
                   {site.daysOfCover.toFixed(1)} jours
                 </p>
@@ -1033,9 +1040,7 @@ function FleetPerformanceCard({ fleets }: { fleets: DashboardFleetSummary[] }) {
                 </p>
               </div>
               <div className='text-right'>
-                <p className='text-lg font-semibold'>
-                  {formatKg(fleet.transportedKg)}
-                </p>
+                <p className='text-lg font-semibold'>{formatKg(fleet.transportedKg)}</p>
                 <p className='text-xs text-muted-foreground'>
                   {fleet.onTimeRate}% de service
                 </p>

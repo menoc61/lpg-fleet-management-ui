@@ -1,4 +1,5 @@
 import { type ModuleField, type ModuleRegistry } from './types'
+import { BadgeCheck, Clock, FileText, IdCard, Route, Truck, TrendingUp } from 'lucide-react'
 
 const STATUS = [
   { label: 'Actif', value: 'active' },
@@ -19,6 +20,18 @@ const RISK = [
   { label: 'Élevé', value: 'high' },
 ]
 
+const RECONCILIATION_STATUS = [
+  { label: 'En attente', value: 'pending' },
+  { label: 'Vérifiée', value: 'verified' },
+  { label: 'Redressement appliqué', value: 'redressement_applied' },
+]
+
+const REDRESSEMENT_STATUS = [
+  { label: 'Émis', value: 'issued' },
+  { label: 'Payé', value: 'paid' },
+  { label: 'Annulé', value: 'waived' },
+]
+
 const MARKETEUR_FIELDS: ModuleField[] = [
   { key: 'name', header: 'Marketeur', type: 'text', filterable: true },
   { key: 'quota', header: 'Quota (kg)', type: 'number' },
@@ -34,6 +47,66 @@ const MARKETEUR_FIELDS: ModuleField[] = [
 
 export const MODULE_REGISTRY: ModuleRegistry = {
   // ---------- SUPER_ADMIN ----------
+  'SUPER_ADMIN:overview': {
+    title: "Vue d'ensemble nationale",
+    description: 'KPIs nationaux, volumes, traçabilité et anomalies agrégées.',
+    mockCount: 20,
+    fields: [
+      { key: 'region', header: 'Région', type: 'text', filterable: true },
+      { key: 'traceability', header: 'Traçabilité %', type: 'number' },
+      { key: 'volume', header: 'Volume (t)', type: 'number' },
+      { key: 'anomalies', header: 'Anomalies', type: 'number' },
+      { key: 'updatedAt', header: 'Mis à jour', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:map': {
+    title: 'Carte interactive',
+    description: 'Vue cartographique nationale des sites, tournées et anomalies.',
+    mockCount: 18,
+    fields: [
+      { key: 'site', header: 'Site', type: 'text', filterable: true },
+      { key: 'region', header: 'Région', type: 'text', filterable: true },
+      { key: 'status', header: 'Statut', type: 'status', options: STATUS, filterable: true },
+      { key: 'updatedAt', header: 'Mis à jour', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:finance': {
+    title: 'Indicateurs financiers',
+    description: 'Subventions, écarts et économies réalisées.',
+    mockCount: 20,
+    fields: [
+      { key: 'org', header: 'Organisation', type: 'text', filterable: true },
+      { key: 'subsidy', header: 'Subvention', type: 'currency' },
+      { key: 'gap', header: 'Écart', type: 'currency' },
+      { key: 'saved', header: 'Économies', type: 'currency' },
+      { key: 'period', header: 'Période', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:transporters': {
+    title: 'Transporteurs',
+    description: 'Parc transporteurs, contrats et validations externes.',
+    mockCount: 24,
+    fields: [
+      { key: 'name', header: 'Transporteur', type: 'text', filterable: true },
+      { key: 'contracts', header: 'Contrats actifs', type: 'number' },
+      { key: 'vehicles', header: 'Véhicules', type: 'number' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: STATUS,
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:marketeurs': {
+    title: 'Marketeurs',
+    description: 'Suivi national des marketeurs et indicateurs agrégés.',
+    mockCount: 26,
+    fields: MARKETEUR_FIELDS,
+  },
   'SUPER_ADMIN:organizations': {
     title: 'Organisations & sites',
     description: 'Toutes les organisations et leurs sites localisés.',
@@ -45,11 +118,11 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         header: 'Type',
         type: 'badge',
         options: [
-          { label: 'CSPH', value: 'csph' },
-          { label: 'SCDP', value: 'scdp' },
-          { label: 'SNH', value: 'snh' },
-          { label: 'Marketeur', value: 'marketeur' },
-          { label: 'Transporteur', value: 'transporteur' },
+          { label: 'Regulator', value: 'REGULATEUR' },
+          { label: 'Depot', value: 'DEPOT' },
+          { label: 'Marketeur', value: 'MARKETEUR' },
+          { label: 'Transporteur', value: 'TRANSPORTEUR' },
+          { label: 'Client', value: 'CLIENT' },
         ],
         filterable: true,
         groupable: true,
@@ -83,7 +156,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
           { label: 'Intégrateur', value: 'INTEGRATEUR' },
           { label: 'Agent', value: 'AGENT' },
           { label: 'Marketeur', value: 'MARKETEUR' },
-          { label: 'Livreur', value: 'LIVREUR' },
+          { label: 'Transporteur', value: 'TRANSPORTEUR' },
         ],
         filterable: true,
         groupable: true,
@@ -96,6 +169,111 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         filterable: true,
       },
       { key: 'lastLogin', header: 'Dernière connexion', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:tours': {
+    title: 'Tournées',
+    description: 'Tournées de livraison/approvisionnement.',
+    mockCount: 36,
+    fields: [
+      { key: 'ref', header: 'Tournée', type: 'text', filterable: true },
+      { key: 'type', header: 'Type', type: 'badge', options: [{ label: 'VRAC', value: 'vrac' }, { label: '50kg', value: 'bottles' }], filterable: true, groupable: true },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [
+          { label: 'Brouillon', value: 'draft' },
+          { label: 'Planifiée', value: 'planned' },
+          { label: 'En cours', value: 'in_progress' },
+          { label: 'Clôturée', value: 'closed' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
+      { key: 'startedAt', header: 'Début', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:deliveries': {
+    title: 'Livraisons',
+    description: 'Suivi des livraisons et points de contrôle.',
+    mockCount: 32,
+    fields: [
+      { key: 'ref', header: 'Livraison', type: 'text', filterable: true },
+      { key: 'tour', header: 'Tournée', type: 'text' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: STATUS,
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'checkpoint', header: 'Checkpoint', type: 'text' },
+      { key: 'completedAt', header: 'Complété le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:declarations': {
+    title: 'Déclarations',
+    description: 'Déclarations de ventes marketeurs.',
+    mockCount: 28,
+    fields: [
+      { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
+      { key: 'period', header: 'Période', type: 'text' },
+      { key: 'declaredVolume', header: 'Volume déclaré', type: 'number' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [
+          { label: 'Brouillon', value: 'draft' },
+          { label: 'Soumise', value: 'submitted' },
+          { label: 'Réconciliée', value: 'reconciled' },
+          { label: 'Contestée', value: 'disputed' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'submittedAt', header: 'Soumis le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:reconciliations': {
+    title: 'Réconciliations',
+    description: 'Écarts déclarés vs scannés et suivi de péréquation.',
+    mockCount: 26,
+    fields: [
+      { key: 'declaration', header: 'Déclaration', type: 'text', filterable: true },
+      { key: 'trackedVolume', header: 'Volume tracké', type: 'number' },
+      { key: 'volumeGap', header: 'Écart volume', type: 'number' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: RECONCILIATION_STATUS,
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'verifiedAt', header: 'Vérifié le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:redressements': {
+    title: 'Redressements',
+    description: 'Suivi des redressements financiers.',
+    mockCount: 24,
+    fields: [
+      { key: 'reconciliation', header: 'Réconciliation', type: 'text', filterable: true },
+      { key: 'amount', header: 'Montant FCFA', type: 'currency' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: REDRESSEMENT_STATUS,
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'issuedAt', header: 'Émis le', type: 'date' },
+      { key: 'paidAt', header: 'Payé le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:anomalies': {
@@ -126,48 +304,22 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'detectedAt', header: 'Détecté le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:finance': {
-    title: 'Indicateurs financiers',
-    description: 'Subventions, écarts et économies réalisées.',
-    mockCount: 20,
+  'SUPER_ADMIN:incidents': {
+    title: 'Incidents',
+    description: 'Incidents opérationnels et actions correctives.',
+    mockCount: 22,
     fields: [
-      { key: 'org', header: 'Organisation', type: 'text', filterable: true },
-      { key: 'subsidy', header: 'Subvention', type: 'currency' },
-      { key: 'gap', header: 'Écart', type: 'currency' },
-      { key: 'saved', header: 'Économies', type: 'currency' },
-      { key: 'period', header: 'Période', type: 'date' },
-    ],
-  },
-  'SUPER_ADMIN:reports': {
-    title: 'Rapports & exports',
-    description: 'Rapports opérationnels, conformité et financiers.',
-    mockCount: 25,
-    fields: [
-      { key: 'title', header: 'Rapport', type: 'text', filterable: true },
+      { key: 'title', header: 'Incident', type: 'text', filterable: true },
+      { key: 'owner', header: 'Responsable', type: 'text' },
       {
-        key: 'category',
-        header: 'Catégorie',
-        type: 'badge',
-        options: [
-          { label: 'Opérationnel', value: 'ops' },
-          { label: 'Conformité', value: 'compliance' },
-          { label: 'Financier', value: 'finance' },
-        ],
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: STATUS,
         filterable: true,
         groupable: true,
       },
-      { key: 'generatedAt', header: 'Généré le', type: 'date' },
-    ],
-  },
-  'SUPER_ADMIN:custom-roles': {
-    title: 'Rôles personnalisés',
-    description: 'Gestion des rôles et permissions personnalisés.',
-    mockCount: 15,
-    fields: [
-      { key: 'name', header: 'Rôle', type: 'text', filterable: true },
-      { key: 'permissions', header: 'Permissions', type: 'number' },
-      { key: 'users', header: 'Utilisateurs', type: 'number' },
-      { key: 'createdAt', header: 'Créé le', type: 'date' },
+      { key: 'raisedAt', header: 'Déclaré le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:risks': {
@@ -199,28 +351,15 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'calculatedAt', header: 'Calculé le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:audit-logs': {
-    title: "Journal d'audit",
-    description: 'Traçabilité des actions utilisateurs.',
-    mockCount: 50,
+  'SUPER_ADMIN:custom-roles': {
+    title: 'Rôles personnalisés',
+    description: 'Gestion des rôles et permissions personnalisés.',
+    mockCount: 15,
     fields: [
-      { key: 'action', header: 'Action', type: 'text', filterable: true },
-      { key: 'user', header: 'Utilisateur', type: 'text', filterable: true },
-      {
-        key: 'resource',
-        header: 'Ressource',
-        type: 'badge',
-        options: [
-          { label: 'Utilisateur', value: 'user' },
-          { label: 'Organisation', value: 'org' },
-          { label: 'Déclaration', value: 'declaration' },
-          { label: 'Tournée', value: 'tour' },
-          { label: 'Rôle', value: 'role' },
-        ],
-        filterable: true,
-        groupable: true,
-      },
-      { key: 'timestamp', header: 'Horodatage', type: 'date' },
+      { key: 'name', header: 'Rôle', type: 'text', filterable: true },
+      { key: 'permissions', header: 'Permissions', type: 'number' },
+      { key: 'users', header: 'Utilisateurs', type: 'number' },
+      { key: 'createdAt', header: 'Créé le', type: 'date' },
     ],
   },
   'SUPER_ADMIN:delivery-types': {
@@ -272,6 +411,84 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       },
     ],
   },
+  'SUPER_ADMIN:reports': {
+    title: 'Rapports & exports',
+    description: 'Rapports opérationnels, conformité et financiers.',
+    mockCount: 25,
+    fields: [
+      { key: 'title', header: 'Rapport', type: 'text', filterable: true },
+      {
+        key: 'category',
+        header: 'Catégorie',
+        type: 'badge',
+        options: [
+          { label: 'Opérationnel', value: 'ops' },
+          { label: 'Conformité', value: 'compliance' },
+          { label: 'Financier', value: 'finance' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'generatedAt', header: 'Généré le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:audit-logs': {
+    title: "Journal d'audit",
+    description: 'Traçabilité des actions utilisateurs.',
+    mockCount: 50,
+    fields: [
+      { key: 'action', header: 'Action', type: 'text', filterable: true },
+      { key: 'user', header: 'Utilisateur', type: 'text', filterable: true },
+      {
+        key: 'resource',
+        header: 'Ressource',
+        type: 'badge',
+        options: [
+          { label: 'Utilisateur', value: 'user' },
+          { label: 'Organisation', value: 'org' },
+          { label: 'Déclaration', value: 'declaration' },
+          { label: 'Tournée', value: 'tour' },
+          { label: 'Rôle', value: 'role' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'timestamp', header: 'Horodatage', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:settings': {
+    title: 'Paramètres',
+    description: 'Paramètres généraux du système et seuils opérationnels.',
+    mockCount: 18,
+    fields: [
+      { key: 'key', header: 'Clé', type: 'text', filterable: true },
+      { key: 'value', header: 'Valeur', type: 'text' },
+      { key: 'category', header: 'Catégorie', type: 'text', filterable: true, groupable: true },
+      { key: 'updatedAt', header: 'Modifié le', type: 'date' },
+    ],
+  },
+  'SUPER_ADMIN:system-health': {
+    title: 'Santé du système',
+    description: 'État des services, bases et files événementielles.',
+    mockCount: 14,
+    fields: [
+      { key: 'service', header: 'Service', type: 'text', filterable: true },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [
+          { label: 'OK', value: 'ok' },
+          { label: 'Dégradé', value: 'degraded' },
+          { label: 'KO', value: 'down' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'latency', header: 'Latence', type: 'number' },
+      { key: 'checkedAt', header: 'Vérifié le', type: 'date' },
+    ],
+  },
 
   // ---------- ADMIN ----------
   'ADMIN:users': {
@@ -288,7 +505,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: [
           { label: 'Agent', value: 'AGENT' },
           { label: 'Marketeur', value: 'MARKETEUR' },
-          { label: 'Livreur', value: 'LIVREUR' },
+          { label: 'Transporteur', value: 'TRANSPORTEUR' },
         ],
         filterable: true,
         groupable: true,
@@ -321,6 +538,24 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'submittedAt', header: 'Soumis le', type: 'date' },
     ],
   },
+  'ADMIN:reports': {
+    title: 'Rapports de conformité',
+    description: 'Rapports opérationnels et indicateurs de conformité.',
+    mockCount: 24,
+    fields: [
+      { key: 'title', header: 'Rapport', type: 'text', filterable: true },
+      { key: 'owner', header: 'Émetteur', type: 'text' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: STATUS,
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'generatedAt', header: 'Généré le', type: 'date' },
+    ],
+  },
   'ADMIN:alert-rules': {
     title: 'Règles d’alerte',
     description: 'Paramétrage des seuils et conditions.',
@@ -340,6 +575,17 @@ export const MODULE_REGISTRY: ModuleRegistry = {
   },
 
   // ---------- SUPERVISOR ----------
+  'SUPERVISOR:overview': {
+    title: 'Métriques système',
+    description: 'Vue consolidée des métriques opérationnelles.',
+    mockCount: 22,
+    fields: [
+      { key: 'metric', header: 'Métrique', type: 'text', filterable: true },
+      { key: 'value', header: 'Valeur', type: 'number' },
+      { key: 'unit', header: 'Unité', type: 'text' },
+      { key: 'checkedAt', header: 'Vérifié le', type: 'date' },
+    ],
+  },
   'SUPERVISOR:infra': {
     title: 'Dashboards infra (Grafana)',
     description: '8 dashboards dédiés — Prometheus, CPU, mémoire, réseau.',
@@ -431,6 +677,23 @@ export const MODULE_REGISTRY: ModuleRegistry = {
   },
 
   // ---------- INTEGRATEUR ----------
+  'INTEGRATEUR:overview': {
+    title: 'Activation matériel',
+    description: 'Vue d’ensemble du matériel IoT et activations récentes.',
+    mockCount: 24,
+    fields: [
+      { key: 'serial', header: 'N° série', type: 'text', filterable: true },
+      { key: 'deviceType', header: 'Type', type: 'text', filterable: true, groupable: true },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: STATUS,
+        filterable: true,
+      },
+      { key: 'activatedAt', header: 'Activé le', type: 'date' },
+    ],
+  },
   'INTEGRATEUR:pda': {
     title: 'PDA + GPS + RFID',
     description: 'Parc de terminaux PDA et modules IoT.',
@@ -459,6 +722,22 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'activatedAt', header: 'Activé le', type: 'date' },
     ],
   },
+  'INTEGRATEUR:auth': {
+    title: 'Authentification',
+    description: 'Activation et authentification des appareils.',
+    mockCount: 20,
+    fields: [
+      { key: 'device', header: 'Appareil', type: 'text', filterable: true },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: STATUS,
+        filterable: true,
+      },
+      { key: 'enrolledAt', header: 'Enrôlé le', type: 'date' },
+    ],
+  },
   'INTEGRATEUR:fleet-iot': {
     title: 'Parc équipements',
     description: 'Maintenance matériel PDA, GPS, RFID.',
@@ -480,24 +759,30 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'lastSeen', header: 'Vu le', type: 'date' },
     ],
   },
-  'INTEGRATEUR:auth': {
-    title: 'Authentification',
-    description: 'Activation et authentification des appareils.',
-    mockCount: 20,
+  'INTEGRATEUR:logs': {
+    title: 'Logs maintenance',
+    description: 'Suivi des interventions et maintenances.',
+    mockCount: 26,
     fields: [
-      { key: 'device', header: 'Appareil', type: 'text', filterable: true },
-      {
-        key: 'status',
-        header: 'Statut',
-        type: 'status',
-        options: STATUS,
-        filterable: true,
-      },
-      { key: 'enrolledAt', header: 'Enrôlé le', type: 'date' },
+      { key: 'asset', header: 'Équipement', type: 'text', filterable: true },
+      { key: 'action', header: 'Action', type: 'text' },
+      { key: 'performedBy', header: 'Technicien', type: 'text' },
+      { key: 'performedAt', header: 'Effectué le', type: 'date' },
     ],
   },
 
   // ---------- AGENT ----------
+  'AGENT:overview': {
+    title: 'Vue consolidée',
+    description: 'Tableau de bord agent : marketeurs, déclarations et anomalies.',
+    mockCount: 22,
+    fields: [
+      { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
+      { key: 'pending', header: 'En attente', type: 'number' },
+      { key: 'anomalies', header: 'Anomalies', type: 'number' },
+      { key: 'updatedAt', header: 'Mis à jour', type: 'date' },
+    ],
+  },
   'AGENT:marketeurs': {
     title: 'Marketeurs',
     description: 'Vue consolidée des marketeurs assignés.',
@@ -538,7 +823,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
     mockCount: 18,
     fields: [
       { key: 'user', header: 'Utilisateur', type: 'text', filterable: true },
-      { key: 'role', header: 'Rôle', type: 'badge', options: [{ label: 'Livreur', value: 'LIVREUR' }, { label: 'Marketeur', value: 'MARKETEUR' }], filterable: true, groupable: true },
+      { key: 'role', header: 'Rôle', type: 'badge', options: [{ label: 'Transporteur', value: 'TRANSPORTEUR' }, { label: 'Marketeur', value: 'MARKETEUR' }], filterable: true, groupable: true },
       { key: 'resetAt', header: 'Réinitialisé le', type: 'date' },
     ],
   },
@@ -647,7 +932,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
     mockCount: 32,
     fields: [
       { key: 'ref', header: 'Tournée', type: 'text', filterable: true },
-      { key: 'driver', header: 'Livreur', type: 'text' },
+      { key: 'driver', header: 'Chauffeur', type: 'text' },
       { key: 'checkpoints', header: 'Checkpoints', type: 'number' },
       {
         key: 'status',
@@ -707,48 +992,150 @@ export const MODULE_REGISTRY: ModuleRegistry = {
     ],
   },
 
-  // ---------- LIVREUR ----------
-  'LIVREUR:missions': {
-    title: 'Missions du jour',
-    description: 'Liste des missions de tournée journalière.',
-    mockCount: 22,
+  // ---------- TRANSPORTEUR ----------
+  'TRANSPORTEUR:tours-pending': {
+    title: 'Tournées en attente d’accusé',
+    description: 'Tournées EXTERNAL en PENDINGTRANSPORTERACK — à relever.',
+    icon: Route,
+    mockCount: 3,
     fields: [
-      { key: 'ref', header: 'Mission', type: 'text', filterable: true },
+      { key: 'ref', header: 'Tournée', type: 'text', filterable: true },
+      { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
+      {
+        key: 'type',
+        header: 'Type',
+        type: 'badge',
+        options: [
+          { label: 'VRAC', value: 'vrac' },
+          { label: '50kg', value: 'bottles' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'driver', header: 'Chauffeur', type: 'text' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [{ label: 'En attente', value: 'pending_ack' }],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'createdAt', header: 'Créée le', type: 'date' },
+    ],
+  },
+  'TRANSPORTEUR:tours-active': {
+    title: 'Tournées actives',
+    description: 'Tournées ACKNOWLEDGED ou INPROGRESS — en cours de livraison.',
+    icon: Route,
+    mockCount: 5,
+    fields: [
+      { key: 'ref', header: 'Tournée', type: 'text', filterable: true },
       { key: 'client', header: 'Client', type: 'text', filterable: true },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [
+          { label: 'Accusée', value: 'acknowledged' },
+          { label: 'En cours', value: 'in_progress' },
+          { label: 'Checkpoint actif', value: 'checkpoint_active' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'progress', header: 'Avancement', type: 'number' },
+      { key: 'startedAt', header: 'Début', type: 'date' },
+    ],
+  },
+  'TRANSPORTEUR:tours-history': {
+    title: 'Historique des tournées',
+    description: 'Tournées clôturées — récapitulatif des livraisons.',
+    icon: Clock,
+    mockCount: 40,
+    fields: [
+      { key: 'ref', header: 'Tournée', type: 'text', filterable: true },
+      { key: 'delivered', header: 'Livré (TM)', type: 'number' },
       { key: 'bottles', header: 'Bouteilles', type: 'number' },
       {
         key: 'status',
         header: 'Statut',
         type: 'status',
         options: [
-          { label: 'À faire', value: 'todo' },
-          { label: 'En cours', value: 'running' },
-          { label: 'Terminée', value: 'done' },
+          { label: 'Clôturée', value: 'closed' },
+          { label: 'Annulée', value: 'cancelled' },
         ],
         filterable: true,
         groupable: true,
       },
-      { key: 'dueAt', header: 'Échéance', type: 'date' },
+      { key: 'closedAt', header: 'Clôturée le', type: 'date' },
     ],
   },
-  'LIVREUR:scan': {
-    title: 'Scans RFID (IN/OUT)',
-    description: 'Bouteilles pleines déposées (OUT) et vides récupérées (IN).',
-    mockCount: 40,
+  'TRANSPORTEUR:vehicles': {
+    title: 'Camions',
+    description: 'Parc camions du transporteur et certificats.',
+    icon: Truck,
+    mockCount: 18,
     fields: [
-      { key: 'tag', header: 'Tag RFID', type: 'text', filterable: true },
+      { key: 'plate', header: 'Immatriculation', type: 'text', filterable: true },
       {
-        key: 'direction',
-        header: 'Sens',
+        key: 'type',
+        header: 'Type',
         type: 'badge',
         options: [
-          { label: 'OUT (plein)', value: 'out' },
-          { label: 'IN (vide)', value: 'in' },
+          { label: 'VRAC', value: 'vrac' },
+          { label: '50kg', value: 'bottles' },
         ],
         filterable: true,
         groupable: true,
       },
-      { key: 'mission', header: 'Mission', type: 'text' },
+      { key: 'driver', header: 'Chauffeur', type: 'text' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'status',
+        options: [
+          { label: 'Disponible', value: 'available' },
+          { label: 'En tournée', value: 'on_tour' },
+          { label: 'Maintenance', value: 'maintenance' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+      { key: 'certExpiry', header: 'Certificat expire le', type: 'date' },
+    ],
+  },
+  'TRANSPORTEUR:drivers': {
+    title: 'Chauffeurs',
+    description: 'Chauffeurs rattachés au transporteur.',
+    icon: IdCard,
+    mockCount: 24,
+    fields: [
+      { key: 'name', header: 'Chauffeur', type: 'text', filterable: true },
+      { key: 'license', header: 'Permis', type: 'text' },
+      { key: 'licenseExpiry', header: 'Permis expire le', type: 'date' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'badge',
+        options: [
+          { label: 'Actif', value: 'active' },
+          { label: 'Inactif', value: 'inactive' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
+    ],
+  },
+  'TRANSPORTEUR:livreurs': {
+    title: 'Livreurs PDA',
+    description: 'Opérateurs PDA assignés aux tournées.',
+    icon: BadgeCheck,
+    mockCount: 16,
+    fields: [
+      { key: 'name', header: 'Livreur', type: 'text', filterable: true },
+      { key: 'activeTour', header: 'Tournée active', type: 'text' },
+      { key: 'pda', header: 'PDA', type: 'text' },
       {
         key: 'sync',
         header: 'Synchro',
@@ -756,23 +1143,25 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: SYNC,
         filterable: true,
       },
-      { key: 'scannedAt', header: 'Scanné le', type: 'date' },
+      { key: 'lastSeen', header: 'Dernière connexion', type: 'date' },
     ],
   },
-  'LIVREUR:upload': {
-    title: 'Téléversement',
-    description: 'Section de téléversement manuel (quand en ligne).',
-    mockCount: 18,
+  'TRANSPORTEUR:contracts': {
+    title: 'Mes contrats',
+    description: 'Accord de prestation avec les marketeurs.',
+    icon: FileText,
+    mockCount: 6,
     fields: [
-      { key: 'doc', header: 'Document', type: 'text', filterable: true },
+      { key: 'ref', header: 'Référence', type: 'text', filterable: true },
+      { key: 'marketeur', header: 'Marketeur', type: 'text', filterable: true },
+      { key: 'period', header: 'Période', type: 'text' },
       {
-        key: 'type',
-        header: 'Type',
+        key: 'isPrimary',
+        header: 'Principal',
         type: 'badge',
         options: [
-          { label: 'Bon de livraison', value: 'bl' },
-          { label: 'Bon d’enlèvement', value: 'be' },
-          { label: 'Photo', value: 'photo' },
+          { label: 'Oui', value: 'primary' },
+          { label: 'Non', value: 'secondary' },
         ],
         filterable: true,
         groupable: true,
@@ -781,28 +1170,33 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         key: 'status',
         header: 'Statut',
         type: 'status',
-        options: SYNC,
-        filterable: true,
-      },
-      { key: 'capturedAt', header: 'Capturé le', type: 'date' },
-    ],
-  },
-  'LIVREUR:sync': {
-    title: 'Rapport de synchronisation',
-    description: 'Historique et statut des uploads PDA.',
-    mockCount: 20,
-    fields: [
-      { key: 'session', header: 'Session', type: 'text', filterable: true },
-      { key: 'items', header: 'Éléments', type: 'number' },
-      {
-        key: 'status',
-        header: 'Statut',
-        type: 'status',
-        options: SYNC,
+        options: STATUS,
         filterable: true,
         groupable: true,
       },
-      { key: 'syncedAt', header: 'Synchronisé le', type: 'date' },
+    ],
+  },
+  'TRANSPORTEUR:performance': {
+    title: 'Performance',
+    description: 'Taux d’achevement des tournées et indicateurs de ponctualité.',
+    icon: TrendingUp,
+    mockCount: 12,
+    fields: [
+      { key: 'name', header: 'Chauffeur', type: 'text', filterable: true },
+      { key: 'tours', header: 'Tournées', type: 'number' },
+      { key: 'onTime', header: 'À l’heure %', type: 'number' },
+      { key: 'rating', header: 'Note', type: 'number' },
+      {
+        key: 'status',
+        header: 'Statut',
+        type: 'badge',
+        options: [
+          { label: 'OK', value: 'ok' },
+          { label: 'À revoir', value: 'warning' },
+        ],
+        filterable: true,
+        groupable: true,
+      },
     ],
   },
 }

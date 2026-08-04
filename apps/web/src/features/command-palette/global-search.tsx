@@ -8,14 +8,15 @@ import {
 } from '@lpg/ui'
 import { useGlobalSearchStore } from './global-search-store'
 import { useNavigate } from '@tanstack/react-router'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRoleStore } from '@/store/role-store'
 import { getSidebarData } from '@/config/rbac/sidebar-by-role'
 import { trucks } from '@/features/trucks/data/trucks'
 import { sites } from '@/features/sites/data/sites'
 import { transporters } from '@/features/transporters/data/transporters'
 import { marketers } from '@/features/marketers/data/marketers'
-import { TruckIcon, MapPin, Handshake, Building2, Home } from 'lucide-react'
+import { getRouteTripsView } from '@/features/routes/routes'
+import { TruckIcon, MapPin, Handshake, Building2, FileText, Home, Clock } from 'lucide-react'
 
 type SearchItem = {
   category: string
@@ -24,6 +25,41 @@ type SearchItem = {
   value: string
   url: string
   icon: React.ElementType
+}
+
+type RecentEntry = {
+  term: string
+  category: string
+  title: string
+  url: string
+  icon: React.ElementType
+}
+
+const RECENT_KEY = 'global-search-recent'
+const MAX_RECENT = 8
+
+function readRecent(): RecentEntry[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY)
+    if (!raw) return []
+    return JSON.parse(raw) as RecentEntry[]
+  } catch {
+    return []
+  }
+}
+
+function writeRecent(entries: RecentEntry[]) {
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(entries.slice(0, MAX_RECENT)))
+  } catch {
+    // ignore
+  }
+}
+
+function addRecent(entry: RecentEntry) {
+  const existing = readRecent().filter((r) => r.url !== entry.url)
+  const next = [entry, ...existing].slice(0, MAX_RECENT)
+  writeRecent(next)
 }
 
 function getSitesUrlForRole(role: string): string | null {
@@ -42,12 +78,12 @@ function getSitesUrlForRole(role: string): string | null {
       }
     }
   } catch {
-    /* ignore */
+    // ignore
   }
   return null
 }
 
-function buildIndex(role: string): SearchItem[] {
+function buildLiveIndex(role: string): SearchItem[] {
   const items: SearchItem[] = []
 
   try {
@@ -81,7 +117,7 @@ function buildIndex(role: string): SearchItem[] {
       }
     }
   } catch {
-    /* ignore */
+    // ignore
   }
 
   for (const t of trucks) {
@@ -92,6 +128,17 @@ function buildIndex(role: string): SearchItem[] {
       value: `${t.plateNumber} ${t.tenantName} ${t.assignedDriver} ${t.id}`,
       url: `/trucks/${t.id}`,
       icon: TruckIcon,
+    })
+  }
+
+  for (const trip of getRouteTripsView()) {
+    items.push({
+      category: 'Tournées',
+      title: trip.reference,
+      subtitle: `${trip.customerName} — ${trip.truck}`,
+      value: `${trip.reference} ${trip.customerName} ${trip.id}`,
+      url: `/routes/${trip.id}`,
+      icon: FileText,
     })
   }
 
@@ -140,8 +187,30 @@ export function GlobalSearch() {
   const toggle = useGlobalSearchStore((s) => s.toggle)
   const { activeRole } = useRoleStore()
   const navigate = useNavigate()
+  const [query, setQuery] = useState('')
 
-  const items = useMemo(() => buildIndex(activeRole), [activeRole])
+  const items = useMemo(() => buildLiveIndex(activeRole), [activeRole])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return items.filter((item) => item.value.toLowerCase().includes(q)).slice(0, 50)
+  }, [items, query])
+
+  const recent = useMemo(() => readRecent(), [open, query])
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, SearchItem[]>()
+    const source = query.trim().length === 0 && recent.length > 0
+      ? recent.map((r) => ({ category: r.category, title: r.title, subtitle: '', value: r.title, url: r.url, icon: r.icon }))
+      : filtered
+    for (const item of source) {
+      const group = map.get(item.category) ?? []
+      group.push(item)
+      map.set(item.category, group)
+    }
+    return Array.from(map.entries())
+  }, [filtered, query, recent])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -154,41 +223,67 @@ export function GlobalSearch() {
     return () => document.removeEventListener('keydown', handler)
   }, [toggle])
 
+  const selectItem = (item: SearchItem) => {
+    addRecent({
+      term: query.trim(),
+      category: item.category,
+      title: item.title,
+      url: item.url,
+      icon: item.icon,
+    })
+    navigate({ to: item.url })
+    close()
+  }
+
   return (
     <CommandDialog open={open} onOpenChange={(o) => { if (!o) close() }}>
-      <CommandInput placeholder="Rechercher une page, un camion, un site..." />
+      <CommandInput
+        placeholder="Rechercher une page, un camion, un site, une tournée..."
+        value={query}
+        onValueChange={setQuery}
+      />
       <CommandList>
         <CommandEmpty>Aucun resultat.</CommandEmpty>
-        {(() => {
-          const grouped = new Map<string, SearchItem[]>()
-          for (const item of items) {
-            const group = grouped.get(item.category) ?? []
-            group.push(item)
-            grouped.set(item.category, group)
-          }
-          return Array.from(grouped.entries()).map(([category, groupItems]) => (
-            <CommandGroup key={category} heading={category}>
-              {groupItems.slice(0, 6).map((item) => (
+
+        {query.trim().length === 0 && recent.length > 0 && (
+          <>
+            <CommandGroup heading="Recents">
+              {recent.map((entry, idx) => (
                 <CommandItem
-                  key={item.url}
-                  value={item.value}
+                  key={`${entry.url}-${idx}`}
+                  value={`${entry.title} ${entry.category} recent`}
                   onSelect={() => {
-                    navigate({ to: item.url })
+                    setQuery(entry.term)
+                    navigate({ to: entry.url })
                     close()
                   }}
                 >
-                  <item.icon className="size-4 shrink-0 opacity-50 mr-2" />
-                  {item.title}
-                  {item.subtitle && (
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {item.subtitle}
-                    </span>
-                  )}
+                  <Clock className="size-4 shrink-0 opacity-50 mr-2" />
+                  {entry.title}
+                  <span className="ml-auto text-xs text-muted-foreground">{entry.category}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
-          ))
-        })()}
+          </>
+        )}
+
+        {grouped.map(([category, groupItems]) => (
+          <CommandGroup key={category} heading={category}>
+            {groupItems.map((item) => (
+              <CommandItem
+                key={item.url}
+                value={item.value}
+                onSelect={() => selectItem(item)}
+              >
+                <item.icon className="size-4 shrink-0 opacity-50 mr-2" />
+                {item.title}
+                {item.subtitle && (
+                  <span className="ml-auto text-xs text-muted-foreground">{item.subtitle}</span>
+                )}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        ))}
       </CommandList>
     </CommandDialog>
   )

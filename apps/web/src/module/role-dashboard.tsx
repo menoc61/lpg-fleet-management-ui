@@ -1,10 +1,12 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, ShieldCheck, Truck, Users, Activity, Radio, ClipboardList, Building2 } from 'lucide-react'
+import { ArrowRight, ShieldCheck, Truck, Users, Activity, Radio, ClipboardList, Building2, Route, ScanLine } from 'lucide-react'
+import { Badge } from '@lpg/ui'
+import { PERMISSION_CATEGORIES, ROLE_GRANTS, getCatalogEntry } from '@lpg/permissions'
 import { type Role, ROLE_LABELS, ROLE_DESCRIPTIONS } from '@/config/rbac/roles'
 import { getSidebarData } from '@/config/rbac/sidebar-by-role'
 import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
 
-type Kpi = { label: string; value: string; delta?: string; trend?: 'up' | 'down' }
+type Kpi = { label: string; value: string; delta?: string; trend?: 'up' | 'down'; icon?: React.ReactNode }
 
 const KPI_BY_ROLE: Record<Role, Kpi[]> = {
   SUPER_ADMIN: [
@@ -43,11 +45,11 @@ const KPI_BY_ROLE: Record<Role, Kpi[]> = {
     { label: 'Quota', value: '42 t', delta: '-3%', trend: 'down' },
     { label: 'Livraisons', value: '1 380', delta: '+9%', trend: 'up' },
   ],
-  LIVREUR: [
-    { label: 'Missions', value: '6', delta: '—', trend: 'up' },
-    { label: 'OUT', value: '48', delta: '+12', trend: 'up' },
-    { label: 'IN', value: '41', delta: '+9', trend: 'up' },
-    { label: 'Sync PDA', value: '92%', delta: '+4%', trend: 'up' },
+  TRANSPORTEUR: [
+    { label: 'Tournées', value: '4', delta: '+1', trend: 'up', icon: <Route className='size-4 text-orange-600 dark:text-orange-400' /> },
+    { label: 'Camions', value: '9', delta: '—', trend: 'up', icon: <Truck className='size-4 text-orange-600 dark:text-orange-400' /> },
+    { label: 'Chauffeurs', value: '12', delta: '+1', trend: 'up', icon: <Users className='size-4 text-orange-600 dark:text-orange-400' /> },
+    { label: 'Scans', value: '212', delta: '+24', trend: 'up', icon: <ScanLine className='size-4 text-orange-600 dark:text-orange-400' /> },
   ],
 }
 
@@ -58,7 +60,7 @@ const ROLE_ICON: Record<Role, React.ComponentType<{ className?: string }>> = {
   INTEGRATEUR: Radio,
   AGENT: ClipboardList,
   MARKETEUR: Building2,
-  LIVREUR: Truck,
+  TRANSPORTEUR: Truck,
 }
 
 const ROLE_COLOR: Record<Role, string> = {
@@ -68,7 +70,7 @@ const ROLE_COLOR: Record<Role, string> = {
   INTEGRATEUR: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   AGENT: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   MARKETEUR: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
-  LIVREUR: 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+  TRANSPORTEUR: 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
 }
 
 export function RoleDashboard({ role }: { role: Role }) {
@@ -90,7 +92,7 @@ export function RoleDashboard({ role }: { role: Role }) {
 
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
         {kpis.map((kpi) => (
-          <KpiTile key={kpi.label} label={kpi.label} value={kpi.value} delta={kpi.delta} trend={kpi.trend} />
+          <KpiTile key={kpi.label} label={kpi.label} value={kpi.value} delta={kpi.delta} trend={kpi.trend} symbol={kpi.icon} />
         ))}
       </div>
 
@@ -104,7 +106,7 @@ export function RoleDashboard({ role }: { role: Role }) {
                   <Link
                     key={item.title + item.url}
                     to={item.url as never}
-                    className='group flex items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted/60'
+                      className='group flex items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
                   >
                     <span className='flex items-center gap-2.5'>
                       {item.icon && (
@@ -121,6 +123,34 @@ export function RoleDashboard({ role }: { role: Role }) {
           </SectionCard>
         ))}
       </div>
+
+      <SectionCard title={`Mes permissions (${ROLE_GRANTS[role].length})`}>
+        <div className='space-y-4'>
+          {PERMISSION_CATEGORIES.map((cat) => {
+            const codes = ROLE_GRANTS[role].filter(
+              (code) => getCatalogEntry(code).category === cat.id
+            )
+            if (codes.length === 0) return null
+            return (
+              <div key={cat.id}>
+                <div className='mb-1.5 flex items-center justify-between'>
+                  <p className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
+                    {cat.label}
+                  </p>
+                  <span className='text-xs text-muted-foreground'>{codes.length}</span>
+                </div>
+                <div className='flex flex-wrap gap-1.5'>
+                  {codes.map((code) => (
+                    <Badge key={code} variant='outline' className='font-normal'>
+                      {getCatalogEntry(code).label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </SectionCard>
     </PageShell>
   )
 }

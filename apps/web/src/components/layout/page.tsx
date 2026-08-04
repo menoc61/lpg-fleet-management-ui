@@ -25,15 +25,27 @@ type KpiTileProps = {
   delta?: string
   trend?: 'up' | 'down'
   icon?: ReactNode
+  symbol?: ReactNode
 }
 
-export function KpiTile({ label, value, delta, trend, icon }: KpiTileProps) {
+export function KpiTile({ label, value, delta, trend, icon, symbol }: KpiTileProps) {
   return (
     <div className='surface-card group relative overflow-hidden p-5 transition-shadow hover:shadow-md'>
-      <div className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg bg-muted/60'>
-        {icon}
+      {icon && (
+        <div className='absolute right-3 top-3 flex size-8 items-center justify-center rounded-lg bg-muted/60'>
+          {icon}
+        </div>
+      )}
+      <div className='flex items-center gap-2.5'>
+        {symbol && (
+          <span className='flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/60' aria-hidden='true'>
+            {symbol}
+          </span>
+        )}
+        <p className='text-xs font-medium uppercase tracking-wider text-muted-foreground'>
+          {label}
+        </p>
       </div>
-      <p className='text-xs font-medium uppercase tracking-wider text-muted-foreground'>{label}</p>
       <p className='mt-2 text-3xl font-bold tracking-tight'>{value}</p>
       {delta && (
         <div className='mt-2 flex items-center gap-1.5'>

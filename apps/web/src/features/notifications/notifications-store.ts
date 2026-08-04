@@ -54,12 +54,12 @@ const seed: AppNotification[] = [
   },
   {
     id: 'n4',
-    title: 'Mission de livraison prête',
-    body: '6 arrêts programmés pour aujourd\'hui.',
+    title: 'Tournée assignée',
+    body: '4 arrêts programmés pour aujourd\'ui.',
     ts: now - 1000 * 60 * 180,
     level: 'info',
     read: true,
-    role: 'LIVREUR',
+    role: 'TRANSPORTEUR',
   },
 ]
 

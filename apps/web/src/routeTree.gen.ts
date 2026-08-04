@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedRoleIndexRouteImport } from './routes/_authenticated/$role/index'
 import { Route as AuthenticatedRoleModuleRouteImport } from './routes/_authenticated/$role/$module'
+import { Route as AuthenticatedRoleDashboardRouteImport } from './routes/_authenticated/$role/dashboard'
 import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
@@ -65,6 +66,12 @@ const AuthenticatedRoleModuleRoute = AuthenticatedRoleModuleRouteImport.update({
   path: '/$role/$module',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRoleDashboardRoute =
+  AuthenticatedRoleDashboardRouteImport.update({
+    id: '/$role/dashboard',
+    path: '/$role/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedActivityTripTrackingRoute =
   AuthenticatedActivityTripTrackingRouteImport.update({
     id: '/activity/trip-tracking',
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/$role/$module': typeof AuthenticatedRoleModuleRoute
+  '/$role/dashboard': typeof AuthenticatedRoleDashboardRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/': typeof AuthenticatedIndexRoute
   '/$role/$module': typeof AuthenticatedRoleModuleRoute
+  '/$role/dashboard': typeof AuthenticatedRoleDashboardRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
@@ -201,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/$role/$module': typeof AuthenticatedRoleModuleRoute
+  '/_authenticated/$role/dashboard': typeof AuthenticatedRoleDashboardRoute
   '/_authenticated/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/_authenticated/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/_authenticated/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/dashboard'
     | '/$role/$module'
+    | '/$role/dashboard'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
     | '/settings/notification-groups'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/'
     | '/$role/$module'
+    | '/$role/dashboard'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
     | '/settings/notification-groups'
@@ -269,6 +281,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/'
     | '/_authenticated/$role/$module'
+    | '/_authenticated/$role/dashboard'
     | '/_authenticated/activity/trip-tracking'
     | '/_authenticated/marketers/$marketerId'
     | '/_authenticated/settings/notification-groups'
@@ -341,6 +354,13 @@ declare module '@tanstack/react-router' {
       path: '/$role/$module'
       fullPath: '/$role/$module'
       preLoaderRoute: typeof AuthenticatedRoleModuleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/$role/dashboard': {
+      id: '/_authenticated/$role/dashboard'
+      path: '/$role/dashboard'
+      fullPath: '/$role/dashboard'
+      preLoaderRoute: typeof AuthenticatedRoleDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/activity/trip-tracking': {
@@ -468,6 +488,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedRoleModuleRoute: typeof AuthenticatedRoleModuleRoute
+  AuthenticatedRoleDashboardRoute: typeof AuthenticatedRoleDashboardRoute
   AuthenticatedActivityTripTrackingRoute: typeof AuthenticatedActivityTripTrackingRoute
   AuthenticatedMarketersMarketerIdRoute: typeof AuthenticatedMarketersMarketerIdRoute
   AuthenticatedSettingsNotificationGroupsRoute: typeof AuthenticatedSettingsNotificationGroupsRoute
@@ -486,6 +507,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedRoleModuleRoute: AuthenticatedRoleModuleRoute,
+  AuthenticatedRoleDashboardRoute: AuthenticatedRoleDashboardRoute,
   AuthenticatedActivityTripTrackingRoute:
     AuthenticatedActivityTripTrackingRoute,
   AuthenticatedMarketersMarketerIdRoute: AuthenticatedMarketersMarketerIdRoute,

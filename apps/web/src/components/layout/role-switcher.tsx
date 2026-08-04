@@ -34,7 +34,7 @@ const ROLE_ICON: Record<Role, LucideIcon> = {
   INTEGRATEUR: RadioTower,
   AGENT: ClipboardList,
   MARKETEUR: Building2,
-  LIVREUR: Truck,
+  TRANSPORTEUR: Truck,
 }
 
 const ROLE_AVATAR_CLASS: Record<Role, string> = {
@@ -44,7 +44,7 @@ const ROLE_AVATAR_CLASS: Record<Role, string> = {
   INTEGRATEUR: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   AGENT: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   MARKETEUR: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
-  LIVREUR: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+  TRANSPORTEUR: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
 }
 
 export function RoleSwitcher() {

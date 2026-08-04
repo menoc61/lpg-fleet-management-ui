@@ -25,7 +25,7 @@ import {
   type Truck,
   type TruckStatus,
 } from '@/features/trucks/trucks'
-import { getRouteTripsView } from '@/features/routes/routes'
+import { getRouteTripsView, routeStatusLabels, type RouteTripStatus } from '@/features/routes/routes'
 import { sites as SITES } from '@/features/sites/sites'
 import { trucks as TRUCKS } from '@/features/trucks/trucks'
 import { ARCGIS_API_KEY } from '@lpg/config'
@@ -86,6 +86,27 @@ const ZONES: { id: string; name: string; kind: 'coverage' | 'interdit'; ring: nu
   },
 ]
 
+const SITE_TYPE_OPTIONS = Object.keys(siteTypeLabels) as SiteType[]
+const TRUCK_STATUS_OPTIONS = Object.keys(statusLabels) as TruckStatus[]
+const TRIP_STATUS_OPTIONS = Object.keys(routeStatusLabels) as RouteTripStatus[]
+const REGION_OPTIONS = Array.from(new Set(SITES.map((s) => s.region))).sort()
+
+type FilterState = {
+  search: string
+  regions: string[]
+  siteTypes: SiteType[]
+  truckStatuses: TruckStatus[]
+  tripStatuses: RouteTripStatus[]
+}
+
+const INITIAL_FILTERS: FilterState = {
+  search: '',
+  regions: [],
+  siteTypes: [],
+  truckStatuses: [],
+  tripStatuses: [],
+}
+
 export function SuperAdminMapScreen() {
   const { resolvedTheme } = useTheme()
   const mapTheme: MapTheme = resolvedTheme === 'dark' ? 'dark' : 'light'
@@ -94,19 +115,7 @@ export function SuperAdminMapScreen() {
   const trucks = useMemo(() => TRUCKS, [])
   const trips = useMemo(() => getRouteTripsView(), [])
   const siteById = useMemo(() => new Map(sites.map((s) => [s.id, s])), [sites])
-
-  const alerts = useMemo(
-    () =>
-      trips
-        .filter((t) => t.status === 'incident')
-        .map((t) => ({
-          id: t.id,
-          title: `Incident — ${t.reference}`,
-          truckId: t.truckId,
-          target: [truckById(t.truckId)?.longitude ?? CAMEROON_CENTER[0], truckById(t.truckId)?.latitude ?? CAMEROON_CENTER[1]] as [number, number],
-        })),
-    [trips]
-  )
+  const truckById = useMemo(() => new Map(trucks.map((t) => [t.id, t])), [trucks])
 
   const [layers, setLayers] = useState<Record<LayerKey, boolean>>({
     sites: true,
@@ -116,6 +125,65 @@ export function SuperAdminMapScreen() {
     heatmap: false,
     zones: true,
   })
+
+  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
+  const filterRef = useRef(filters)
+  useEffect(() => {
+    filterRef.current = filters
+  }, [filters])
+
+  const matchesSearch = (value: string, query: string) =>
+    query.trim().length === 0 || value.toLowerCase().includes(query.trim().toLowerCase())
+
+  const filteredSites = useMemo(() => {
+    const q = filters.search
+    return sites.filter((s) => {
+      if (!matchesSearch(`${s.name} ${s.region} ${s.city} ${s.operator} ${s.id}`, q)) return false
+      if (filters.regions.length && !filters.regions.includes(s.region)) return false
+      if (filters.siteTypes.length && !filters.siteTypes.includes(s.type)) return false
+      return true
+    })
+  }, [sites, filters])
+
+  const filteredTrucks = useMemo(() => {
+    const q = filters.search
+    return trucks.filter((t) => {
+      if (!matchesSearch(`${t.id} ${t.plateNumber} ${t.tenantName} ${t.marketer} ${t.assignedDriver}`, q))
+        return false
+      if (filters.truckStatuses.length && !filters.truckStatuses.includes(t.status)) return false
+      return true
+    })
+  }, [trucks, filters])
+
+  const filteredTrips = useMemo(() => {
+    const q = filters.search
+    return trips.filter((t) => {
+      if (!matchesSearch(`${t.reference} ${t.customerName} ${t.missionLead} ${t.id}`, q)) return false
+      if (filters.tripStatuses.length && !filters.tripStatuses.includes(t.status)) return false
+      return true
+    })
+  }, [trips, filters])
+
+  const alerts = useMemo(
+    () =>
+      filteredTrips
+        .filter((t) => t.status === 'incident')
+        .map((t) => ({
+          id: t.id,
+          title: `Incident — ${t.reference}`,
+          target: [
+            truckById.get(t.truckId)?.longitude ?? CAMEROON_CENTER[0],
+            truckById.get(t.truckId)?.latitude ?? CAMEROON_CENTER[1],
+          ] as [number, number],
+        })),
+    [filteredTrips, truckById]
+  )
+
+  const filteredTripsForMap = useMemo(
+    () =>
+      filteredTrips.filter((t) => t.status === 'in-progress' || t.status === 'planned'),
+    [filteredTrips]
+  )
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const viewRef = useRef<MapView | null>(null)
@@ -210,7 +278,6 @@ export function SuperAdminMapScreen() {
 
   useEffect(() => {
     if (!isReady) return
-    // refresh graphics when themes/toggles change
     const sitesLayer = layerRefs.current.sites as GraphicsLayer | null
     const trucksLayer = layerRefs.current.trucks as GraphicsLayer | null
     const supplyLayer = layerRefs.current.supply as GraphicsLayer | null
@@ -218,15 +285,14 @@ export function SuperAdminMapScreen() {
     const zonesLayer = layerRefs.current.zones as GraphicsLayer | null
 
     sitesLayer?.removeAll()
-    sitesLayer?.addMany(sites.map((s) => createSiteGraphic(s, mapTheme)))
+    sitesLayer?.addMany(filteredSites.map((s) => createSiteGraphic(s, mapTheme)))
 
     trucksLayer?.removeAll()
-    trucksLayer?.addMany(trucks.map((t) => createTruckGraphic(t, mapTheme)))
+    trucksLayer?.addMany(filteredTrucks.map((t) => createTruckGraphic(t, mapTheme)))
 
     supplyLayer?.removeAll()
     supplyLayer?.addMany(
-      trips
-        .filter((t) => t.status === 'in-progress' || t.status === 'planned')
+      filteredTripsForMap
         .map((t) => {
           const o = siteById.get(t.originSiteId)
           const d = siteById.get(t.destinationSiteId)
@@ -238,10 +304,8 @@ export function SuperAdminMapScreen() {
 
     checkpointsLayer?.removeAll()
     checkpointsLayer?.addMany(
-      trips.flatMap((t) =>
-        (t.stops ?? []).map((stop) =>
-          createCheckpointGraphic(stop.site, stop.title, stop.role, mapTheme)
-        )
+      filteredTrips.flatMap((t) =>
+        (t.stops ?? []).map((stop) => createCheckpointGraphic(stop.site, stop.title, stop.role, mapTheme))
       )
     )
 
@@ -250,7 +314,7 @@ export function SuperAdminMapScreen() {
 
     applyLayerVisibility()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady, mapTheme, layers, sites, trucks, trips, siteById])
+  }, [isReady, mapTheme, layers, filteredSites, filteredTrucks, filteredTrips, filteredTripsForMap, siteById])
 
   const goTo = (long: number, lat: number, zoom = 11) => {
     viewRef.current?.goTo({ center: [long, lat], zoom }).catch(() => undefined)
@@ -273,6 +337,15 @@ export function SuperAdminMapScreen() {
     )
   }
 
+  const toggleArrayFilter = <K extends keyof FilterState>(key: K, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: prev[key].includes(value as never)
+        ? (prev[key] as readonly string[]).filter((item) => item !== value)
+        : [...prev[key], value],
+    }))
+  }
+
   return (
     <main
       id='main-content'
@@ -286,9 +359,21 @@ export function SuperAdminMapScreen() {
         </Badge>
       </div>
 
-      <div className='grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[20rem_1fr]'>
+      <div className='grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[24rem_1fr]'>
         <ScrollArea className='surface-card p-3'>
           <div className='space-y-4'>
+            <section>
+              <h2 className='mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                Recherche
+              </h2>
+              <input
+                value={filters.search}
+                onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+                placeholder='Rechercher site, camion, tournée...'
+                className='w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
+              />
+            </section>
+
             <section>
               <h2 className='mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
                 Couches
@@ -318,6 +403,43 @@ export function SuperAdminMapScreen() {
                     />
                   </label>
                 ))}
+              </div>
+            </section>
+
+            <Separator />
+
+            <section>
+              <h2 className='mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground'>
+                Filtres
+              </h2>
+              <div className='space-y-3'>
+                <FilterChips
+                  label='Région'
+                  options={REGION_OPTIONS}
+                  selected={filters.regions}
+                  onToggle={(value) => toggleArrayFilter('regions', value)}
+                />
+                <FilterChips
+                  label='Type de site'
+                  options={SITE_TYPE_OPTIONS}
+                  selected={filters.siteTypes}
+                  onToggle={(value) => toggleArrayFilter('siteTypes', value)}
+                  valueLabels={siteTypeLabels}
+                />
+                <FilterChips
+                  label='Statut camion'
+                  options={TRUCK_STATUS_OPTIONS}
+                  selected={filters.truckStatuses}
+                  onToggle={(value) => toggleArrayFilter('truckStatuses', value)}
+                  valueLabels={statusLabels}
+                />
+                <FilterChips
+                  label='Statut tournée'
+                  options={TRIP_STATUS_OPTIONS}
+                  selected={filters.tripStatuses}
+                  onToggle={(value) => toggleArrayFilter('tripStatuses', value)}
+                  valueLabels={routeStatusLabels}
+                />
               </div>
             </section>
 
@@ -375,13 +497,13 @@ export function SuperAdminMapScreen() {
 
           <div className='pointer-events-none absolute top-3 right-3 flex flex-wrap justify-end gap-2'>
             <Badge className='border-transparent bg-background/90 text-foreground shadow-sm backdrop-blur'>
-              {sites.length} sites
+              {filteredSites.length} sites
             </Badge>
             <Badge variant='outline' className='border-transparent bg-background/90 shadow-sm backdrop-blur'>
-              {trucks.length} camions
+              {filteredTrucks.length} camions
             </Badge>
             <Badge variant='outline' className='border-transparent bg-background/90 shadow-sm backdrop-blur'>
-              {trips.length} tournées
+              {filteredTrips.length} tournées
             </Badge>
           </div>
 
@@ -399,6 +521,45 @@ export function SuperAdminMapScreen() {
         </div>
       </div>
     </main>
+  )
+}
+
+function FilterChips<T extends string>({
+  label,
+  options,
+  selected,
+  onToggle,
+  valueLabels,
+}: {
+  label: string
+  options: readonly T[]
+  selected: readonly T[]
+  onToggle: (value: T) => void
+  valueLabels?: Record<T, string>
+}) {
+  return (
+    <div>
+      <p className='mb-1 text-xs font-medium text-muted-foreground'>{label}</p>
+      <div className='flex flex-wrap gap-1'>
+        {options.map((option) => {
+          const active = selected.includes(option)
+          const text = (valueLabels?.[option] ?? option) as string
+          return (
+            <button
+              key={option}
+              type='button'
+              onClick={() => onToggle(option)}
+              className={cn(
+                'rounded-md border px-2 py-1 text-xs transition-colors',
+                active ? 'border-primary bg-primary/10 text-primary' : 'bg-background hover:bg-muted'
+              )}
+            >
+              {text}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -521,9 +682,4 @@ function createZoneGraphic(
     attributes: { kind: 'zone' },
     popupTemplate: { title: zone.name, content: `<p>Type : ${isCoverage ? 'Couverture' : 'Interdite'}</p>` },
   })
-}
-
-// ---- static data accessors (local copies to avoid re-import churn) ----
-function truckById(id: string) {
-  return TRUCKS.find((t) => t.id === id)
 }

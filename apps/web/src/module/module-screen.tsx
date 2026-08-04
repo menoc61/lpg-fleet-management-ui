@@ -48,7 +48,7 @@ export function ModuleScreen({ role, module }: { role: Role; module: string }) {
 
   return (
     <PageShell>
-      <PageHeader title={def.title} description={def.description} />
+      <PageHeader title={def.title} description={def.description} icon={def.icon} />
       <SectionCard>
         <DataTable
           data={data}

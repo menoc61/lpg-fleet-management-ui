@@ -4,7 +4,7 @@ export interface AuthUserRecord {
   password: string
   firstName: string
   lastName: string
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPERVISOR' | 'INTEGRATEUR' | 'AGENT' | 'MARKETEUR' | 'LIVREUR'
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPERVISOR' | 'INTEGRATEUR' | 'AGENT' | 'MARKETEUR' | 'TRANSPORTEUR'
 }
 
 /**
@@ -19,5 +19,5 @@ export const AUTH_FIXTURES: AuthUserRecord[] = [
   { id: 'user-4', email: 'integrateur@lpg.cm', password: 'password', firstName: 'Marc', lastName: 'Fotso', role: 'INTEGRATEUR' },
   { id: 'user-5', email: 'agent@lpg.cm', password: 'password', firstName: 'Sandra', lastName: 'Mbarga', role: 'AGENT' },
   { id: 'user-6', email: 'marketeur@lpg.cm', password: 'password', firstName: 'Jean', lastName: 'Nkono', role: 'MARKETEUR' },
-  { id: 'user-7', email: 'livreur@lpg.cm', password: 'password', firstName: 'Andre', lastName: 'Tchoumi', role: 'LIVREUR' },
+  { id: 'user-7', email: 'transporteur@lpg.cm', password: 'password', firstName: 'Simplice', lastName: 'Tchoumi', role: 'TRANSPORTEUR' },
 ]

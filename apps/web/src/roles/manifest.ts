@@ -6,35 +6,51 @@
  * This manifest is the single, explicit registry for the *bespoke* screens that
  * a role owns — the screens that are NOT a generic module view.
  *
- * Each role may register one screen per module key (e.g. `LIVREUR:scan`).
+ * Each role may register one screen per module key (e.g. `TRANSPORTEUR:tours`).
  * `module/custom-screens.tsx` consumes this manifest at runtime.
  */
-import { type Role } from '@lpg/permissions'
+import { type Role } from '@/config/rbac/roles'
+
+import { PermissionMatrixScreen } from '@/module/permission-matrix'
 
 import { AgentDeclarationsScreen } from '@/roles/agent/declarations-screen'
 import { IntegrateurPdaScreen } from '@/roles/integrateur/pda-screen'
-import { LivreurMissionsScreen } from '@/roles/livreur/missions-screen'
-import { LivreurScanScreen } from '@/roles/livreur/scan-screen'
 import { MarketeurDeliveryToursScreen } from '@/roles/marketeur/delivery-tours-screen'
 import { MarketeurSupplyScreen } from '@/roles/marketeur/supply-screen'
+import { SuperAdminOverviewScreen } from '@/roles/super-admin/overview-screen'
+import { SuperAdminOrganizationsScreen } from '@/roles/super-admin/organizations-screen'
+import { SuperAdminTransportersScreen } from '@/roles/super-admin/transporters-screen'
 import { SuperAdminMapScreen } from '@/roles/super-admin/map-screen'
 import { SuperAdminRiskDashboardScreen } from '@/roles/super-admin/risk-dashboard-screen'
 import { SuperAdminCustomRolesScreen } from '@/roles/super-admin/custom-roles-screen'
 import { SupervisorInfraScreen } from '@/roles/supervisor/infra-screen'
+import { TransporteurOverviewScreen } from '@/roles/transporteur/overview-screen'
 
 import { type CustomScreenComponent } from '@/module/custom-screens'
 
 type ScreenRegistration = {
-  /** Source file that owns the screen. */
   file: string
-  /** Exported component name. */
   component: CustomScreenComponent
-  /** Module keys this screen is registered under (`role:module`). */
   modules: string[]
 }
 
 export const ROLE_MANIFEST: Record<Role, ScreenRegistration[]> = {
   SUPER_ADMIN: [
+    {
+      file: 'roles/super-admin/overview-screen.tsx',
+      component: SuperAdminOverviewScreen,
+      modules: ['overview'],
+    },
+    {
+      file: 'roles/super-admin/organizations-screen.tsx',
+      component: SuperAdminOrganizationsScreen,
+      modules: ['organizations'],
+    },
+    {
+      file: 'roles/super-admin/transporters-screen.tsx',
+      component: SuperAdminTransportersScreen,
+      modules: ['transporters'],
+    },
     {
       file: 'roles/super-admin/map-screen.tsx',
       component: SuperAdminMapScreen,
@@ -50,8 +66,19 @@ export const ROLE_MANIFEST: Record<Role, ScreenRegistration[]> = {
       component: SuperAdminCustomRolesScreen,
       modules: ['custom-roles'],
     },
+    {
+      file: 'module/permission-matrix.tsx',
+      component: PermissionMatrixScreen,
+      modules: ['permissions'],
+    },
   ],
-  ADMIN: [],
+  ADMIN: [
+    {
+      file: 'module/permission-matrix.tsx',
+      component: PermissionMatrixScreen,
+      modules: ['permissions'],
+    },
+  ],
   SUPERVISOR: [
     {
       file: 'roles/supervisor/infra-screen.tsx',
@@ -85,21 +112,15 @@ export const ROLE_MANIFEST: Record<Role, ScreenRegistration[]> = {
       modules: ['delivery-tours'],
     },
   ],
-  LIVREUR: [
+  TRANSPORTEUR: [
     {
-      file: 'roles/livreur/missions-screen.tsx',
-      component: LivreurMissionsScreen,
-      modules: ['missions'],
-    },
-    {
-      file: 'roles/livreur/scan-screen.tsx',
-      component: LivreurScanScreen,
-      modules: ['scan'],
+      file: 'roles/transporteur/overview-screen.tsx',
+      component: TransporteurOverviewScreen,
+      modules: ['overview'],
     },
   ],
 }
 
-/** Flatten the manifest into the `role:module` → component registry. */
 export function buildCustomScreenRegistry(): Record<string, CustomScreenComponent> {
   const registry: Record<string, CustomScreenComponent> = {}
   for (const [role, registrations] of Object.entries(ROLE_MANIFEST)) {

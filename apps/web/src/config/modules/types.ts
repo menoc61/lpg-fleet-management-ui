@@ -6,6 +6,8 @@ export type ModuleFieldType =
   | 'badge'
   | 'status'
 
+import type { ComponentType } from 'react'
+
 export type ModuleField = {
   key: string
   header: string
@@ -30,6 +32,8 @@ export type ModuleDefinition = {
   mockCount?: number
   /** optional detail route prefix, e.g. '/marketers' -> row click navigates to /marketers/:id */
   rowLink?: (row: Record<string, unknown>) => string
+  /** leading icon rendered in the page header */
+  icon?: ComponentType<{ className?: string }>
 }
 
 export type ModuleRegistry = Record<string, ModuleDefinition>

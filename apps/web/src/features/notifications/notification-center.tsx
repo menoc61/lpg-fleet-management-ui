@@ -66,7 +66,7 @@ const EMPTY_BY_ROLE: Record<string, string> = {
   SUPER_ADMIN: 'Toutes les notifications système sont sous contrôle.',
   ADMIN: 'Aucune notification administrative en attente.',
   MARKETEUR: 'Aucune notification pour vos tournées.',
-  LIVREUR: 'Aucune notification de mission.',
+  TRANSPORTEUR: 'Aucune notification de tournée.',
 }
 
 const sendSchema = z.object({

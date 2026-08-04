@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 import { useAuthStore } from '@/store/auth-store'
-import { defineAbilitiesFor, type Role } from '@lpg/permissions'
+import { defineAbilitiesFor } from '@lpg/permissions'
+import { type Role } from '@/config/rbac/roles'
 import { AbilityContext } from './AbilityContext'
 
 export interface MockSession {

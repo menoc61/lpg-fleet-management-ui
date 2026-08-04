@@ -38,7 +38,7 @@ const ROLE_EXTRA: Record<string, string> = {
   SUPER_ADMIN: 'Permissions : Toutes',
   ADMIN: '12 utilisateurs gérés',
   MARKETEUR: '5 camions, 3 tournées',
-  LIVREUR: 'Zone : Yaoundé',
+  TRANSPORTEUR: 'Zone : Yaoundé',
   INTEGRATEUR: '218 PDA supervisés',
   SUPERVISOR: 'Monitoring actif',
   AGENT: '12 marketeurs suivis',

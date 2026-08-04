@@ -17,10 +17,7 @@ import {
   KeyRound,
   ServerCog,
   ScanLine,
-  Upload,
-  RefreshCw,
   Gauge,
-  Wallet,
   ListChecks,
   Bell,
   MapPin,
@@ -30,6 +27,9 @@ import {
   Flame,
   ScrollText,
   Receipt,
+  Settings2,
+  ClipboardCheck,
+  WalletCards,
 } from 'lucide-react'
 import { type SidebarData } from '@/components/layout/types'
 import { type Role } from './roles'
@@ -41,7 +41,7 @@ export const ROLE_SLUGS: Record<Role, string> = {
   INTEGRATEUR: 'integrateur',
   AGENT: 'agent',
   MARKETEUR: 'marketeur',
-  LIVREUR: 'livreur',
+  TRANSPORTEUR: 'transporteur',
 }
 
 export function roleSlug(role: Role): string {
@@ -90,7 +90,6 @@ const GROUPS: Record<Role, SidebarData> = {
         items: [
           item('SUPER_ADMIN', 'overview', 'Vue d’ensemble nationale', LayoutDashboard),
           item('SUPER_ADMIN', 'map', 'Carte interactive', MapIcon),
-          item('SUPER_ADMIN', 'finance', 'Indicateurs financiers', Wallet),
         ],
       },
       {
@@ -116,6 +115,8 @@ const GROUPS: Record<Role, SidebarData> = {
           item('SUPER_ADMIN', 'tours', 'Tournées', Route),
           item('SUPER_ADMIN', 'deliveries', 'Livraisons', PackageCheck),
           item('SUPER_ADMIN', 'declarations', 'Déclarations', ClipboardList),
+          item('SUPER_ADMIN', 'reconciliations', 'Réconciliations', ClipboardCheck),
+          item('SUPER_ADMIN', 'redressements', 'Redressements', WalletCards),
           item('SUPER_ADMIN', 'anomalies', 'Anomalies & fraude', AlertTriangle, '!'),
           item('SUPER_ADMIN', 'incidents', 'Incidents', Flame),
           item('SUPER_ADMIN', 'risks', 'Risques', FileWarning),
@@ -125,18 +126,19 @@ const GROUPS: Record<Role, SidebarData> = {
         title: 'Configuration',
         items: [
           item('SUPER_ADMIN', 'custom-roles', 'Rôles personnalisés', ShieldCheck),
-          item('SUPER_ADMIN', 'risks', 'Scores de risque', AlertTriangle, '!'),
+          item('SUPER_ADMIN', 'permissions', 'Matrice de permissions', ShieldCheck),
           item('SUPER_ADMIN', 'delivery-types', 'Types de livraison', Receipt),
           item('SUPER_ADMIN', 'tour-statuses', 'Statuts de tournée', ScrollText),
           item('SUPER_ADMIN', 'reports', 'Rapports & exports', FileBarChart),
           staticLink('/settings/notification-groups', 'Groupes de notification', Bell),
           item('SUPER_ADMIN', 'audit-logs', "Journal d'audit", ScrollText),
+          item('SUPER_ADMIN', 'settings', 'Paramètres', Settings2),
         ],
       },
       {
         title: 'Monitoring',
         items: [
-          staticLink('/dashboard', 'Tableau de bord opérationnel', LayoutDashboard),
+          item('SUPER_ADMIN', 'overview', 'Pilotage national', LayoutDashboard),
           staticLink('/activity/trip-tracking', 'Suivi camions (carte)', RadioTower),
           staticLink('/routes', 'Tournées en cours', Route),
           item('SUPER_ADMIN', 'system-health', 'Santé du système', ServerCog),
@@ -152,6 +154,7 @@ const GROUPS: Record<Role, SidebarData> = {
           staticLink('/dashboard', 'Tableau de bord', LayoutDashboard),
           item('ADMIN', 'users', 'Utilisateurs & organisations', Users),
           item('ADMIN', 'marketeurs', 'Marketeurs', Building2),
+          item('ADMIN', 'permissions', 'Matrice de permissions', ShieldCheck),
         ],
       },
       {
@@ -249,20 +252,40 @@ const GROUPS: Record<Role, SidebarData> = {
       },
     ],
   },
-  LIVREUR: {
+  TRANSPORTEUR: {
     navGroups: [
       {
-        title: 'Ma tournée',
+        title: 'Tableau de bord',
         items: [
-          item('LIVREUR', 'missions', 'Missions du jour', ListChecks),
-          item('LIVREUR', 'scan', 'Scan RFID (IN/OUT)', ScanLine),
+          item('TRANSPORTEUR', 'overview', 'Aperçu transporteur', LayoutDashboard),
         ],
       },
       {
-        title: 'PDA',
+        title: 'Tournées',
         items: [
-          item('LIVREUR', 'upload', 'Téléversement', Upload),
-          item('LIVREUR', 'sync', 'Rapport de synchronisation', RefreshCw),
+          item('TRANSPORTEUR', 'tours-pending', 'En attente d’accusé', Route),
+          item('TRANSPORTEUR', 'tours-active', 'Tournées actives', Route),
+          item('TRANSPORTEUR', 'tours-history', 'Historique', Route),
+        ],
+      },
+      {
+        title: 'Flotte',
+        items: [
+          item('TRANSPORTEUR', 'vehicles', 'Camions', Truck),
+          item('TRANSPORTEUR', 'drivers', 'Chauffeurs', Users),
+          item('TRANSPORTEUR', 'livreurs', 'Livreurs PDA', ListChecks),
+        ],
+      },
+      {
+        title: 'Contrats',
+        items: [
+          item('TRANSPORTEUR', 'contracts', 'Mes contrats', Receipt),
+        ],
+      },
+      {
+        title: 'Performance',
+        items: [
+          item('TRANSPORTEUR', 'performance', 'Performance', Activity),
         ],
       },
     ],

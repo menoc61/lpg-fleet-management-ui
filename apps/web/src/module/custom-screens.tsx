@@ -1,4 +1,4 @@
-import { type Role } from '@lpg/permissions'
+import { type Role } from '@/config/rbac/roles'
 
 import { buildCustomScreenRegistry } from '@/roles/manifest'
 

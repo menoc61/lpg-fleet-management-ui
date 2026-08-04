@@ -35,3 +35,18 @@ dist-ssr
 .vitest-attachments/
 
 /.turbo
+
+# Tooling/cache artifacts
+.superpowers/
+docs/superpowers/
+tmp/
+*.tmp
+.temp/
+.cache/
+
+# Build outputs
+build/
+out/
+.next/
+.nuxt/
+.parcel-cache/

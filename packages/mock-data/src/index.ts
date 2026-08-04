@@ -29,6 +29,12 @@ import {
   deliveryTypes,
   tourStatuses,
 } from './seed-extended.ts'
+import { curated } from './curated'
+import * as analytics from './analytics'
+
+export { curated }
+export * from './analytics'
+export type * from './curated'
 
 export type SeedName =
   | 'sites'
@@ -92,13 +98,14 @@ export const seeds: Record<SeedName, unknown[]> = {
 }
 
 export { AUTH_FIXTURES }
+export { analytics }
 
 export interface FakeProfile {
   id: string
   email: string
   firstName: string
   lastName: string
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPERVISOR' | 'INTEGRATEUR' | 'AGENT' | 'MARKETEUR' | 'LIVREUR'
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPERVISOR' | 'INTEGRATEUR' | 'AGENT' | 'MARKETEUR' | 'TRANSPORTEUR'
 }
 
 export const fakeProfiles: FakeProfile[] = AUTH_FIXTURES.map((f) => ({

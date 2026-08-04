@@ -1,0 +1,146 @@
+import { describe, it, expect } from 'vitest'
+import {
+  PERMISSION_CATALOG,
+  PERMISSION_CATEGORIES,
+  ROLE_GRANTS,
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
+  HIERARCHY_LEVEL,
+  ROLES,
+  can,
+  hasPermission,
+  defineAbilitiesFor,
+  defineAbilityFor,
+  parseCode,
+  getCreatableRoles,
+  canCreate,
+} from './index'
+
+const ALL_CODES = new Set(PERMISSION_CATALOG.map((e) => e.code))
+
+describe('catalog integrity', () => {
+  it('defines exactly 140 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(140)
+    expect(new Set(PERMISSION_CATALOG.map((e) => e.category))).toHaveLength(9)
+    expect(PERMISSION_CATEGORIES).toHaveLength(9)
+  })
+
+  it('has no duplicate codes', () => {
+    const codes = PERMISSION_CATALOG.map((e) => e.code)
+    expect(new Set(codes).size).toBe(codes.length)
+  })
+
+  it('every code is resource.action and resolvable', () => {
+    for (const entry of PERMISSION_CATALOG) {
+      expect(entry.code).toMatch(/^[a-z-]+\.[a-z]+$/)
+      expect(() => parseCode(entry.code)).not.toThrow()
+      const { resource, action } = parseCode(entry.code)
+      expect(resource).toBeTruthy()
+      expect(action).toBeTruthy()
+    }
+  })
+
+  it('produces the expected category counts', () => {
+    const counts = Object.fromEntries(
+      PERMISSION_CATEGORIES.map((c) => [
+        c.id,
+        PERMISSION_CATALOG.filter((e) => e.category === c.id).length,
+      ])
+    )
+    expect(counts).toEqual({
+      identity: 16,
+      governance: 14,
+      sites: 13,
+      fleet: 21,
+      supply: 8,
+      tours: 19,
+      compliance: 14,
+      risk: 15,
+      reporting: 20,
+    })
+  })
+})
+
+describe('grants', () => {
+  it('covers every role with all required maps', () => {
+    for (const role of ROLES) {
+      expect(ROLE_GRANTS[role]).toBeDefined()
+      expect(ROLE_LABELS[role]).toBeTruthy()
+      expect(ROLE_DESCRIPTIONS[role]).toBeTruthy()
+      expect(HIERARCHY_LEVEL[role]).toBeGreaterThan(0)
+    }
+    expect(ROLES).toContain('LIVREUR')
+    expect(Object.keys(ROLE_GRANTS)).toHaveLength(ROLES.length)
+  })
+
+  it('SUPER_ADMIN holds every code in the catalog', () => {
+    expect(new Set(ROLE_GRANTS.SUPER_ADMIN)).toEqual(ALL_CODES)
+  })
+
+  it('every granted code exists in the catalog', () => {
+    for (const role of ROLES) {
+      for (const code of ROLE_GRANTS[role]) {
+        expect(ALL_CODES.has(code), `${code} in ${role}`).toBe(true)
+      }
+    }
+  })
+})
+
+describe('can', () => {
+  it('SUPER_ADMIN can read users', () => {
+    expect(can('SUPER_ADMIN', 'read', 'users')).toBe(true)
+  })
+
+  it('LIVREUR reads missions but not reports', () => {
+    expect(can('LIVREUR', 'read', 'missions')).toBe(true)
+    expect(can('LIVREUR', 'read', 'reports')).toBe(false)
+  })
+
+  it('manage implies read/write/delete', () => {
+    expect(can('MARKETEUR', 'read', 'trucks')).toBe(true)
+    expect(can('MARKETEUR', 'write', 'trucks')).toBe(true)
+    expect(can('MARKETEUR', 'create', 'trucks')).toBe(true)
+    expect(can('MARKETEUR', 'delete', 'trucks')).toBe(true)
+  })
+
+  it('AGENT validates but not manages declarations', () => {
+    expect(can('AGENT', 'validate', 'declarations')).toBe(true)
+    expect(can('AGENT', 'delete', 'declarations')).toBe(false)
+  })
+
+  it('TRANSPORTEUR manages livreurs but cannot manage users', () => {
+    expect(can('TRANSPORTEUR', 'manage', 'livreurs')).toBe(true)
+    expect(can('TRANSPORTEUR', 'read', 'users')).toBe(false)
+  })
+
+  it('hasPermission matches can', () => {
+    expect(hasPermission('ADMIN', 'users.reset')).toBe(true)
+    expect(hasPermission('SUPERVISOR', 'reports.export')).toBe(true)
+    expect(hasPermission('INTEGRATEUR', 'pda.sync')).toBe(true)
+  })
+})
+
+describe('abilities', () => {
+  it('GUEST denies everything', () => {
+    const ability = defineAbilitiesFor('GUEST')
+    expect(ability.can('read', 'users')).toBe(false)
+  })
+
+  it('SUPER_ADMIN ability allows read users', () => {
+    expect(defineAbilityFor('SUPER_ADMIN').can('read', 'users')).toBe(true)
+  })
+})
+
+describe('hierarchy', () => {
+  it('SUPER_ADMIN can create everyone; LIVREUR nobody', () => {
+    for (const role of ROLES) expect(canCreate('SUPER_ADMIN', role)).toBe(true)
+    expect(getCreatableRoles('SUPER_ADMIN')).toHaveLength(ROLES.length)
+    expect(getCreatableRoles('LIVREUR')).toEqual(['LIVREUR'])
+  })
+
+  it('ADMIN cannot create SUPER_ADMIN', () => {
+    expect(canCreate('ADMIN', 'SUPER_ADMIN')).toBe(false)
+    expect(canCreate('ADMIN', 'ADMIN')).toBe(true)
+    expect(canCreate('ADMIN', 'LIVREUR')).toBe(true)
+  })
+})

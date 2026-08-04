@@ -7,55 +7,62 @@ export type Role =
   | 'INTEGRATEUR'
   | 'AGENT'
   | 'MARKETEUR'
+  | 'TRANSPORTEUR'
   | 'LIVREUR'
 
-export type OrgType = 'CSPH' | 'SCDP' | 'SNH' | 'MARKETEUR' | 'TRANSPORTEUR' | 'csph' | 'scdp' | 'snh' | 'marketeur' | 'transporteur'
+export type OrgType = 'CSPH' | 'SCDP' | 'SNH' | 'MARKETEUR' | 'TRANSPORTEUR'
 
-export type SiteType = 'CENTRE_EMPLISSEUR' | 'DEPOT' | 'CLIENT' | 'POINT_DE_VENTE' | 'depot' | 'scdp' | 'filling-center' | 'marketer' | 'delivery-point'
+export type SiteType = 'CENTRE_EMPLISSEUR' | 'DEPOT' | 'CLIENT' | 'POINT_APPROVISIONABLE'
 
-export type SiteStatus = 'PENDING_GEO_ASSIGN' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED' | 'active' | 'planned' | 'inactive'
+export type SiteStatus = 'ACTIVE' | 'SUSPENDED' | 'REJECTED' | 'PENDING_GEO_ASSIGN'
 
 export type BottleStatus = 'in_empty' | 'out_full'
 
-export type TruckStatus = 'available' | 'in_transit' | 'maintenance' | 'inactive' | 'active'
+export type TruckStatus = 'ACTIVE' | 'AVAILABLE' | 'IN_TRANSIT' | 'MAINTENANCE' | 'INACTIVE'
 
 export type ContractTier = 'Starter' | 'Growth' | 'Enterprise'
 
 export type TruckRiskLevel = 'low' | 'medium' | 'high'
 
-export type TransporterStatus = 'active' | 'pending' | 'suspended'
+export type TransporterStatus = 'ACTIVE' | 'PENDING' | 'SUSPENDED'
 
-export type VehicleType = 'VRAC' | 'BOUTEILLES'
+export type VehicleType = 'VRAC' | 'BOUTEILLES_50KG'
 
 export type AnomalyCategory = 'INVESTIGATION' | 'TECHNICAL'
 
 export type AnomalyType =
-  | 'VOLUME_GAP' | 'DEVIATION_ROUTE' | 'CHECKPOINT_MISSED' | 'SCAN_OUT_OF_SEQUENCE'
-  | 'SIPHONNAGE' | 'SUBSTITUTION_BOUTEILLES' | 'FALSIFICATION_PREUVES'
-  | 'PDA_UNSYNCED' | 'BATTERY_CRITICAL' | 'GPS_FAILURE' | 'KAFKA_TIMEOUT' | 'IOT_DEGRADATION'
-  | 'gps' | 'rfid' | 'weight' | 'iot'
+  | 'VOLUME_GAP'
+  | 'DEVIATION_ROUTE'
+  | 'CHECKPOINT_MISSED'
+  | 'SCAN_OUT_OF_SEQUENCE'
+  | 'SIPHONNAGE'
+  | 'SUBSTITUTION_BOUTEILLES'
+  | 'FALSIFICATION_PREUVES'
+  | 'PDA_UNSYNCED'
+  | 'BATTERY_CRITICAL'
+  | 'GPS_FAILURE'
 
-export type GroupType = 'TECHNICAL' | 'INVESTIGATION' | 'ADMIN' | 'MARKETING'
+export type GroupType = 'TECHNICAL' | 'INVESTIGATION' | 'ADMIN' | 'MARKETING' | 'TRANSPORT'
 
-export type RiskLevel = 'FAIBLE' | 'MODERE' | 'ELEVE' | 'CRITIQUE' | 'CRITIQUE_EXTREME' | 'low' | 'medium' | 'high'
+export type RiskLevel = 'FAIBLE' | 'MODERE' | 'ELEVE' | 'CRITIQUE' | 'CRITIQUE_EXTREME'
 
-export type PickupStatus = 'DRAFT' | 'VALIDATED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'PENDING'
+export type PickupStatus = 'DRAFT' | 'VALIDATED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 
 export type TourneeType = 'VRAC' | 'BOUTEILLES_50KG'
 
-export type TourneeStatus = 'PLANNED' | 'IN_PROGRESS' | 'CHECKPOINT_ACTIVE' | 'CLOSED' | 'CANCELLED'
+export type TourneeStatus = 'DRAFT' | 'PLANNED' | 'PENDINGTRANSPORTERACK' | 'ACKNOWLEDGED' | 'INPROGRESS' | 'CHECKPOINTACTIVE' | 'CLOSED' | 'CANCELLED'
 
 export type CheckpointStatus = 'PENDING' | 'REACHED' | 'COMPLETED' | 'SKIPPED'
 
 export type ScanDirection = 'IN' | 'OUT'
 
-export type ReconciliationStatus = 'PENDING' | 'VERIFIED' | 'REDRESSEMENT_APPLIED' | 'PENDING_VERIFICATION' | 'REJECTED'
+export type ReconciliationStatus = 'PENDING' | 'VERIFIED' | 'REDRESSEMENTAPPLIED'
 
-export type RedressementStatus = 'ISSUED' | 'PAID' | 'WAIVED' | 'PENDING' | 'OVERDUE'
+export type RedressementStatus = 'ISSUED' | 'PAID' | 'WAIVED'
 
-export type AnomalyStatus = 'NOUVEAU' | 'EN_COURS' | 'RESOLU' | 'FERME' | 'ASSIGNE'
+export type AnomalyStatus = 'NOUVEAU' | 'ENCOURS' | 'RESOLU' | 'FERME'
 
-export type DeclarationStatus = 'DRAFT' | 'SUBMITTED' | 'RECONCILED' | 'DISPUTED' | 'draft' | 'submitted' | 'validated' | 'rejected'
+export type DeclarationStatus = 'DRAFT' | 'SUBMITTED' | 'RECONCILED' | 'DISPUTED'
 
 export interface BaseEntity {
   id: string
@@ -138,7 +145,7 @@ export interface Driver {
   transporterOrgId: string
   userId?: string
   phone?: string
-  status?: 'active' | 'inactive'
+  status?: 'ACTIVE' | 'INACTIVE'
 }
 
 export interface Site {
@@ -181,7 +188,7 @@ export interface Tour {
   loadedBottleCount?: number
   deliveredBottleCount?: number
   checkpoints?: Checkpoint[]
-  status: TourneeStatus | 'planned' | 'in_progress' | 'completed' | 'cancelled'
+  status: TourneeStatus
   startedAt?: string
   closedAt?: string | null
   plannedDate?: string
