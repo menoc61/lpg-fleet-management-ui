@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import { PageShell, KpiTile } from '@/components/layout/page'
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
-import { seeds } from '@lpg/mock-data'
+import { curated } from '@lpg/mock-data'
 
 const riskSeeds = (seeds as any).risks ?? []
 const riskLevelColor: Record<string, string> = {

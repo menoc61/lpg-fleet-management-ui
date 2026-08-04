@@ -31,6 +31,8 @@ export const vehiclesHooks = {
   },
 }
 
+export const trucksHooks = vehiclesHooks
+
 export const deliveryToursHooks = {
   useList(params?: Record<string, string | number | boolean>) {
     return useQuery<any, Error>({

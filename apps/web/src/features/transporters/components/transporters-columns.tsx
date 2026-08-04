@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { transporterStatusOptions, type Transporter } from '../data/transporters'
+import { transporterStatusOptions, type Transporter } from '../transporters'
 
 type TransportersColumnsProps = {
   onViewDetails: (transporter: Transporter) => void

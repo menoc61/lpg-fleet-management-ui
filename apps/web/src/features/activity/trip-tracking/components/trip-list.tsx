@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
-import type { Trip } from '../data/trip-data'
+import type { Trip } from '../../trip-data'
 
 const progressRingClasses: Record<Trip['status'], string> = {
   Planifié: 'text-slate-400',

@@ -6,7 +6,7 @@ import {
   type RouteTripView,
 } from '@/features/routes/data/routes'
 import { sites } from '@/features/sites/data/sites'
-import { getTruckTelemetry, trucks } from '@/features/trucks/data/trucks'
+import { getTruckTelemetry, trucks } from '@/features/trucks/trucks'
 
 export type DashboardPeriod = 'daily' | 'weekly' | 'monthly'
 export type DashboardMetricTone = 'sky' | 'emerald' | 'amber' | 'rose'

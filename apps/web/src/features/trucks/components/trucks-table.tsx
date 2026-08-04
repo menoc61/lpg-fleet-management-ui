@@ -23,12 +23,12 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
-  contract_tierOptions,
+  contractTierOptions,
   truckMarketerOptions,
   truckStatusOptions,
   truckTenantOptions,
   type Truck,
-} from '../data/trucks'
+} from '../trucks'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { getTrucksColumns } from './trucks-columns'
 
@@ -137,7 +137,7 @@ export function TrucksTable({
           {
             columnId: 'contract_tier',
             title: 'Contrat',
-            options: contract_tierOptions,
+            options: contractTierOptions,
           },
         ]}
       />

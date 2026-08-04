@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { ShieldCheck, Plus, Trash2, Save, Users, Building2 } from 'lucide-react'
 import { PageShell } from '@/components/layout/page'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch } from '@lpg/ui'
-import { seeds } from '@lpg/mock-data'
+import { curated } from '@lpg/mock-data'
 
-const roleSeeds = (seeds as any)['custom-roles'] ?? []
-const userSeeds = (seeds as any).users ?? []
-const orgSeeds = (seeds as any).organizations ?? []
+const roleSeeds = (curated as any).custom_roles ?? (curated as any).user_custom_roles ?? []
+const userSeeds = (curated as any).users ?? []
+const orgSeeds = (curated as any).organizations ?? []
 
 const RESOURCES = ['tours', 'declarations', 'pickups', 'deliveries', 'scans', 'checkpoints', 'vehicles', 'drivers', 'sites', 'organizations', 'users', 'anomalies', 'reports', 'pda', 'rfid-tags', 'notification-groups']
 const ACTIONS = ['create', 'read', 'update', 'delete'] as const

@@ -13,7 +13,7 @@ import { Loader2, Navigation } from 'lucide-react'
 import type { ClickEvent } from '@arcgis/core/views/input/types'
 import { useTheme } from '@/context/theme-provider'
 
-import type { Trip } from '../data/trip-data'
+import type { Trip } from '../../trip-data'
 import { sites } from '@/features/sites/data/sites'
 import { createSiteGraphics, type MapTheme } from '@/features/sites/utils/site-graphics'
 import { cn } from '@/lib/utils'

@@ -1,7 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Truck as TruckIcon } from 'lucide-react'
 import { TransportersTable } from './components/transporters-table'
-import { transporters } from './data/transporters'
+import { transporters } from './transporters'
 
 const route = getRouteApi('/_authenticated/transporters/')
 

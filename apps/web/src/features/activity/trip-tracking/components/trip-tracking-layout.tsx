@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { trips } from '../data/trip-data'
+import { trips } from '../../trip-data'
 import { TripDetails } from './trip-details'
 import { TripList } from './trip-list'
 

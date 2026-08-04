@@ -4,7 +4,7 @@ import { TrucksPage } from '@/features/trucks'
 import {
   contractTierOptions,
   truckStatusOptions,
-} from '@/features/trucks/data/trucks'
+} from '@/features/trucks/trucks'
 
 const trucksSearchSchema = z.object({
   page: z.number().optional().catch(1),

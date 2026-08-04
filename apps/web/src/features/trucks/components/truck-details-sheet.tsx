@@ -27,7 +27,7 @@ import {
   statusClasses,
   statusLabels,
   type Truck,
-} from '../data/trucks'
+} from '../trucks'
 
 type TruckDetailsSheetProps = {
   truck: Truck | null

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 
-import type { Trip } from '../data/trip-data'
+import type { Trip } from '../../trip-data'
 import { TripRouteMap } from './trip-route-map'
 
 const progressRingClasses: Record<Trip['status'], string> = {

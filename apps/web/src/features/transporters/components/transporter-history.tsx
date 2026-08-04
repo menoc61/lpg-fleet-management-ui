@@ -1,4 +1,4 @@
-import { type Transporter } from '../data/transporters'
+import { type Transporter } from './transporters'
 import { getTransporterRoutes } from '../data/transporter-routes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

@@ -35,13 +35,17 @@ import { TruckDetailsSheet } from './components/truck-details-sheet'
 import { TrucksMap } from './components/trucks-map'
 import { TrucksTable } from './components/trucks-table'
 import {
-  getTruckTelemetry,
-  trucks,
+  getTruckTelemetry as _getTruckTelemetry,
   type Truck,
   type TruckStatus,
-} from './data/trucks'
+} from '../trucks'
+import { trucks as trucksRaw } from '../trucks'
 
-type TruckFilter = 'all' | TruckStatus
+export const getTruckTelemetry = _getTruckTelemetry
+export const trucks = trucksRaw as any[]
+export type { Truck, TruckStatus }
+
+type TruckFilter = 'all' | TruckStatus | 'available' | 'in_transit' | 'maintenance' | 'inactive'
 type SiteFilter = 'all' | SiteType
 
 const route = getRouteApi('/_authenticated/trucks/')

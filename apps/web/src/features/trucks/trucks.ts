@@ -1,14 +1,10 @@
 import { curated } from '@lpg/mock-data'
 import type { Vehicle as CuratedVehicle, Region } from '@lpg/types'
 
-export type TruckStatus =
-  | 'AVAILABLE'
-  | 'IN_TRANSIT'
-  | 'MAINTENANCE'
-  | 'INACTIVE'
+export type TruckStatus = 'AVAILABLE' | 'IN_TRANSIT' | 'MAINTENANCE' | 'INACTIVE'
 
-export type contract_tier = 'Starter' | 'Growth' | 'Enterprise'
-export type Truckrisk_level = 'low' | 'medium' | 'high'
+export type ContractTier = 'Starter' | 'Growth' | 'Enterprise'
+export type TruckRiskLevel = 'low' | 'medium' | 'high'
 
 export interface Truck {
   id: string
@@ -26,8 +22,10 @@ export interface Truck {
   fleet_manager: string
   operating_region: string
   current_location: string
-  contract_tier: contract_tier
-  risk_level: Truckrisk_level
+  contract_tier: ContractTier
+  risk_level: TruckRiskLevel
+  marketer?: string
+  tenant_name?: string
 }
 
 export interface TruckTelemetry {
@@ -53,13 +51,13 @@ export const statusClasses: Record<TruckStatus, string> = {
   INACTIVE: 'bg-muted text-muted-foreground',
 }
 
-export const riskLabels: Record<Truckrisk_level, string> = {
+export const riskLabels: Record<TruckRiskLevel, string> = {
   low: 'Normal',
   medium: 'À surveiller',
   high: 'Critique',
 }
 
-export const riskClasses: Record<Truckrisk_level, string> = {
+export const riskClasses: Record<TruckRiskLevel, string> = {
   low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
   medium: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
   high: 'bg-red-500/10 text-red-700 dark:text-red-300',
@@ -72,7 +70,7 @@ export const truckStatusOptions = [
   { label: 'Inactif', value: 'INACTIVE' },
 ]
 
-export const contract_tierOptions = [
+export const contractTierOptions = [
   { label: 'Starter', value: 'Starter' },
   { label: 'Growth', value: 'Growth' },
   { label: 'Enterprise', value: 'Enterprise' },
@@ -84,11 +82,12 @@ const REGIONS: Region[] = ['CENTRE', 'LITTORAL', 'NORD', 'EXTREMENORD', 'OUEST',
 export function getTrucks(): Truck[] {
   const vehicles = curated.vehicles as CuratedVehicle[]
   const drivers = curated.drivers
+  const orgs = (curated.organizations as any[]).filter((o) => o.is_active)
   return vehicles.map((v, idx) => {
     const driver = drivers[idx % drivers.length]
     const status = STATUS_BY_INDEX[idx % STATUS_BY_INDEX.length]
     const region = REGIONS[idx % REGIONS.length]
-    const name = v.license_plate
+    const org = orgs[idx % orgs.length]
     return {
       id: v.id,
       plate_number: v.license_plate,
@@ -107,11 +106,25 @@ export function getTrucks(): Truck[] {
       current_location: '—',
       contract_tier: idx % 3 === 0 ? 'Enterprise' : idx % 3 === 1 ? 'Growth' : 'Starter',
       risk_level: idx % 4 === 0 ? 'high' : idx % 3 === 0 ? 'medium' : 'low',
+      marketer: org?.name,
+      tenant_name: org?.name,
     }
   })
 }
 
 export const trucks: Truck[] = getTrucks()
+
+export const truckTenantOptions = (list: Truck[] = trucks) =>
+  Array.from(new Set(list.map((truck) => truck.tenant_name ?? '').filter(Boolean))).map((tenant_name) => ({
+    label: tenant_name,
+    value: tenant_name,
+  }))
+
+export const truckMarketerOptions = (list: Truck[] = trucks) =>
+  Array.from(new Set(list.map((truck) => truck.marketer ?? '').filter(Boolean))).map((marketer) => ({
+    label: marketer,
+    value: marketer,
+  }))
 
 export function getTruckById(id: string): Truck | undefined {
   return trucks.find((t) => t.id === id)

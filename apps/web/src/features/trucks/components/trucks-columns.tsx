@@ -11,7 +11,7 @@ import {
   statusClasses,
   statusLabels,
   type Truck,
-} from '../data/trucks'
+} from '../trucks'
 import { DataTableRowActions } from './data-table-row-actions'
 
 type TrucksColumnsProps = {

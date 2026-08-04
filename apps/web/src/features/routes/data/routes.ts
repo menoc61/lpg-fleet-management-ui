@@ -1,5 +1,5 @@
 import { sites, type Site } from '@/features/sites/data/sites'
-import { trucks, type Truck } from '@/features/trucks/data/trucks'
+import { trucks, type Truck } from '@/features/trucks/trucks'
 
 export type RouteTripStatus =
   | 'planned'

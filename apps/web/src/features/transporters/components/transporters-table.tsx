@@ -22,7 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { transporterStatusOptions, type Transporter } from '../data/transporters'
+import { transporterStatusOptions, type Transporter } from '../transporters'
 import { getTransportersColumns } from './transporters-columns'
 
 type TransportersTableProps = {
