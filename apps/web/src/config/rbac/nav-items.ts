@@ -728,10 +728,10 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
       { title: 'Pilotage national', items: ['overview', 'map', 'finance', 'risks'] },
       {
         title: 'Entités',
-        items: [
-           'organizations',
-           'marketers',
-           'transporters',
+          items: [
+          'organizations',
+          'marketers',
+          'transporters',
           'depots',
           'sites',
           'client-sites',
@@ -773,7 +773,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   ADMIN: {
     groups: [
-       { title: 'Gestion', items: ['overview', 'users', 'marketers', 'transporters'] },
+      { title: 'Gestion', items: ['overview', 'users', 'marketers', 'transporters'] },
       {
         title: 'Validation & Contrôle',
         items: ['site-verifications', 'pickups', 'declarations', 'reconciliations'],
@@ -811,7 +811,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   AGENT: {
     groups: [
-       { title: 'Suivi terrain', items: ['overview', 'marketers', 'client-sites'] },
+      { title: 'Suivi terrain', items: ['overview', 'marketers', 'client-sites'] },
       {
         title: 'Investigation (Piste métier)',
         items: ['declarations', 'anomalies-investigation', 'tours', 'visits'],
@@ -898,7 +898,10 @@ export function buildSidebarFor(role: Role, roleSlug: string): SidebarData {
     .map((group) => {
       const items = group.items
         .map((id) => ITEM_BY_ID.get(id))
-        .filter((item): item is NavItemDecl => Boolean(item) && visible.has(id))
+        .filter((item): item is NavItemDecl => {
+          if (!item) return false
+          return visible.has(item.id)
+        })
         .map((item) => toSidebarItem(role, item, roleSlug))
       return items.length ? { title: group.title, items } : null
     })
