@@ -3,14 +3,14 @@ import type { Role } from '@lpg/types'
 export interface AuthUser {
   id: string
   email: string
-  firstName: string
-  lastName: string
-  role: Role
+  first_name: string
+  last_name: string
+  system_role: Role
 }
 
 export interface AuthResult {
-  accessToken: string
-  refreshToken: string
+  access_token: string
+  refresh_token: string
   user: AuthUser
 }
 
@@ -26,7 +26,7 @@ export interface ApiPagination {
   pages: number
 }
 
-export interface ListResponse<T> {
+export interface ListResult<T> {
   data: T[]
   pagination: ApiPagination
 }
@@ -37,18 +37,11 @@ export interface RequestOptions {
   headers?: Record<string, string>
 }
 
-/** A paginated list payload, normalized for the UI layer. */
-export interface ListResult<T> {
-  data: T[]
-  pagination: ApiPagination
-}
-
-/** The single seam between the app and any backend (mock or real). */
 export interface ApiAdapter {
   request<T>(path: string, init?: RequestOptions): Promise<T>
   requestList<T>(path: string, init?: RequestOptions): Promise<ListResult<T>>
   login(creds: Credentials): Promise<AuthResult>
-  refresh(refreshToken: string): Promise<AuthResult>
+  refresh(refresh_token: string): Promise<AuthResult>
   setAccessTokenGetter(getter: () => string | null): void
   setOnUnauthorized(handler: () => void): void
 }
