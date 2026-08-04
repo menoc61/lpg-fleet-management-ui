@@ -379,7 +379,7 @@ const LIVREUR_GRANTS = [
  * every role is present and every code exists in the catalog.
  */
 export const ROLE_GRANTS: Record<Role, readonly PermissionCode[]> = {
-  SUPER_ADMIN: PERMISSION_CATALOG.map((e) => e.code),
+  SUPERADMIN: PERMISSION_CATALOG.map((e) => e.code),
   ADMIN: ADMIN_GRANTS,
   SUPERVISOR: SUPERVISOR_GRANTS,
   INTEGRATEUR: INTEGRATEUR_GRANTS,
@@ -391,7 +391,7 @@ export const ROLE_GRANTS: Record<Role, readonly PermissionCode[]> = {
 
 /** Coarse (action, resource) pairs, kept for backward compatibility. */
 export const ROLE_PERMISSIONS: Record<Role, Array<[Action, Resource]>> = {
-  SUPER_ADMIN: ROLE_GRANTS.SUPER_ADMIN.map((code) => {
+  SUPERADMIN: ROLE_GRANTS.SUPERADMIN.map((code) => {
     const { resource, action } = parseCode(code)
     return [action, resource]
   }),
@@ -460,7 +460,7 @@ export function defineAbilitiesFor(role: Role | 'GUEST'): AppAbility {
 
 /** Canonical, ordered list of every platform role (incl. PDA-only LIVREUR). */
 export const ROLES = [
-  'SUPER_ADMIN',
+  'SUPERADMIN',
   'ADMIN',
   'SUPERVISOR',
   'INTEGRATEUR',
@@ -472,7 +472,7 @@ export const ROLES = [
 
 /** Numeric authority level; a user may create roles at or below their own. */
 export const HIERARCHY_LEVEL: Record<Role, number> = {
-  SUPER_ADMIN: 100,
+  SUPERADMIN: 100,
   ADMIN: 80,
   SUPERVISOR: 60,
   INTEGRATEUR: 60,
@@ -497,7 +497,7 @@ export function getCreatableRoles(actor: Role): Role[] {
 
 /** Human-readable labels (French) shown across the UI. */
 export const ROLE_LABELS: Record<Role, string> = {
-  SUPER_ADMIN: 'Super Admin',
+  SUPERADMIN: 'Super Admin',
   ADMIN: 'Administrateur',
   SUPERVISOR: 'Superviseur',
   INTEGRATEUR: 'Intégrateur',
@@ -509,7 +509,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 
 /** Short descriptions of each role's mandate. */
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  SUPER_ADMIN: 'Supervision totale — carte ultra-détaillée, tous modules',
+  SUPERADMIN: 'Supervision totale — carte ultra-détaillée, tous modules',
   ADMIN: 'Staff CSPH / RH — gestion utilisateurs, agents, marketeurs, rapports',
   SUPERVISOR: 'DevOps / monitoring — Prometheus, Grafana, alertes, scores de risque',
   INTEGRATEUR:

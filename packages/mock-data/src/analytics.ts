@@ -5,7 +5,7 @@
  */
 
 import { curated } from './curated.ts'
-import type { Anomaly, Declaration, Device, DeliveryTour, Organization, Reconciliation, RiskScore } from './curated.ts'
+import type { RiskScore } from './curated.ts'
 
 type Indexable = object
 
@@ -206,7 +206,7 @@ export function deviceStats(): DeviceStats {
         battery: device.battery_level,
         lastSync: device.last_sync ?? null,
       })
-    } else if (device.status === 'OFFLINE' || device.status === 'FAILURE') {
+    } else if (device.status === 'OFFLINE') {
       attention.push({
         id: device.id,
         serial: device.serial_number,
@@ -276,11 +276,11 @@ export interface Subsidy {
 
 export function subsidyStats(): Subsidy {
   const reconciliationImpact = curated.reconciliations
-    .filter((r) => r.status !== 'verified')
+    .filter((r) => r.status !== 'VERIFIED')
     .reduce((acc, r) => acc + r.subsidy_impact, 0)
   const redressementsEmitted = sumBy(curated.redressements, 'amount')
   const redressementsOpen = curated.redressements
-    .filter((r) => r.status !== 'paid')
+    .filter((r) => r.status !== 'PAID')
     .reduce((acc, r) => acc + r.amount, 0)
   return {
     atRisk: reconciliationImpact + redressementsOpen,
@@ -362,7 +362,7 @@ export function checkpointStats(): CheckpointStats {
   return {
     total: curated.checkpoints.length,
     byStatus: countBy(curated.checkpoints, 'status'),
-    missed: curated.checkpoints.filter((c) => c.status === 'MISSED').length,
+    missed: curated.checkpoints.filter((c) => c.status === 'SKIPPED').length,
   }
 }
 

@@ -73,8 +73,8 @@ describe('grants', () => {
     expect(Object.keys(ROLE_GRANTS)).toHaveLength(ROLES.length)
   })
 
-  it('SUPER_ADMIN holds every code in the catalog', () => {
-    expect(new Set(ROLE_GRANTS.SUPER_ADMIN)).toEqual(ALL_CODES)
+  it('SUPERADMIN holds every code in the catalog', () => {
+    expect(new Set(ROLE_GRANTS.SUPERADMIN)).toEqual(ALL_CODES)
   })
 
   it('every granted code exists in the catalog', () => {
@@ -87,8 +87,8 @@ describe('grants', () => {
 })
 
 describe('can', () => {
-  it('SUPER_ADMIN can read users', () => {
-    expect(can('SUPER_ADMIN', 'read', 'users')).toBe(true)
+  it('SUPERADMIN can read users', () => {
+    expect(can('SUPERADMIN', 'read', 'users')).toBe(true)
   })
 
   it('LIVREUR reads missions but not reports', () => {
@@ -126,20 +126,20 @@ describe('abilities', () => {
     expect(ability.can('read', 'users')).toBe(false)
   })
 
-  it('SUPER_ADMIN ability allows read users', () => {
-    expect(defineAbilityFor('SUPER_ADMIN').can('read', 'users')).toBe(true)
+  it('SUPERADMIN ability allows read users', () => {
+    expect(defineAbilityFor('SUPERADMIN').can('read', 'users')).toBe(true)
   })
 })
 
 describe('hierarchy', () => {
-  it('SUPER_ADMIN can create everyone; LIVREUR nobody', () => {
-    for (const role of ROLES) expect(canCreate('SUPER_ADMIN', role)).toBe(true)
-    expect(getCreatableRoles('SUPER_ADMIN')).toHaveLength(ROLES.length)
+  it('SUPERADMIN can create everyone; LIVREUR nobody', () => {
+    for (const role of ROLES) expect(canCreate('SUPERADMIN', role)).toBe(true)
+    expect(getCreatableRoles('SUPERADMIN')).toHaveLength(ROLES.length)
     expect(getCreatableRoles('LIVREUR')).toEqual(['LIVREUR'])
   })
 
-  it('ADMIN cannot create SUPER_ADMIN', () => {
-    expect(canCreate('ADMIN', 'SUPER_ADMIN')).toBe(false)
+  it('ADMIN cannot create SUPERADMIN', () => {
+    expect(canCreate('ADMIN', 'SUPERADMIN')).toBe(false)
     expect(canCreate('ADMIN', 'ADMIN')).toBe(true)
     expect(canCreate('ADMIN', 'LIVREUR')).toBe(true)
   })

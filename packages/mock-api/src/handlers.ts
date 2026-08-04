@@ -12,7 +12,6 @@ import {
   getEntity,
   createEntity,
   updateEntity,
-  deleteEntity,
   softDeleteEntity,
   findEntities,
   countEntities,
@@ -80,26 +79,6 @@ function paginatedList(req: Request, res: Response, name: EntityName, options?: 
   const envelope: any = { success: true, message: 'OK', data: result.data, pagination: result.pagination }
   if (result.aggregations) envelope.aggregations = result.aggregations
   return res.json(envelope)
-}
-
-function crudRouter(name: EntityName): Router {
-  const r = makeRouter()
-  r.use(requireAuth)
-  r.get('/', (req, res) => paginatedList(req, res, name))
-  r.post('/', (req, res) => created(res, createEntity(name, req.body ?? {})))
-  r.get('/:id', (req, res) => {
-    const item = getEntity(name, req.params.id)
-    return item ? ok(res, item) : notFound(res)
-  })
-  r.patch('/:id', (req, res) => {
-    const item = updateEntity(name, req.params.id, req.body ?? {})
-    return item ? ok(res, item) : notFound(res)
-  })
-  r.delete('/:id', (req, res) => {
-    if (!softDeleteEntity(name, req.params.id)) return notFound(res)
-    return ok(res, null, 'Supprime')
-  })
-  return r
 }
 
 // ============ AUTH ============
@@ -309,9 +288,9 @@ function vehiclesRouter(): Router {
     const vehicle = getEntity('vehicles', req.params.id)
     if (!vehicle) return notFound(res)
     return ok(res, {
-      certificate_url: vehicle.certificate_url,
-      certificate_number: vehicle.certificate_number,
-      valid_until: vehicle.certificate_expiry_at,
+      certificate_url: (vehicle as any).certificate_url,
+      certificate_number: (vehicle as any).certificate_number,
+      valid_until: (vehicle as any).certificate_expiry_at,
     })
   })
   return r
@@ -497,8 +476,9 @@ function declarationsRouter(): Router {
   r.post('/:id/reconcile', (req, res) => {
     const decl = getEntity('declarations', req.params.id)
     if (!decl) return notFound(res)
-    const tracked = (decl.declared_volume ?? 0) * (0.85 + Math.random() * 0.3)
-    const gap = tracked - (decl.declared_volume ?? 0)
+    const declared_volume = (decl as any).declared_volume ?? 0
+    const tracked = declared_volume * (0.85 + Math.random() * 0.3)
+    const gap = tracked - declared_volume
     const rec = createEntity('reconciliations', {
       declaration_id: req.params.id,
       tracked_volume: Math.round(tracked),

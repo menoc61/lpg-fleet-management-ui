@@ -220,7 +220,7 @@ export interface AppUser extends BaseEntity {
   must_change_password?: boolean
 }
 
-export interface Region {
+export interface RegionEntity {
   id: string
   name: string
   code: Region

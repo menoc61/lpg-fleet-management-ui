@@ -92,7 +92,7 @@ export interface SiteEntity {
   name: string
   functions?: SiteType[] | null
   address?: string
-  geo_point?: [number, number] | null
+  geo_point?: number[] | null
   geo_confidence_score?: number
   delivery_count?: number
   is_verified: boolean
@@ -133,7 +133,7 @@ export interface ClientSiteEntity {
   region: Region
   name: string
   address?: string
-  geo_point?: [number, number] | null
+  geo_point?: number[] | null
   geo_confidence_score?: number
   delivery_count?: number
   is_verified: boolean
@@ -194,7 +194,7 @@ export interface DeviceEntity {
   battery_level: number | null
   battery_critical: boolean
   last_sync?: string | null
-  last_known_position?: [number, number] | null
+  last_known_position?: number[] | null
   assigned_to_user_id?: string | null
   assigned_to_vehicle_id?: string | null
   org_id?: string | null
@@ -283,7 +283,7 @@ export interface ScanEventEntity {
   livreur_user_id?: string | null
   rfid_tag_id?: string | null
   direction: ScanDirection
-  geo_point?: [number, number] | null
+  geo_point?: number[] | null
   timestamp: string
   meter_reading?: number | null
   photo_url?: string | null
@@ -361,9 +361,9 @@ export interface RiskScoreEntity {
   entity_id: string
   score: number
   level: RiskLevel
-  period_start: string
-  period_end: string
-  model_version: string
+  period_start?: string
+  period_end?: string
+  model_version?: string
   details_json?: Record<string, unknown> | null
   created_at?: string
   updated_at?: string
