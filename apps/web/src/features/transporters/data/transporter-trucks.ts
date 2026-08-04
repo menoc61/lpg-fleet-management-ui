@@ -8,7 +8,7 @@ export const truckStatusLabels: Record<string, string> = {
 }
 
 export function getTransporterTrucks(_orgId?: string) {
-  return (curated.vehicles as any[]).slice(0, 8).map((v, idx) => ({
+  return (curated.vehicles as any[]).slice(0, 8).map((v) => ({
     id: v.id,
     plate_number: v.license_plate,
     type: v.type,

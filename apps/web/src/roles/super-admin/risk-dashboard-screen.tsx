@@ -8,7 +8,7 @@ import { PageShell, KpiTile } from '@/components/layout/page'
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { curated } from '@lpg/mock-data'
 
-const riskSeeds = (seeds as any).risks ?? []
+const riskSeeds = (curated as any).risk_scores ?? []
 const riskLevelColor: Record<string, string> = {
   FAIBLE: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
   MODERE: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',

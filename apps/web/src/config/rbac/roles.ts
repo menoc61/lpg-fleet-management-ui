@@ -1,20 +1,32 @@
-import {
-  ROLES as ALL_ROLES,
-  ROLE_LABELS,
-  ROLE_DESCRIPTIONS,
-  type Role as AllRole,
-} from '@lpg/permissions'
-
 /**
- * Web-facing roles.
+ * Web role configuration.
+ *
+ * The canonical roles live in `@lpg/permissions` (which derives them from
+ * the same Role union exported by `@lpg/types`). This file only:
+ *
+ *   • re-exports the canonical `Role` type,
+ *   • re-exports `ROLE_LABELS` / `ROLE_DESCRIPTIONS` for UI consumption,
+ *   • provides `WEB_ROLES` — the subset of roles that have a web sidebar.
  *
  * LIVREUR (PDA mobile app) is a data-layer role with grants in the permission
- * matrix, but has no web interface — so it is deliberately excluded here. This
- * keeps every web `Record<Role, …>` exhaustive over the 7 web roles with zero
- * LIVREUR UI (login picker, sidebar, dashboard, manifest, role switcher).
+ * matrix but no web interface. It is included in `Role` so backend code and
+ * the permission matrix stay exhaustive, but the sidebar/role-switcher code
+ * filters it out via `isWebRole()` / `WEB_ROLES`.
  */
-export type Role = Exclude<AllRole, 'LIVREUR'>
 
-export const ROLES = ALL_ROLES.filter((r): r is Role => r !== 'LIVREUR')
+export {
+  ROLES,
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
+  type Role,
+} from '@lpg/permissions'
 
-export { ROLE_LABELS, ROLE_DESCRIPTIONS }
+import type { Role } from '@lpg/permissions'
+import { isWebRole, WEB_ROLES } from '@/config/rbac/nav-items'
+
+export { isWebRole, WEB_ROLES }
+
+/**
+ * Convenience filter — the 7 roles that have a web UI.
+ */
+export const WEB_ROLE_LIST: ReadonlyArray<Role> = WEB_ROLES
