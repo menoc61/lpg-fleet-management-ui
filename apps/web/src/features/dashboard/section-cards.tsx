@@ -13,7 +13,7 @@ export function SectionCards() {
   const sites = (sitesResult?.data ?? []) as any[]
   const declarations = (declarationsResult?.data ?? []) as any[]
 
-  const activeTours = tours.filter((t: any) => t.status === 'in_progress').length
+  const activeTours = tours.filter((t: any) => t.status === 'INPROGRESS').length
 
   const cards = [
     {

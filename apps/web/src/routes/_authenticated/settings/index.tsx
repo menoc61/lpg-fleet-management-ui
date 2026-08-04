@@ -50,7 +50,7 @@ function SettingCard({ item }: { item: SettingCard }) {
 }
 
 const ROLE_SETTINGS: Record<string, SettingCard[]> = {
-  SUPER_ADMIN: [
+  SUPERADMIN: [
     { to: '/settings/profile', icon: User, title: 'Profil', description: 'Gérer vos informations personnelles.' },
     { to: '/settings', icon: Palette, title: 'Apparence', description: 'Thème, police et préférences d’affichage.' },
     { to: '/settings', icon: Shield, title: 'Gestion utilisateurs', description: 'Créer, modifier et désactiver des comptes.' },

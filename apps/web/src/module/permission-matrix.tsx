@@ -25,7 +25,7 @@ import { PageShell, KpiTile, SectionCard } from '@/components/layout/page'
 import { ROLES, ROLE_LABELS, type Role } from '@/config/rbac/roles'
 
 const ROLE_COLORS: Record<Role, string> = {
-  SUPER_ADMIN: '#f43f5e',
+  SUPERADMIN: '#f43f5e',
   ADMIN: '#3b82f6',
   SUPERVISOR: '#a855f7',
   INTEGRATEUR: '#10b981',
@@ -35,7 +35,7 @@ const ROLE_COLORS: Record<Role, string> = {
 }
 
 const ROLE_SHORT: Record<Role, string> = {
-  SUPER_ADMIN: 'S-Admin',
+  SUPERADMIN: 'S-Admin',
   ADMIN: 'Admin',
   SUPERVISOR: 'Superv.',
   INTEGRATEUR: 'Intégr.',

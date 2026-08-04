@@ -83,7 +83,7 @@ function group(title: string, icon: React.ElementType, items: (BaseItem & { url:
 }
 
 const GROUPS: Record<Role, SidebarData> = {
-  SUPER_ADMIN: {
+  SUPERADMIN: {
     navGroups: [
       {
         title: 'Pilotage national',

@@ -28,7 +28,7 @@ import { ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type Role } from '@/config/rbac/
 import { roleSlug } from '@/config/rbac/sidebar-by-role'
 
 const ROLE_ICON: Record<Role, LucideIcon> = {
-  SUPER_ADMIN: Shield,
+  SUPERADMIN: Shield,
   ADMIN: Users,
   SUPERVISOR: Activity,
   INTEGRATEUR: RadioTower,
@@ -38,7 +38,7 @@ const ROLE_ICON: Record<Role, LucideIcon> = {
 }
 
 const ROLE_AVATAR_CLASS: Record<Role, string> = {
-  SUPER_ADMIN: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
+  SUPERADMIN: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
   ADMIN: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
   SUPERVISOR: 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
   INTEGRATEUR: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',

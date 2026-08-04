@@ -35,7 +35,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const ROLE_EXTRA: Record<string, string> = {
-  SUPER_ADMIN: 'Permissions : Toutes',
+  SUPERADMIN: 'Permissions : Toutes',
   ADMIN: '12 utilisateurs gérés',
   MARKETEUR: '5 camions, 3 tournées',
   TRANSPORTEUR: 'Zone : Yaoundé',

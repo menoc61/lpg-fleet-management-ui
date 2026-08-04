@@ -9,7 +9,7 @@ import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
 type Kpi = { label: string; value: string; delta?: string; trend?: 'up' | 'down'; icon?: React.ReactNode }
 
 const KPI_BY_ROLE: Record<Role, Kpi[]> = {
-  SUPER_ADMIN: [
+  SUPERADMIN: [
     { label: 'Volume national', value: '12 480 t', delta: '+4,2%', trend: 'up' },
     { label: 'Traçabilité', value: '94,1%', delta: '+1,1%', trend: 'up' },
     { label: 'Anomalies', value: '37', delta: '-8', trend: 'down' },
@@ -54,7 +54,7 @@ const KPI_BY_ROLE: Record<Role, Kpi[]> = {
 }
 
 const ROLE_ICON: Record<Role, React.ComponentType<{ className?: string }>> = {
-  SUPER_ADMIN: ShieldCheck,
+  SUPERADMIN: ShieldCheck,
   ADMIN: Users,
   SUPERVISOR: Activity,
   INTEGRATEUR: Radio,
@@ -64,7 +64,7 @@ const ROLE_ICON: Record<Role, React.ComponentType<{ className?: string }>> = {
 }
 
 const ROLE_COLOR: Record<Role, string> = {
-  SUPER_ADMIN: 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
+  SUPERADMIN: 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
   ADMIN: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
   SUPERVISOR: 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300',
   INTEGRATEUR: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',

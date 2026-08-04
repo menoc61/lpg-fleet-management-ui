@@ -9,7 +9,7 @@ const chartConfig = {
 
 const statusLabels: Record<string, string> = {
   planned: 'Planifiee',
-  in_progress: 'En cours',
+  INPROGRESS: 'En cours',
   completed: 'Terminee',
   cancelled: 'Annulee',
 }

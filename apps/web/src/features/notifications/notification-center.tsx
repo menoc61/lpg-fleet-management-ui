@@ -63,7 +63,7 @@ const LEVEL_CLASS: Record<NotificationLevel, string> = {
 }
 
 const EMPTY_BY_ROLE: Record<string, string> = {
-  SUPER_ADMIN: 'Toutes les notifications système sont sous contrôle.',
+  SUPERADMIN: 'Toutes les notifications système sont sous contrôle.',
   ADMIN: 'Aucune notification administrative en attente.',
   MARKETEUR: 'Aucune notification pour vos tournées.',
   TRANSPORTEUR: 'Aucune notification de tournée.',

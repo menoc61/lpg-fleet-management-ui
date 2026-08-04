@@ -47,7 +47,7 @@ const MARKETEUR_FIELDS: ModuleField[] = [
 
 export const MODULE_REGISTRY: ModuleRegistry = {
   // ---------- SUPER_ADMIN ----------
-  'SUPER_ADMIN:overview': {
+  'SUPERADMIN:overview': {
     title: "Vue d'ensemble nationale",
     description: 'KPIs nationaux, volumes, traçabilité et anomalies agrégées.',
     mockCount: 20,
@@ -59,7 +59,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'updated_at', header: 'Mis à jour', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:map': {
+  'SUPERADMIN:map': {
     title: 'Carte interactive',
     description: 'Vue cartographique nationale des sites, tournées et anomalies.',
     mockCount: 18,
@@ -70,7 +70,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'updated_at', header: 'Mis à jour', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:finance': {
+  'SUPERADMIN:finance': {
     title: 'Indicateurs financiers',
     description: 'Subventions, écarts et économies réalisées.',
     mockCount: 20,
@@ -82,7 +82,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'period', header: 'Période', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:transporters': {
+  'SUPERADMIN:transporters': {
     title: 'Transporteurs',
     description: 'Parc transporteurs, contrats et validations externes.',
     mockCount: 24,
@@ -101,13 +101,13 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:marketeurs': {
+  'SUPERADMIN:marketeurs': {
     title: 'Marketeurs',
     description: 'Suivi national des marketeurs et indicateurs agrégés.',
     mockCount: 26,
     fields: MARKETEUR_FIELDS,
   },
-  'SUPER_ADMIN:organizations': {
+  'SUPERADMIN:organizations': {
     title: 'Organisations & sites',
     description: 'Toutes les organisations et leurs sites localisés.',
     mockCount: 30,
@@ -138,7 +138,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'created_at', header: 'Créé le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:users': {
+  'SUPERADMIN:users': {
     title: 'Utilisateurs (RBAC)',
     description: 'Gestion des utilisateurs et rôles.',
     mockCount: 40,
@@ -171,7 +171,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'last_login_at', header: 'Dernière connexion', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:tours': {
+  'SUPERADMIN:tours': {
     title: 'Tournées',
     description: 'Tournées de livraison/approvisionnement.',
     mockCount: 36,
@@ -185,7 +185,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         options: [
           { label: 'Brouillon', value: 'draft' },
           { label: 'Planifiée', value: 'planned' },
-          { label: 'En cours', value: 'in_progress' },
+          { label: 'En cours', value: 'INPROGRESS' },
           { label: 'Clôturée', value: 'closed' },
         ],
         filterable: true,
@@ -195,7 +195,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'started_at', header: 'Début', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:deliveries': {
+  'SUPERADMIN:deliveries': {
     title: 'Livraisons',
     description: 'Suivi des livraisons et points de contrôle.',
     mockCount: 32,
@@ -214,7 +214,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'completedAt', header: 'Complété le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:declarations': {
+  'SUPERADMIN:declarations': {
     title: 'Déclarations',
     description: 'Déclarations de ventes marketeurs.',
     mockCount: 28,
@@ -238,7 +238,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'submitted_at', header: 'Soumis le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:reconciliations': {
+  'SUPERADMIN:reconciliations': {
     title: 'Réconciliations',
     description: 'Écarts déclarés vs scannés et suivi de péréquation.',
     mockCount: 26,
@@ -257,7 +257,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'verified_at', header: 'Vérifié le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:redressements': {
+  'SUPERADMIN:redressements': {
     title: 'Redressements',
     description: 'Suivi des redressements financiers.',
     mockCount: 24,
@@ -276,7 +276,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'paid_at', header: 'Payé le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:anomalies': {
+  'SUPERADMIN:anomalies': {
     title: 'Anomalies & fraude',
     description: 'Détection par régression linéaire et écarts déclarés/scannés.',
     mockCount: 35,
@@ -304,7 +304,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'detected_at', header: 'Détecté le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:incidents': {
+  'SUPERADMIN:incidents': {
     title: 'Incidents',
     description: 'Incidents opérationnels et actions correctives.',
     mockCount: 22,
@@ -322,7 +322,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'raisedAt', header: 'Déclaré le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:risks': {
+  'SUPERADMIN:risks': {
     title: 'Scores de risque',
     description: 'Scoring par marketeur, transporteur et livreur.',
     mockCount: 26,
@@ -351,7 +351,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'calculatedAt', header: 'Calculé le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:custom-roles': {
+  'SUPERADMIN:custom-roles': {
     title: 'Rôles personnalisés',
     description: 'Gestion des rôles et permissions personnalisés.',
     mockCount: 15,
@@ -362,7 +362,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'created_at', header: 'Créé le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:delivery-types': {
+  'SUPERADMIN:delivery-types': {
     title: 'Types de livraison',
     description: 'Configuration des modes de livraison.',
     mockCount: 12,
@@ -381,7 +381,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       },
     ],
   },
-  'SUPER_ADMIN:tour-statuses': {
+  'SUPERADMIN:tour-statuses': {
     title: 'Statuts de tournée',
     description: 'Configuration des statuts de tournée.',
     mockCount: 10,
@@ -392,7 +392,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'color', header: 'Couleur', type: 'text' },
     ],
   },
-  'SUPER_ADMIN:vehicle-types': {
+  'SUPERADMIN:vehicle-types': {
     title: 'Types de véhicule',
     description: 'Configuration des types de véhicules de la flotte.',
     mockCount: 14,
@@ -411,7 +411,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       },
     ],
   },
-  'SUPER_ADMIN:reports': {
+  'SUPERADMIN:reports': {
     title: 'Rapports & exports',
     description: 'Rapports opérationnels, conformité et financiers.',
     mockCount: 25,
@@ -432,7 +432,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'generated_at', header: 'Généré le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:audit-logs': {
+  'SUPERADMIN:audit-logs': {
     title: "Journal d'audit",
     description: 'Traçabilité des actions utilisateurs.',
     mockCount: 50,
@@ -456,7 +456,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'timestamp', header: 'Horodatage', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:settings': {
+  'SUPERADMIN:settings': {
     title: 'Paramètres',
     description: 'Paramètres généraux du système et seuils opérationnels.',
     mockCount: 18,
@@ -467,7 +467,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
       { key: 'updated_at', header: 'Modifié le', type: 'date' },
     ],
   },
-  'SUPER_ADMIN:system-health': {
+  'SUPERADMIN:system-health': {
     title: 'Santé du système',
     description: 'État des services, bases et files événementielles.',
     mockCount: 14,
@@ -1038,7 +1038,7 @@ export const MODULE_REGISTRY: ModuleRegistry = {
         type: 'status',
         options: [
           { label: 'Accusée', value: 'acknowledged' },
-          { label: 'En cours', value: 'in_progress' },
+          { label: 'En cours', value: 'INPROGRESS' },
           { label: 'Checkpoint actif', value: 'checkpoint_active' },
         ],
         filterable: true,
