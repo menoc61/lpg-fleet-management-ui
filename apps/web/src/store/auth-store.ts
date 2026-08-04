@@ -20,8 +20,8 @@ apiAdapter.setOnUnauthorized(() => useAuthStore.getState().logout())
 async function applyAuthResult(result: AuthResult) {
   useAuthStore.setState({
     user: result.user,
-    accessToken: result.accessToken,
-    refreshToken: result.refreshToken,
+    accessToken: result.access_token,
+    refreshToken: result.refresh_token,
     status: 'authenticated',
   })
 }
