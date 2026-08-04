@@ -35,6 +35,7 @@ export {
   integration_auth,
   system_roles,
   permissions,
+  regions,
 } from './entities.ts'
 
 export type {

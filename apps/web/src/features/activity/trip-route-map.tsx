@@ -140,7 +140,9 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
       mapTheme === 'dark'
         ? { accentColor: '#86efac', textColor: '#f8fafc' }
         : { accentColor: '#16a34a', textColor: '#0f172a' }
+    // eslint-disable-next-line react-hooks/immutability -- ArcGIS SDK side-effect on the ref-held view (no first-class setter exists)
     mapTarget.basemap = basemapValue
+    // eslint-disable-next-line react-hooks/immutability -- ArcGIS SDK side-effect on the ref-held view (no first-class setter exists)
     viewTarget.theme = themeValue
     void mapTarget
     void viewTarget
