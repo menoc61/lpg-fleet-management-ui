@@ -40,7 +40,7 @@ export function RouteLpgVariationPanel({
   formatKg,
 }: RouteLpgVariationPanelProps) {
   const variation = buildRouteLpgVariation(trip)
-  const [loadingStage, liveStage, projectedStage] = variation.stages
+  const [loadingStage, liveStage, projectedStage] = variation.stages as [RouteLpgVariationStage, RouteLpgVariationStage, RouteLpgVariationStage]
 
   return (
     <Card className='overflow-hidden border-transparent shadow-sm'>
@@ -82,12 +82,12 @@ export function RouteLpgVariationPanel({
           />
 
           <FlowConnector
-            value={formatKg(Math.abs(liveStage.deltaKg))}
+            value={formatKg(Math.abs(liveStage!.deltaKg))}
             label='variation mesuree'
           />
 
           <StageCard
-            stage={liveStage}
+            stage={liveStage!}
             hint={`Dernier ping ${trip.truck.current_location}`}
             formatKg={formatKg}
           />
@@ -102,7 +102,7 @@ export function RouteLpgVariationPanel({
           />
 
           <StageCard
-            stage={projectedStage}
+            stage={projectedStage!}
             hint={
               trip.status === 'completed'
                 ? 'Mission cloturee'

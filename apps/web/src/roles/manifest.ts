@@ -56,7 +56,7 @@ const BESPOKE_SCREENS: ReadonlyArray<BespokeCatalog> = [
   { module: 'organizations', component: SuperAdminOrganizationsScreen, requires: ['orgs.read'] },
   { module: 'map', component: SuperAdminMapScreen, requires: ['sites.read', 'tours.read'] },
   { module: 'risks', component: SuperAdminRiskDashboardScreen, requires: ['risks.read'] },
-  { module: 'custom-roles', component: SuperAdminCustomRolesScreen, requires: ['custom-roles.manage'] },
+{ module: 'custom-roles', component: SuperAdminCustomRolesScreen, requires: ['custom-roles.manage'] },
 
   { module: 'permissions', component: PermissionMatrixScreen, requires: ['permissions.read'] },
   { module: 'infra', component: SupervisorInfraScreen, requires: ['metrics.read'] },
@@ -123,7 +123,7 @@ export const ROLE_MANIFEST: Record<Role, RoleScreenRegistration[]> = (() => {
   const out: Partial<Record<Role, RoleScreenRegistration[]>> = {}
   for (const roleKey of roleKeys) {
     const entries: RoleScreenRegistration[] = []
-    for (const { module, registrations } of Object.entries(ROLE_BESPOKE_BY_MODULE)) {
+    for (const [module, registrations] of Object.entries(ROLE_BESPOKE_BY_MODULE)) {
       for (const { role, decl } of registrations) {
         if (role === roleKey && decl.requires.some((code) => hasPermission(role as Role, code))) {
           entries.push({

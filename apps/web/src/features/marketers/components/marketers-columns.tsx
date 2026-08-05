@@ -3,16 +3,15 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { LongText } from '@/components/long-text'
-import { marketerStatusOptions, type Marketer } from '../data/marketers'
+import { type Organization } from '@lpg/types'
 
 type MarketersColumnsProps = {
-  onViewDetails: (marketer: Marketer) => void
+  onViewDetails: (marketer: Organization) => void
 }
 
 export function getMarketersColumns({
   onViewDetails,
-}: MarketersColumnsProps): ColumnDef<Marketer>[] {
+}: MarketersColumnsProps): ColumnDef<Organization>[] {
   return [
     {
       id: 'select',
@@ -75,19 +74,15 @@ export function getMarketersColumns({
       meta: { label: 'Nom', className: 'w-48' },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'is_active',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Statut' />
       ),
-      cell: ({ row }) => {
-        const status = row.original.status
-        const label = marketerStatusOptions.find((o) => o.value === status)?.label
-        return (
-          <Badge variant={status === 'active' ? 'default' : 'secondary'}>
-            {label}
-          </Badge>
-        )
-      },
+      cell: ({ row }) => (
+        <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
+          {row.original.is_active ? 'Actif' : 'Inactif'}
+        </Badge>
+      ),
       filterFn: (row, id, value) =>
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Statut' },
@@ -95,34 +90,24 @@ export function getMarketersColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'region',
+      accessorKey: 'user_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Région' />
+        <DataTableColumnHeader column={column} title='Utilisateurs' />
       ),
       cell: ({ row }) => (
-        <LongText className='max-w-44'>{row.original.region}</LongText>
+        <span className='font-medium'>{row.original.user_count ?? 0}</span>
       ),
-      meta: { label: 'Région' },
+      meta: { label: 'Utilisateurs' },
     },
     {
-      accessorKey: 'contactEmail',
+      accessorKey: 'vehicle_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Email' />
+        <DataTableColumnHeader column={column} title='Véhicules' />
       ),
       cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contact_email}</div>
+        <span className='font-medium'>{row.original.vehicle_count ?? 0}</span>
       ),
-      meta: { label: 'Email' },
-    },
-    {
-      accessorKey: 'contact_phone',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Téléphone' />
-      ),
-      cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contact_phone}</div>
-      ),
-      meta: { label: 'Téléphone' },
+      meta: { label: 'Véhicules' },
     },
   ]
 }

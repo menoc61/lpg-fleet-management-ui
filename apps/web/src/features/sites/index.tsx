@@ -60,7 +60,7 @@ export function SitesScreen({ kind, role }: { kind: 'site' | 'client_site'; role
   const [rows, setRows] = useState<SiteRow[]>(initial)
   const handleAction = (row: SiteRow, request: TransitionRequest) => {
     const nextStatus: Record<string, SiteRow['status']> = { verify: 'VERIFIED', suspend: 'SUSPENDED', reject: 'REJECTED', reassign: 'ASSIGNED' }
-    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: nextStatus[request.kind] } : r)))
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: nextStatus[request.kind]! } : r)))
     const labels: Record<string, string> = { verify: 'vérifié', suspend: 'suspendu', reject: 'rejeté', reassign: 'réassigné' }
     toast[request.kind === 'reject' ? 'error' : request.kind === 'suspend' ? 'warning' : 'success'](`${row.id} marqué comme ${labels[request.kind]}`)
   }

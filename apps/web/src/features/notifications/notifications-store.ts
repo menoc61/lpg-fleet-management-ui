@@ -32,7 +32,7 @@ const seed: AppNotification[] = [
     ts: now - 1000 * 60 * 5,
     level: 'info',
     read: false,
-    role: 'SUPER_ADMIN',
+    role: 'SUPERADMIN',
   },
   {
     id: 'n2',
@@ -90,6 +90,6 @@ export const selectUnreadCount = (s: NotificationsState) =>
 
 export function getNotificationsForRole(role: string): AppNotification[] {
   const items = useNotificationsStore.getState().items
-  if (role === 'SUPER_ADMIN') return items
+  if (role === 'SUPERADMIN') return items
   return items.filter((n) => !n.role || n.role === role)
 }

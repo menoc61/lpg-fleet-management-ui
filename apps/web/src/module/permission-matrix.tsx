@@ -32,6 +32,7 @@ const ROLE_COLORS: Record<Role, string> = {
   AGENT: '#f59e0b',
   MARKETEUR: '#06b6d4',
   TRANSPORTEUR: '#f97316',
+  LIVREUR: '#64748b',
 }
 
 const ROLE_SHORT: Record<Role, string> = {
@@ -42,6 +43,7 @@ const ROLE_SHORT: Record<Role, string> = {
   AGENT: 'Agent',
   MARKETEUR: 'Markét.',
   TRANSPORTEUR: 'Transp.',
+  LIVREUR: 'Livr.',
 }
 
 const CATEGORY_SHORT: Record<PermissionCategory, string> = {

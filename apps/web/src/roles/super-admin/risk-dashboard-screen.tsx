@@ -8,7 +8,6 @@ import { PageShell, KpiTile } from '@/components/layout/page'
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { risk_scores } from '@lpg/mock-data'
 import type { RiskScore, RiskEntityType, RiskLevel } from '@lpg/types'
-import type { NameType, ValueType } from 'recharts/type/types'
 
 const RISK_LEVEL_BG: Record<RiskLevel, string> = {
   FAIBLE: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
@@ -187,7 +186,7 @@ export function SuperAdminRiskDashboardScreen() {
                 <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} className='text-muted-foreground' />
                 <Tooltip
                   contentStyle={{ borderRadius: 12, border: '1px solid var(--border)', backgroundColor: 'var(--background)' }}
-                  formatter={(value: ValueType, name: NameType): [string, string] => [
+                  formatter={(value: number, name: string): [string, string] => [
                     `${value ?? 0}/100`,
                     String(name ?? 'Score'),
                   ]}

@@ -48,7 +48,7 @@ export function TransporterDetailsPage() {
             </div>
             <div className='min-w-0'>
               <h1 className='text-xl sm:text-2xl font-bold tracking-tight truncate'>{transporter.name}</h1>
-              <p className='text-xs sm:text-sm text-muted-foreground truncate'>{transporter.region} • {transporter.contactEmail}</p>
+              <p className='text-xs sm:text-sm text-muted-foreground truncate'>{transporter.type} • {transporter.is_active ? 'Actif' : 'Inactif'}</p>
             </div>
           </div>
         </div>

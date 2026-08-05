@@ -147,8 +147,8 @@ function buildLiveIndex(role: Role): SearchItem[] {
     items.push({
       category: 'Transporteurs',
       title: t.name,
-      subtitle: t.region,
-      value: `${t.name} ${t.region} ${t.id}`,
+      subtitle: `${t.vehicle_count ?? 0} véhicules`,
+      value: `${t.name} ${t.id}`,
       url: `/transporters/${t.id}`,
       icon: Handshake,
     })
@@ -158,8 +158,8 @@ function buildLiveIndex(role: Role): SearchItem[] {
     items.push({
       category: 'Marketeurs',
       title: m.name,
-      subtitle: m.region,
-      value: `${m.name} ${m.region} ${m.id}`,
+      subtitle: `${m.vehicle_count ?? 0} véhicules`,
+      value: `${m.name} ${m.id}`,
       url: `/marketers/${m.id}`,
       icon: Building2,
     })

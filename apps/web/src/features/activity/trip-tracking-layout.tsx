@@ -4,12 +4,13 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { trips } from './trip-data'
 import { TripDetails } from './trip-details'
 import { TripList } from './trip-list'
+import type { Trip } from './trip-data'
 
 export function SuiviTripsLayout() {
   const [detailsOpen, setDetailsOpen] = React.useState(false)
-  const [selectedTripId, setSelectedTripId] = React.useState<string | null>(trips[0].id)
+  const [selectedTripId, setSelectedTripId] = React.useState<string | null>(trips[0]?.id ?? null)
   
-  const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? trips[0]
+  const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? null
 
   function handleSelectTrip(tripId: string) {
     setSelectedTripId(tripId)
@@ -27,7 +28,7 @@ export function SuiviTripsLayout() {
       >
         <div className='h-full overflow-hidden bg-muted/10'>
           <TripList
-            trips={trips}
+            trips={trips as Trip[]}
             selectedTripId={selectedTripId}
             onSelectTrip={handleSelectTrip}
           />
@@ -43,8 +44,8 @@ export function SuiviTripsLayout() {
           className='w-full gap-0 p-0 sm:max-w-none md:w-3/4'
         >
           <SheetHeader className='sr-only'>
-            <SheetTitle>{selectedTrip ? `Tournée ${selectedTrip.id}` : 'Détails de la tournée'}</SheetTitle>
-            <SheetDescription>Détails de la tournée sélectionnée et suivi du trajet.</SheetDescription>
+            <SheetTitle>{selectedTrip ? `TournǸe ${selectedTrip.id}` : 'DǸtails de la tournǸe'}</SheetTitle>
+            <SheetDescription>DǸtails de la tournǸe sǸlectionnǸe et suivi du trajet.</SheetDescription>
           </SheetHeader>
           <TripDetails trip={selectedTrip} />
         </SheetContent>

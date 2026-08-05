@@ -279,7 +279,7 @@ export function NotificationCenter() {
           <div className='flex items-center justify-between border-b p-3'>
             <p className='text-sm font-semibold'>Notifications</p>
             <div className='flex items-center gap-1'>
-              {activeRole === 'SUPER_ADMIN' && (
+              {activeRole === 'SUPERADMIN' && (
                 <Button
                   type='button'
                   variant='ghost'

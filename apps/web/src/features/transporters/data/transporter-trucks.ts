@@ -8,21 +8,7 @@ export const truckStatusLabels: Record<string, string> = {
   INACTIVE: 'Inactif',
 }
 
-export interface TransporterTruckRow {
-  id: string
-  plate_number: string
-  type: CuratedVehicle['type']
-  status: string
-  last_ping: string | null
-}
-
-export function getTransporterTrucks(_orgId?: string): TransporterTruckRow[] {
+export function getTransporterTrucks(_orgId?: string): CuratedVehicle[] {
   const vehicles = curated.vehicles as CuratedVehicle[]
-  return vehicles.slice(0, 8).map<TransporterTruckRow>((v) => ({
-    id: v.id,
-    plate_number: v.license_plate,
-    type: v.type,
-    status: 'AVAILABLE',
-    last_ping: v.certificate_expiry_at ?? null,
-  }))
+  return vehicles.slice(0, 8)
 }

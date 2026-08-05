@@ -20,7 +20,7 @@ export function AppHeader() {
   const { pathname } = useLocation()
 
   const initials = (
-    (user?.firstName?.charAt(0) ?? '') + (user?.lastName?.charAt(0) ?? '')
+    (user?.first_name?.charAt(0) ?? '') + (user?.last_name?.charAt(0) ?? '')
   ).toUpperCase() || '?'
 
   const handleLogout = () => {
@@ -77,7 +77,7 @@ export function AppHeader() {
               <Button variant='ghost' className='flex gap-2 pl-2 pr-0 hover:bg-transparent'>
                 <div className='hidden text-right text-sm md:block mr-1'>
                   <p className='font-medium'>
-                    {[user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email}
+                    {[user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email}
                   </p>
                 </div>
                 <Avatar className='size-9 rounded-full border bg-background p-0.5'>

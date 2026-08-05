@@ -1,17 +1,16 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
-import { DataTableColumnHeader } from '@/components/data-table'
-import { transporterStatusOptions, type Transporter } from '../transporters'
+import { Badge, Checkbox } from '@lpg/ui'
+import { DataTableColumnHeader } from '@lpg/ui'
+import { type Organization } from '@lpg/types'
 
 type TransportersColumnsProps = {
-  onViewDetails: (transporter: Transporter) => void
+  onViewDetails: (transporter: Organization) => void
 }
 
 export function getTransportersColumns({
   onViewDetails,
-}: TransportersColumnsProps): ColumnDef<Transporter>[] {
+}: TransportersColumnsProps): ColumnDef<Organization>[] {
   return [
     {
       id: 'select',
@@ -74,19 +73,15 @@ export function getTransportersColumns({
       meta: { label: 'Nom', className: 'w-48' },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'is_active',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Statut' />
       ),
-      cell: ({ row }) => {
-        const status = row.original.status
-        const label = transporterStatusOptions.find((o) => o.value === status)?.label
-        return (
-          <Badge variant={status === 'active' ? 'default' : 'secondary'}>
-            {label}
-          </Badge>
-        )
-      },
+      cell: ({ row }) => (
+        <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
+          {row.original.is_active ? 'Actif' : 'Inactif'}
+        </Badge>
+      ),
       filterFn: (row, id, value) =>
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Statut' },
@@ -94,32 +89,24 @@ export function getTransportersColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'region',
+      accessorKey: 'vehicle_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Région' />
-      ),
-      cell: ({ row }) => row.original.region,
-      meta: { label: 'Région' },
-    },
-    {
-      accessorKey: 'fleetSize',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Flotte' />
+        <DataTableColumnHeader column={column} title='Véhicules' />
       ),
       cell: ({ row }) => (
-        <span className='font-medium'>{row.original.fleetSize} camions</span>
+        <span className='font-medium'>{row.original.vehicle_count ?? 0}</span>
       ),
-      meta: { label: 'Flotte' },
+      meta: { label: 'Véhicules' },
     },
     {
-      accessorKey: 'contactPhone',
+      accessorKey: 'driver_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Téléphone' />
+        <DataTableColumnHeader column={column} title='Chauffeurs' />
       ),
       cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contactPhone}</div>
+        <span className='font-medium'>{row.original.driver_count ?? 0}</span>
       ),
-      meta: { label: 'Téléphone' },
+      meta: { label: 'Chauffeurs' },
     },
   ]
 }

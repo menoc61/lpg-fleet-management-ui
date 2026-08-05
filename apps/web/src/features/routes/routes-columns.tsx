@@ -78,8 +78,8 @@ export function getRoutesColumns({
           row.original.reference,
           row.original.customerName,
           row.original.truck.id,
-          row.original.truck.plateNumber,
-          row.original.truck.assignedDriver,
+          row.original.truck.license_plate,
+          row.original.truck.assigned_driver,
           row.original.originSite.name,
           row.original.destinationSite.name,
           row.original.originSite.city,
@@ -140,7 +140,7 @@ export function getRoutesColumns({
     },
     {
       id: 'truck',
-      accessorFn: (trip) => `${trip.truck.id} ${trip.truck.plateNumber}`,
+      accessorFn: (trip) => `${trip.truck.id} ${trip.truck.license_plate}`,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Camion' />
       ),
@@ -148,7 +148,7 @@ export function getRoutesColumns({
         <div className='space-y-0.5'>
           <p className='font-medium'>{row.original.truck.id}</p>
           <p className='font-mono text-xs text-muted-foreground'>
-            {row.original.truck.plateNumber}
+            {row.original.truck.license_plate}
           </p>
         </div>
       ),

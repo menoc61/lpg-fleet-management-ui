@@ -4,7 +4,7 @@ import { getRouteTripsView } from './routes'
 
 describe('buildRouteLpgVariation', () => {
   it('builds the loading, live, and projected LPG stages for an active trip', () => {
-    const trip = getRouteTripsView()[0]
+    const trip = getRouteTripsView()[0]!
     const variation = buildRouteLpgVariation(trip)
 
     expect(variation.stages.map((stage) => stage.label)).toEqual([

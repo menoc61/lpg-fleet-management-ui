@@ -28,7 +28,7 @@ export function ChartPie() {
 
   const grouped = new Map<string, number>()
   for (const truck of trucks) {
-    const key = truck.status
+    const key = truck.is_active ? 'AVAILABLE' : 'INACTIVE'
     grouped.set(key, (grouped.get(key) ?? 0) + 1)
   }
   const chartData: ChartRow[] = Array.from(grouped, ([status, count]) => ({
@@ -49,7 +49,7 @@ export function ChartPie() {
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  labelFormatter={(value: string) => STATUS_LABELS[value] ?? value}
+                  labelFormatter={(value: string, payload: readonly { value: number; name: string }[]) => STATUS_LABELS[value] ?? value}
                 />
               }
             />

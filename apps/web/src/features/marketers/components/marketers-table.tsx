@@ -22,14 +22,14 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { marketerStatusOptions, type Marketer } from '../data/marketers'
+import { type Organization } from '@lpg/types'
 import { getMarketersColumns } from './marketers-columns'
 
 type MarketersTableProps = {
-  data: Marketer[]
+  data: Organization[]
   search: Record<string, unknown>
   navigate: NavigateFn
-  onViewDetails: (marketer: Marketer) => void
+  onViewDetails: (marketer: Organization) => void
 }
 
 export function MarketersTable({
@@ -59,7 +59,7 @@ export function MarketersTable({
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: 'name', searchKey: 'q', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'is_active', searchKey: 'is_active', type: 'array' },
     ],
   })
 
@@ -105,9 +105,12 @@ export function MarketersTable({
         searchKey='name'
         filters={[
           {
-            columnId: 'status',
+            columnId: 'is_active',
             title: 'Statut',
-            options: marketerStatusOptions,
+            options: [
+              { label: 'Actif', value: 'true' },
+              { label: 'Inactif', value: 'false' },
+            ],
           },
         ]}
       />
@@ -177,7 +180,7 @@ export function MarketersTable({
           </TableBody>
         </Table>
       </div>
-      
+
       <DataTablePagination table={table} />
     </div>
   )

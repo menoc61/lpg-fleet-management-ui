@@ -9,7 +9,7 @@ describe('notifications store', () => {
   })
 
   it('markRead marks a single item read', () => {
-    const id = useNotificationsStore.getState().items[0].id
+    const id = useNotificationsStore.getState().items[0]!.id
     useNotificationsStore.getState().markRead(id)
     const updated = useNotificationsStore.getState().items.find((n) => n.id === id)
     expect(updated?.read).toBe(true)

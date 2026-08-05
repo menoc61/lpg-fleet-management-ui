@@ -22,7 +22,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
 
   // Derive the session from the authenticated user (single source of truth).
   const session: MockSession | null = user
-    ? { role: user.role as Role, orgName: user.email.split('@')[1] ?? 'lpg.cm' }
+    ? { role: user.system_role as Role, orgName: user.email.split('@')[1] ?? 'lpg.cm' }
     : null
 
   const setSession = (newSession: MockSession | null) => {

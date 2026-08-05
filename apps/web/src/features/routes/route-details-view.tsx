@@ -222,12 +222,12 @@ export function RouteDetailsView({
               <InfoRow
                 icon={Truck}
                 label='Camion'
-                value={`${trip.truck.id} - ${trip.truck.plateNumber}`}
+                value={`${trip.truck.id} - ${trip.truck.license_plate}`}
               />
               <InfoRow
                 icon={UserRound}
                 label='Chauffeur'
-                value={trip.truck.assignedDriver}
+                value={trip.truck.assigned_driver ?? ''}
               />
               <InfoRow
                 icon={UserRound}
@@ -237,7 +237,7 @@ export function RouteDetailsView({
               <InfoRow
                 icon={MapPinned}
                 label='Position courante'
-                value={trip.truck.currentLocation}
+                value={trip.truck.current_location ?? ''}
               />
             </div>
           </div>

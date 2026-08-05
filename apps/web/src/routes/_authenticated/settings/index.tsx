@@ -95,7 +95,7 @@ const ROLE_SETTINGS: Record<string, SettingCard[]> = {
 function SettingsIndexPage() {
   const activeRole = useRoleStore((s) => s.activeRole)
   const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
-  const items = ROLE_SETTINGS[activeRole] ?? ROLE_SETTINGS.SUPER_ADMIN
+  const items = (ROLE_SETTINGS[activeRole] ?? ROLE_SETTINGS.SUPERADMIN)!
 
   return (
     <div className='mx-auto max-w-2xl p-6'>

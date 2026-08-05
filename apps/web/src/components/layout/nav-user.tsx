@@ -29,8 +29,8 @@ export function NavUser() {
 
   if (!user) return null
 
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
-  const initials = ((user.firstName?.charAt(0) ?? '') + (user.lastName?.charAt(0) ?? '')).toUpperCase() || '?'
+  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
+  const initials = ((user.first_name?.charAt(0) ?? '') + (user.last_name?.charAt(0) ?? '')).toUpperCase() || '?'
 
   const handleLogout = () => {
     logout()

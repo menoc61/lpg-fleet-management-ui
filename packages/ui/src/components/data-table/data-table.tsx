@@ -269,9 +269,9 @@ export function DataTable<TData>({
                 onGlobalFilterChange?.('')
                 setGrouping([])
                 setDateRange({ from: undefined, to: undefined })
-                navigate({
+                navigate?.({
                   search: (prev) => {
-                    const p = { ...(prev as Record<string, unknown>) }
+                    const p = { ...((prev ?? {}) as Record<string, unknown>) }
                     columnFiltersCfg.forEach((c) => delete p[c.searchKey])
                     return p
                   },

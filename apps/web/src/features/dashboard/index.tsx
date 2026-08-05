@@ -49,7 +49,7 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
   const dailyAlerts = dashboard.trendByPeriod.daily
 
   const heading =
-    role === 'SUPER_ADMIN'
+    role === 'SUPERADMIN'
       ? 'Pilotage national'
       : role === 'ADMIN'
         ? 'Tableau de bord administration'
@@ -65,7 +65,7 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
                   ? 'État de la flotte'
                   : 'Tableau de bord global'
   const subtitle =
-    role === 'SUPER_ADMIN'
+    role === 'SUPERADMIN'
       ? 'Vue nationale des volumes, traçabilité et anomalies agrégées.'
       : role === 'ADMIN'
         ? 'Administration des utilisateurs, marketeurs et validations.'

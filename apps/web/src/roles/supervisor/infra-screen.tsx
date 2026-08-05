@@ -84,7 +84,7 @@ export function SupervisorInfraScreen() {
 
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
         {series.map((d) => {
-          const last = d.data[d.data.length - 1]
+          const last = d.data[d.data.length - 1]!
           const health: Health =
             d.id === 'err'
               ? last > 1

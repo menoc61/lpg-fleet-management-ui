@@ -80,7 +80,7 @@ export function MarketeurSupplyScreen() {
 
       <Card>
         <CardHeader>
-          <CardTitle className='text-base'>{STEPS[step].label}</CardTitle>
+          <CardTitle className='text-base'>{STEPS[step]!.label}</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
           {step === 0 && (

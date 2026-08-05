@@ -4,7 +4,7 @@ import { buildRouteSummary, getRouteTripsView } from './routes'
 describe('getRouteTripsView', () => {
   it('resolves the route dataset into a UI-friendly view model', () => {
     const trips = getRouteTripsView()
-    const selectedTrip = trips[0]
+    const selectedTrip = trips[0]!
 
     expect(selectedTrip.id).toBe('route-trip-bipaga-bonaberi')
     expect(selectedTrip.truck.id).toBe('TRX-CM-005')
@@ -21,7 +21,7 @@ describe('getRouteTripsView', () => {
 
 describe('buildRouteSummary', () => {
   it('aggregates the route portfolio for the command center header', () => {
-    expect(buildRouteSummary(getRouteTripsView())).toEqual({
+    expect(buildRouteSummary([...getRouteTripsView()])).toEqual({
       totalTrips: 4,
       activeTrips: 2,
       plannedTrips: 1,

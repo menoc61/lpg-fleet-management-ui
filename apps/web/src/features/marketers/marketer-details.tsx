@@ -49,7 +49,7 @@ export function MarketerDetailsPage() {
             </div>
             <div className='min-w-0'>
               <h1 className='text-xl sm:text-2xl font-bold tracking-tight truncate'>{marketer.name}</h1>
-              <p className='text-xs sm:text-sm text-muted-foreground truncate'>{marketer.region} • {marketer.contactEmail}</p>
+              <p className='text-xs sm:text-sm text-muted-foreground truncate'>{marketer.type} • {marketer.is_active ? 'Actif' : 'Inactif'}</p>
             </div>
           </div>
         </div>

@@ -689,39 +689,39 @@ function buildReserveSummary(reserveSites: readonly DashboardReserveSite[]) {
 }
 
 function buildRouteContributions(
-  routeViews: readonly RouteTripView[],
-  totalTransportedKg: number,
-  totalDeliveredKg: number
-) {
-  return routeViews
-    .map((trip) => ({
-      id: trip.id,
-      reference: trip.reference,
-      carrierName: trip.truck.tenantName,
-      truckId: trip.truck.id,
-      plateNumber: trip.truck.plateNumber,
-      driverName: trip.truck.assignedDriver,
-      missionLead: trip.missionLead,
-      customerName: trip.customerName,
-      originLabel: trip.originSite.city,
-      destinationLabel: trip.destinationSite.city,
-      loadedQuantityKg: trip.loadedQuantityKg,
-      deliveredQuantityKg: trip.deliveredQuantityKg,
-      remainingQuantityKg: trip.remainingQuantityKg,
-      unaccountedKg: trip.unaccountedKg,
-      transportedSharePercent:
-        totalTransportedKg === 0
-          ? 0
-          : round((trip.loadedQuantityKg / totalTransportedKg) * 100),
-      deliveredSharePercent:
-        totalDeliveredKg === 0
-          ? 0
-          : round((trip.deliveredQuantityKg / totalDeliveredKg) * 100),
-      status: trip.status,
-      onTime: trip.onTime,
-    }))
-    .sort((left, right) => right.loadedQuantityKg - left.loadedQuantityKg)
-}
+    routeViews: readonly RouteTripView[],
+    totalTransportedKg: number,
+    totalDeliveredKg: number
+  ) {
+    return routeViews
+      .map((trip) => ({
+        id: trip.id,
+        reference: trip.reference,
+        carrierName: trip.truck.tenant_name,
+        truckId: trip.truck.id,
+        plateNumber: trip.truck.license_plate,
+        driverName: trip.truck.assigned_driver ?? '',
+        missionLead: trip.missionLead,
+        customerName: trip.customerName,
+        originLabel: trip.originSite.city,
+        destinationLabel: trip.destinationSite.city,
+        loadedQuantityKg: trip.loadedQuantityKg,
+        deliveredQuantityKg: trip.deliveredQuantityKg,
+        remainingQuantityKg: trip.remainingQuantityKg,
+        unaccountedKg: trip.unaccountedKg,
+        transportedSharePercent:
+          totalTransportedKg === 0
+            ? 0
+            : round((trip.loadedQuantityKg / totalTransportedKg) * 100),
+        deliveredSharePercent:
+          totalDeliveredKg === 0
+            ? 0
+            : round((trip.deliveredQuantityKg / totalDeliveredKg) * 100),
+        status: trip.status,
+        onTime: trip.onTime,
+      }))
+      .sort((left, right) => right.loadedQuantityKg - left.loadedQuantityKg)
+  }
 
 function buildAlerts(reserveSites: readonly DashboardReserveSite[]) {
   const routeViews = getRouteTripsView()
@@ -917,9 +917,9 @@ export function buildDashboardView(): DashboardView {
     totalReserveKg / Math.max(totalDeliveredKg, 1)
   )
   const activeTrucks = trucks.filter((truck) =>
-    ['available', 'in_transit'].includes(truck.status)
+    ['available', 'in_transit'].includes(truck.tournee_status)
   ).length
-  const riskTrucks = trucks.filter((truck) => truck.riskLevel !== 'low').length
+  const riskTrucks = trucks.filter((truck) => truck.risk_level !== 'FAIBLE').length
   const abnormalLossKg = routeViews.reduce(
     (total, trip) => total + trip.unaccountedKg,
     0

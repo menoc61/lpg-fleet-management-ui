@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Building2,
   Truck,
+  HardHat,
   ChevronsUpDown,
   Check,
   type LucideIcon,
@@ -35,6 +36,7 @@ const ROLE_ICON: Record<Role, LucideIcon> = {
   AGENT: ClipboardList,
   MARKETEUR: Building2,
   TRANSPORTEUR: Truck,
+  LIVREUR: HardHat,
 }
 
 const ROLE_AVATAR_CLASS: Record<Role, string> = {
@@ -45,6 +47,7 @@ const ROLE_AVATAR_CLASS: Record<Role, string> = {
   AGENT: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   MARKETEUR: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
   TRANSPORTEUR: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+  LIVREUR: 'bg-slate-100 text-slate-700 dark:bg-slate-950 dark:text-slate-300',
 }
 
 export function RoleSwitcher() {

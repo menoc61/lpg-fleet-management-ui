@@ -1,6 +1,6 @@
-import { AlertTriangleIcon, Copy, Truck, Star, Phone, PackageOpen, Info } from 'lucide-react'
+import { Copy, Truck, Phone } from 'lucide-react'
 
-import { Alert, AlertDescription, AlertTitle, Avatar, AvatarFallback, Badge, Button, cn, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { Avatar, AvatarFallback, Badge, Button, cn, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
 
 import type { Trip } from './trip-data'
 import { TripRouteMap } from './trip-route-map'
@@ -28,7 +28,7 @@ type TripDetailsProps = {
 function EmptyTripOverview() {
   return (
     <div className='grid min-h-[12rem] place-items-center rounded-lg border border-dashed text-muted-foreground text-sm'>
-      Sélectionnez une tournée pour voir les détails.
+      SǸlectionnez une tournǸe pour voir les dǸtails.
     </div>
   )
 }
@@ -49,9 +49,9 @@ function TripOverview({ trip }: { trip: Trip }) {
             <span className={cn('size-1.5 rounded-full bg-current', progressRingClasses[trip.status])} />
             {trip.status}
           </Badge>
-          <span className='text-muted-foreground'>·</span>
-          <span className='text-foreground tabular-nums'>{trip.progress}% complété</span>
-          <span className='text-muted-foreground'>·</span>
+          <span className='text-muted-foreground'>��</span>
+          <span className='text-foreground tabular-nums'>{trip.progress}% complǸtǸ</span>
+          <span className='text-muted-foreground'>��</span>
           <span className='text-foreground tabular-nums'>
             ETA: {trip.eta} {trip.etaMeta && <span className='text-muted-foreground'>({trip.etaMeta})</span>}
           </span>
@@ -64,20 +64,20 @@ function TripOverview({ trip }: { trip: Trip }) {
         <div className='flex items-center gap-3'>
           <Avatar className='h-10 w-10'>
             <AvatarFallback className='rounded-md bg-primary/10 text-primary font-bold'>
-              {trip.marketer.initials}
+              {trip.driver_name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
 
           <div className='flex flex-col'>
-            <div className='font-medium text-sm'>{trip.marketer.name}</div>
-            <div className='text-muted-foreground text-xs'>Marketer</div>
+            <div className='font-medium text-sm'>{trip.driver_name}</div>
+            <div className='text-muted-foreground text-xs'>Chauffeur</div>
           </div>
         </div>
 
         <div className='flex flex-col items-end gap-1'>
           <Badge variant='secondary' className='gap-1'>
-            <Star className='h-3 w-3 fill-amber-400 text-amber-400' />
-            {trip.marketer.tier}
+            <Truck className='h-3 w-3' />
+            {trip.license_plate}
           </Badge>
         </div>
       </div>
@@ -86,7 +86,7 @@ function TripOverview({ trip }: { trip: Trip }) {
 
       <div className='flex flex-col gap-6'>
         <div className='flex items-start justify-between gap-4'>
-          <h2 className='font-medium'>Détails du transport</h2>
+          <h2 className='font-medium'>DǸtails du transport</h2>
           <Button variant='outline' size='sm' className='gap-2'>
             <Phone className='h-4 w-4' />
             Appeler Chauffeur
@@ -97,64 +97,30 @@ function TripOverview({ trip }: { trip: Trip }) {
           <div className='flex flex-col gap-1.5'>
             <div className='text-muted-foreground text-xs'>Marchandise</div>
             <div className='text-sm font-medium flex items-center gap-2'>
-              <PackageOpen className='h-4 w-4 text-muted-foreground' />
+              <Truck className='h-4 w-4 text-muted-foreground' />
               {trip.cargo}
             </div>
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <div className='text-muted-foreground text-xs'>Volume / Quantité</div>
+            <div className='text-muted-foreground text-xs'>Volume / QuantitǸ</div>
             <div className='text-sm font-medium'>{trip.volume}</div>
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <div className='text-muted-foreground text-xs'>Camion assigné</div>
+            <div className='text-muted-foreground text-xs'>Camion assignǸ</div>
             <div className='text-sm font-medium flex items-center gap-2'>
               <Truck className='h-4 w-4 text-muted-foreground' />
-              {trip.truckPlate}
+              {trip.license_plate}
             </div>
           </div>
 
           <div className='flex flex-col gap-1.5 md:text-right'>
             <div className='text-muted-foreground text-xs'>Chauffeur</div>
-            <div className='text-sm font-medium'>{trip.driver}</div>
+            <div className='text-sm font-medium'>{trip.driver_name}</div>
           </div>
         </div>
       </div>
-
-      <Separator />
-
-      <Alert className={cn(
-        'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-200',
-        trip.handling.tags.some(t => t.type === 'info') && 'border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-200'
-      )}>
-        {trip.handling.tags.some(t => t.type === 'info') ? (
-          <Info className='h-4 w-4' />
-        ) : (
-          <AlertTriangleIcon className='h-4 w-4' />
-        )}
-        <AlertTitle className='font-semibold'>{trip.handling.label}</AlertTitle>
-        <AlertDescription className='mt-2 space-y-3'>
-          <div className='text-sm'>
-            {trip.handling.note}
-          </div>
-          
-          <div className='flex flex-wrap gap-2'>
-            {trip.handling.tags.map((tag) => (
-              <Badge
-                key={tag.label}
-                variant='outline'
-                className={cn(
-                  'rounded-sm bg-background/50',
-                  tag.type === 'info' ? 'border-blue-200 text-blue-800 dark:border-blue-800 dark:text-blue-300' : 'border-amber-200 text-amber-800 dark:border-amber-800 dark:text-amber-300'
-                )}
-              >
-                {tag.label}
-              </Badge>
-            ))}
-          </div>
-        </AlertDescription>
-      </Alert>
     </div>
   )
 }
@@ -200,22 +166,22 @@ export function TripDetails({ trip }: TripDetailsProps) {
                 value='activity'
                 className='rounded-none border-x-0 border-t-0 border-b-2 border-transparent px-2 py-3 data-[state=active]:border-primary data-[state=active]:!bg-transparent data-[state=active]:!shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground'
               >
-                Journal d'activité
+                Journal d'activitǸ
               </TabsTrigger>
             </TabsList>
-            
+
             <ScrollArea className='flex-1'>
               <TabsContent value='overview' className='m-0 p-4 sm:p-6'>
                 <TripOverview trip={trip} />
               </TabsContent>
               <TabsContent value='documents' className='m-0 p-4 sm:p-6'>
                 <div className='grid min-h-[12rem] place-items-center rounded-lg border border-dashed text-muted-foreground text-sm'>
-                  Gestion des Bons de Livraison et documents à venir.
+                  Gestion des Bons de Livraison et documents �� venir.
                 </div>
               </TabsContent>
               <TabsContent value='activity' className='m-0 p-4 sm:p-6'>
                 <div className='grid min-h-[12rem] place-items-center rounded-lg border border-dashed text-muted-foreground text-sm'>
-                  Historique des événements du trajet à venir.
+                  Historique des ǸvǸnements du trajet �� venir.
                 </div>
               </TabsContent>
             </ScrollArea>

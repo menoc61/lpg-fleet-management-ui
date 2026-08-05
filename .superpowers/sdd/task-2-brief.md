@@ -1,39 +1,110 @@
-Task 2: Shared packages skeleton
+# Task 2: Update trucks feature components (columns, page, details, sheet)
 
-Goal: Create the 7 shared workspace packages (types, config, permissions, api-client, mock-data, mock-api, ui) with exact content from the source repo.
+**Files:**
+- Modify: `apps/web/src/features/trucks/components/trucks-columns.tsx`
+- Modify: `apps/web/src/features/trucks/components/trucks-map.tsx`
+- Modify: `apps/web/src/features/trucks/index.tsx`
+- Modify: `apps/web/src/features/trucks/truck-details.tsx`
+- Modify: `apps/web/src/features/trucks/truck-details-sheet.tsx` (top-level; exports `TruckDetailsBody`, imported by `truck-details.tsx`)
+- Modify: `apps/web/src/features/trucks/components/truck-details-sheet.tsx` (exports `TruckDetailsSheet`, imported by `index.tsx`)
 
-Architecture: Each package is a self-contained workspace with package.json, tsconfig.json, and src/index.ts matching source.
+**Interfaces:**
+- Consumes: `getTruckTelemetry`, `type Truck`, `statusLabels`, `statusClasses`, `riskLabels`, `riskClasses` from `./trucks` (new shapes from Task 1).
+- Notes: `getTruckTelemetry(...).lpg_level_percent` is gone; LPG level is now type-dependent from `truck.max_volume` (VRAC, TM) or `truck.max_bottle_count` (BOUTEILLES50KG). `truck.make_model`, `truck.contract_tier`, `truck.driver_phone`, `truck.fleet_manager`, `truck.operating_region`, `truck.status` no longer exist.
 
-Tech Stack: pnpm 9, workspace protocol.
+## Step 1: Screenshot the pre-edit build errors
 
-Global Constraints:
-- Package manager: pnpm 9.0.0
-- All commits must be atomic
-- Each package must have package.json + tsconfig.json + src/index.ts
-- Versions must match source exactly (no ^ or ~ unless source uses them)
-- After all packages are scaffolded, pnpm -r typecheck must pass for all packages
+Run: `pnpm build`
+Expected: FAILS at the truck components. This is the task's fail signal — you fix exactly these.
 
-## Each of the 7 packages needs:
-- package.json (from source)
-- tsconfig.json (from source)
-- src/index.ts (from source)
+## Step 2: Fix `components/trucks-columns.tsx`
 
-## Source paths (use these exact paths to copy from):
-- types: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\types\
-- config: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\config\
-- permissions: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\permissions\
-- api-client: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\api-client\
-- mock-data: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\mock-data\
-- mock-api: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\mock-api\
-- ui: C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\ui\
+Find every use of `getTruckTelemetry(...)` and LPG/ETA/status logic and replace with schema-backed equivalents. Replace the LPG accessor (currently `accessorFn: (truck) => getTruckTelemetry(truck.id).lpg_level_percent`) with a shared quantity helper.
 
-## Steps:
-1. Copy each package's files from source to local packages/<pkg>/ (overwrite stubs from Task 2 init)
-2. pnpm install to regenerate lockfile
-3. pnpm -r typecheck — verify all packages pass
-4. Commit all 7 packages together (one atomic commit since they are scaffolded in one logical unit)
+Add a small local helper in the columns file:
 
-## Verification:
-- pnpm -r typecheck passes for all packages
-- No peer-dep errors
-- Each package's package.json has correct name and private: true
+```ts
+function quantityInfo(truck: Truck): { amount: string; percent: number } {
+  const telemetry = getTruckTelemetry(truck.id)
+  const max = truck.type === 'VRAC' ? truck.max_volume : truck.max_bottle_count
+  const loaded = telemetry.loaded_quantity ?? truck.loaded_quantity ?? 0
+  const percent = max && max > 0 ? Math.round((loaded / max) * 100) : 0
+  const unit = truck.type === 'VRAC' ? ' TM' : ' bouteilles'
+  return { amount: `${Math.round(loaded)}/${max ?? '—'}${unit}`, percent }
+}
+```
+
+Tip: the same helper is also needed in `components/trucks-map.tsx`. **Put it in a shared file** like `apps/web/src/features/trucks/lib/quantity.ts` and import from both locations. Do not duplicate the logic.
+
+Then update the telemetry column:
+```ts
+accessorFn: (truck) => quantityInfo(truck).percent,
+```
+and the cell body (replacing the `{telemetry.lpg_level_percent}% • ETA {telemetry.eta_text}` line):
+```ts
+const info = quantityInfo(row.original)
+// ...
+style={{ width: `${info.percent}%` }}
+// ...
+{info.percent}% • {info.amount}
+```
+Remove every reference to `eta_text`, `lpg_level_percent`, and `getTruckTelemetry(...).lpg_level_percent` in this file.
+
+## Step 3: Fix `components/trucks-map.tsx`
+
+Replace telemetry parsing in the popup builder (currently reads `telemetry.lpg_level_percent`, `telemetry.eta_text`, `telemetry.pressureBar`):
+
+```ts
+const info = quantityInfo(truck) // import from lib/quantity.ts
+// ${popupLine('Niveau GPL', info.amount)}
+// ${popupLine('ETA', telemetry.expected_arrival ? new Date(telemetry.expected_arrival).toLocaleTimeString() : '—')}
+```
+Remove the `Pression` line. Replace `truck.latitude`/`truck.longitude` uses with `truck.lat`/`truck.lng`. Remove any `make_model` usage (derive `${truck.type} · ${truck.license_plate}`).
+
+## Step 4: Fix `index.tsx`
+
+The average-LPG reducer currently does `getTruckTelemetry(truck.id).lpg_level_percent`. Replace with a percent derived from total capacity:
+
+```ts
+const avgLpg = useMemo(() => {
+  const list = visible.length > 0 ? visible : trucks
+  if (list.length === 0) return 0
+  const { sum, count } = list.reduce(
+    (acc, truck) => {
+      const telemetry = getTruckTelemetry(truck.id)
+      const max = truck.type === 'VRAC' ? truck.max_volume : truck.max_bottle_count
+      if (!max || max <= 0) return acc
+      const pct = Math.round(((telemetry.loaded_quantity ?? 0) / max) * 100)
+      return { sum: acc.sum + pct, count: acc.count + 1 }
+    },
+    { sum: 0, count: 0 },
+  )
+  return count === 0 ? 0 : Math.round(sum / count)
+}, [visible])
+```
+
+## Step 5: Fix `truck-details.tsx` + BOTH sheet files
+
+The page title uses `truck.make_model` and `truck.plate_number` — replace with `${truck.type} · ${truck.license_plate}` and update the description to `truck.id — truck.tenant_name`.
+
+**Apply the SAME edits to both sheets** (`truck-details-sheet.tsx` top-level AND `components/truck-details-sheet.tsx`), since they are both live (top-level exports `TruckDetailsBody` used by `truck-details.tsx`; `components/` exports `TruckDetailsSheet` used by `index.tsx`): remove all uses of `make_model`, `plate_number` (`→ license_plate`), `driver_phone`, `fleet_manager`, `operating_region` (`→ region`), `contract_tier`, `tank_capacity_liters`, and `telemetry.pressureBar` / `telemetry.temperature_celsius` / `telemetry.route_progress` / `telemetry.distance_km` / `telemetry.speed_kmh`. Keep ETA/loaded lines, re-labeled per unit:
+
+- Speed MetricCard: **remove** (no SQL/TODO source — user decision).
+- LPG MetricCard: `type === 'VRAC'` → `${Math.round(loaded)}/${max_volume} TM` else `${loaded}/${max_bottle_count} bouteilles`; `detail` shows remaining percent.
+- ETA MetricCard: `${telemetry.expected_arrival ? new Date(telemetry.expected_arrival).toLocaleTimeString() : '—'}`.
+
+The `components/truck-details-sheet.tsx` version also renders a `<MiniSignal>` grid with `MapPin`/`Thermometer` in the maintenance tab — remove that block (temperature/distance have no schema source).
+
+## Step 6: Build + lint
+
+Run: `pnpm build`
+Expected: exit 0.
+Run: `pnpm lint`
+Expected: exit 0 (may keep existing warnings).
+
+## Step 7: Commit
+
+```bash
+git add apps/web/src/features/trucks
+git commit -m "refactor(trucks): update components to schema-backed Truck/TruckTelemetry"
+```

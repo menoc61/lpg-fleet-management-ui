@@ -10,6 +10,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { api } from '@lpg/api-client'
 import type {
   Anomaly,
+  AppUser as User,
   ClientSite,
   Declaration,
   DeliveryTour,
@@ -22,7 +23,6 @@ import type {
   RiskScore,
   ScanEvent,
   Site,
-  User,
   Vehicle,
 } from '@lpg/types'
 

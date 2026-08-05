@@ -18,7 +18,7 @@ function DashboardWrapper() {
     )
   }
 
-  if (resolved === 'SUPER_ADMIN') {
+  if (resolved === 'SUPERADMIN') {
     return <SuperAdminOverviewScreen />
   }
 

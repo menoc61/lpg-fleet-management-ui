@@ -62,7 +62,7 @@ function ProfilePage() {
     )
   }
   const fullName =
-    [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+    [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
   return (
     <div className='mx-auto max-w-2xl p-6 flex flex-col gap-6'>
       <Card>
@@ -70,7 +70,7 @@ function ProfilePage() {
           <div className='flex items-center gap-4'>
             <Avatar className='size-14'>
               <AvatarFallback className='text-base'>
-                {initials(user.firstName, user.lastName)}
+                {initials(user.first_name, user.last_name)}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -81,8 +81,8 @@ function ProfilePage() {
         </CardHeader>
         <CardContent>
           <Separator className='mb-2' />
-          <Row label='Prénom' value={user.firstName ?? ''} />
-          <Row label='Nom' value={user.lastName ?? ''} />
+          <Row label='Prénom' value={user.first_name ?? ''} />
+          <Row label='Nom' value={user.last_name ?? ''} />
           <Row label='Email' value={user.email} />
         </CardContent>
       </Card>

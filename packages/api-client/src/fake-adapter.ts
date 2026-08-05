@@ -93,7 +93,9 @@ export function createFakeAdapter(): ApiAdapter {
     },
 
     async login(creds: Credentials): Promise<AuthResult> {
-      const fixture = AUTH_FIXTURES.find((f) => f.email === creds.email) ?? AUTH_FIXTURES[0]
+      const fixture =
+        AUTH_FIXTURES.find((f) => f.email === creds.email) ?? AUTH_FIXTURES[0]
+      if (!fixture) throw new Error('Fake adapter: no auth fixtures available')
       return delay({
         access_token: fakeToken(fixture.id),
         refresh_token: fakeToken(fixture.id),

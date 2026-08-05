@@ -55,7 +55,7 @@ export function ChartBar() {
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  labelFormatter={(value: string) => STATUS_LABELS[value] ?? value}
+                  labelFormatter={(value: string, payload: readonly { value: number; name: string }[]) => STATUS_LABELS[value] ?? value}
                 />
               }
             />

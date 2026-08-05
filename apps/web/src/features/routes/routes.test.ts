@@ -4,7 +4,7 @@ import { buildRouteSummary, getRouteTripsView } from './routes'
 describe('getRouteTripsView', () => {
   it('resolves the route dataset into a UI-friendly view model', () => {
     const trips = getRouteTripsView()
-    const selectedTrip = trips[0]
+    const selectedTrip = trips[0]!
 
     expect(selectedTrip.id).toBe('route-trip-bipaga-bonaberi')
     expect(selectedTrip.truck.id).toBe('TRX-CM-005')

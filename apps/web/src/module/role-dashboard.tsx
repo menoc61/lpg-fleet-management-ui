@@ -51,6 +51,12 @@ const KPI_BY_ROLE: Record<Role, Kpi[]> = {
     { label: 'Chauffeurs', value: '12', delta: '+1', trend: 'up', icon: <Users className='size-4 text-orange-600 dark:text-orange-400' /> },
     { label: 'Scans', value: '212', delta: '+24', trend: 'up', icon: <ScanLine className='size-4 text-orange-600 dark:text-orange-400' /> },
   ],
+  LIVREUR: [
+    { label: 'Tournées', value: '2', delta: '+1', trend: 'up', icon: <Route className='size-4 text-slate-600 dark:text-slate-400' /> },
+    { label: 'Scans', value: '64', delta: '+8', trend: 'up', icon: <ScanLine className='size-4 text-slate-600 dark:text-slate-400' /> },
+    { label: 'Hors-ligne', value: '3', delta: '—', trend: 'down', icon: <Radio className='size-4 text-slate-600 dark:text-slate-400' /> },
+    { label: 'Anomalies', value: '1', delta: '-1', trend: 'down' },
+  ],
 }
 
 const ROLE_ICON: Record<Role, React.ComponentType<{ className?: string }>> = {
@@ -61,6 +67,7 @@ const ROLE_ICON: Record<Role, React.ComponentType<{ className?: string }>> = {
   AGENT: ClipboardList,
   MARKETEUR: Building2,
   TRANSPORTEUR: Truck,
+  LIVREUR: ClipboardList,
 }
 
 const ROLE_COLOR: Record<Role, string> = {
@@ -71,6 +78,7 @@ const ROLE_COLOR: Record<Role, string> = {
   AGENT: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
   MARKETEUR: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300',
   TRANSPORTEUR: 'bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+  LIVREUR: 'bg-slate-50 text-slate-700 dark:bg-slate-950 dark:text-slate-300',
 }
 
 export function RoleDashboard({ role }: { role: Role }) {

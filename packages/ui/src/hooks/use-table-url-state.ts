@@ -16,8 +16,8 @@ export type NavigateFn = (opts: {
 }) => void
 
 type UseTableUrlStateParams = {
-  search: SearchRecord
-  navigate: NavigateFn
+  search?: SearchRecord
+  navigate?: NavigateFn
   pagination?: {
     pageKey?: string
     pageSizeKey?: string
@@ -76,6 +76,13 @@ export function useTableUrlState(
     columnFilters: columnFiltersCfg = [],
   } = params
 
+  const safeSearch: SearchRecord = (search ?? {}) as SearchRecord
+  const safeNavigate: NavigateFn =
+    navigate ??
+    ((opts) => {
+      void opts
+    })
+
   const pageKey = paginationCfg?.pageKey ?? ('page' as string)
   const pageSizeKey = paginationCfg?.pageSizeKey ?? ('pageSize' as string)
   const defaultPage = paginationCfg?.defaultPage ?? 1
@@ -89,7 +96,7 @@ export function useTableUrlState(
   const initialColumnFilters: ColumnFiltersState = useMemo(() => {
     const collected: ColumnFiltersState = []
     for (const cfg of columnFiltersCfg) {
-      const raw = (search as SearchRecord)[cfg.searchKey]
+      const raw = safeSearch[cfg.searchKey]
       const deserialize = cfg.deserialize ?? ((v: unknown) => v)
       if (cfg.type === 'string') {
         const value = (deserialize(raw) as string) ?? ''
@@ -111,8 +118,8 @@ export function useTableUrlState(
     useState<ColumnFiltersState>(initialColumnFilters)
 
   const pagination: PaginationState = useMemo(() => {
-    const rawPage = (search as SearchRecord)[pageKey]
-    const rawPageSize = (search as SearchRecord)[pageSizeKey]
+    const rawPage = safeSearch[pageKey]
+    const rawPageSize = safeSearch[pageSizeKey]
     const pageNum = typeof rawPage === 'number' ? rawPage : defaultPage
     const pageSizeNum =
       typeof rawPageSize === 'number' ? rawPageSize : defaultPageSize
@@ -123,9 +130,9 @@ export function useTableUrlState(
     const next = typeof updater === 'function' ? updater(pagination) : updater
     const nextPage = next.pageIndex + 1
     const nextPageSize = next.pageSize
-    navigate({
+    safeNavigate({
       search: (prev) => ({
-        ...(prev as SearchRecord),
+        ...((prev ?? {}) as SearchRecord),
         [pageKey]: nextPage <= defaultPage ? undefined : nextPage,
         [pageSizeKey]:
           nextPageSize === defaultPageSize ? undefined : nextPageSize,
@@ -135,7 +142,7 @@ export function useTableUrlState(
 
   const [globalFilter, setGlobalFilter] = useState<string | undefined>(() => {
     if (!globalFilterEnabled) return undefined
-    const raw = (search as SearchRecord)[globalFilterKey]
+    const raw = safeSearch[globalFilterKey]
     return typeof raw === 'string' ? raw : ''
   })
 
@@ -148,9 +155,9 @@ export function useTableUrlState(
               : updater
           const value = trimGlobal ? next.trim() : next
           setGlobalFilter(value)
-          navigate({
+          safeNavigate({
             search: (prev) => ({
-              ...(prev as SearchRecord),
+              ...((prev ?? {}) as SearchRecord),
               [pageKey]: undefined,
               [globalFilterKey]: value ? value : undefined,
             }),
@@ -181,9 +188,9 @@ export function useTableUrlState(
       }
     }
 
-    navigate({
+    safeNavigate({
       search: (prev) => ({
-        ...(prev as SearchRecord),
+        ...((prev ?? {}) as SearchRecord),
         [pageKey]: undefined,
         ...patch,
       }),
@@ -194,13 +201,13 @@ export function useTableUrlState(
     pageCount: number,
     opts: { resetTo?: 'first' | 'last' } = { resetTo: 'first' }
   ) => {
-    const currentPage = (search as SearchRecord)[pageKey]
+    const currentPage = safeSearch[pageKey]
     const pageNum = typeof currentPage === 'number' ? currentPage : defaultPage
     if (pageCount > 0 && pageNum > pageCount) {
-      navigate({
+      safeNavigate({
         replace: true,
         search: (prev) => ({
-          ...(prev as SearchRecord),
+          ...((prev ?? {}) as SearchRecord),
           [pageKey]: opts.resetTo === 'last' ? pageCount : undefined,
         }),
       })

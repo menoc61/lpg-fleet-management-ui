@@ -353,7 +353,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     label: 'Réconciliations',
     icon: FileBarChart,
     path: 'reconciliations',
-    requires: ['reconcilations.read'],
+    requires: ['reconciliations.read'],
   },
   {
     id: 'redressements',
@@ -874,7 +874,7 @@ function visibleIdsFor(role: Role): Set<string> {
   return visible
 }
 
-function toSidebarItem(role: Role, decl: NavItemDecl, roleSlug: string) {
+function toSidebarItem(_role: Role, decl: NavItemDecl, roleSlug: string) {
   const path = decl.static
     ? decl.path ?? '/'
     : `/${roleSlug}/${decl.path ?? decl.id}`

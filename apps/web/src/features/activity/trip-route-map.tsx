@@ -170,13 +170,13 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
     setError(null)
 
     const originPoint = new Point({
-      longitude: trip.origin.coordinates[0],
-      latitude: trip.origin.coordinates[1],
+      longitude: trip.origin.lng ?? 0,
+      latitude: trip.origin.lat ?? 0,
     })
 
     const destinationPoint = new Point({
-      longitude: trip.destination.coordinates[0],
-      latitude: trip.destination.coordinates[1],
+      longitude: trip.destination.lng ?? 0,
+      latitude: trip.destination.lat ?? 0,
     })
 
     // Define marker styles
@@ -257,7 +257,7 @@ export function TripRouteMap({ trip }: TripRouteMapProps) {
 
             // Zoom to route
             const extent = routeResult.geometry?.extent
-            if (extent) {
+            if (extent != null) {
               view.when().then(() => {
                 view.goTo({ target: extent.expand(1.2) }).catch(() => {})
               }).catch(() => {})

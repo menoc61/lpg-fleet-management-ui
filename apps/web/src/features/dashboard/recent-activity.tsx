@@ -1,34 +1,31 @@
 import { useMemo } from 'react'
 import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@lpg/ui'
 import { declarationsHooks } from '@/lib/api/use-resources'
+import type { Declaration, DeclarationStatus } from '@lpg/types'
 
-const statusLabels: Record<string, string> = {
-  draft: 'Brouillon',
-  submitted: 'Soumise',
-  validated: 'Validée',
-  rejected: 'Rejetée',
+const statusLabels: Record<DeclarationStatus, string> = {
+  DRAFT: 'Brouillon',
+  SUBMITTED: 'Soumise',
+  RECONCILED: 'Validée',
+  DISPUTED: 'Contestée',
 }
 
-const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  draft: 'outline',
-  submitted: 'secondary',
-  validated: 'default',
-  rejected: 'destructive',
+const statusVariants: Record<DeclarationStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  DRAFT: 'outline',
+  SUBMITTED: 'secondary',
+  RECONCILED: 'default',
+  DISPUTED: 'destructive',
 }
 
 export function RecentActivity() {
-  const { data: declarationsResult, isPending } = declarationsHooks.useList({ page: 1, limite: 100 })
+  const { data: declarations, isPending } = declarationsHooks.useList({ page: 1, limite: 100 })
 
-  const declarations = useMemo(() => {
-    const items = (declarationsResult?.data ?? []) as unknown as Array<{
-      reference: string
-      status: string
-      declaredAt: string
-    }>
-    return [...items]
-      .sort((a, b) => new Date(b.declaredAt).getTime() - new Date(a.declaredAt).getTime())
+  const sortedDeclarations = useMemo(() => {
+    const items = (declarations ?? []) as Declaration[]
+    return items
+      .sort((a, b) => new Date(b.created_at ?? '').getTime() - new Date(a.created_at ?? '').getTime())
       .slice(0, 3)
-  }, [declarationsResult])
+  }, [declarations])
 
   if (isPending) {
     return (
@@ -51,19 +48,19 @@ export function RecentActivity() {
         <CardTitle>Activité récente</CardTitle>
       </CardHeader>
       <CardContent className='space-y-3'>
-        {declarations.map((declaration) => (
+        {sortedDeclarations.map((declaration) => (
           <div
-            key={declaration.reference}
+            key={declaration.id}
             className='flex items-center justify-between gap-3 rounded-xl border border-border/60 px-4 py-3'
           >
             <div className='min-w-0'>
-              <p className='text-sm font-medium'>{declaration.reference}</p>
+              <p className='text-sm font-medium'>Déclaration {declaration.id.slice(0, 8)}</p>
               <p className='text-xs text-muted-foreground'>
                 {new Intl.DateTimeFormat('fr-FR', {
                   day: '2-digit',
                   month: 'short',
                   year: 'numeric',
-                }).format(new Date(declaration.declaredAt))}
+                }).format(new Date(declaration.created_at ?? ''))}
               </p>
             </div>
             <Badge variant={statusVariants[declaration.status] ?? 'outline'}>

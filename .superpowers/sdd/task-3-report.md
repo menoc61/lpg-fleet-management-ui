@@ -1,53 +1,55 @@
-# Task 3 Report: Move existing app into apps/web/
+# Task 3 Report: Fix cross-feature consumers of the re-sourced Truck type
 
-## Summary
+**Status:** DONE
+**Commit:** `fb1ace2` on top of `1aa6355`
+**Branch:** `fix/cleanup-corrigee`
 
-Successfully relocated all app files from root to `apps/web/` and configured the monorepo app shell.
+## What I implemented
 
-## Steps Completed
+Migrated all app-wide consumers of the re-sourced `Truck` type to use the new schema-backed field names. Verified each target file for live importers before editing; skipped dead duplicates (top-level `dashboard.ts` and `routes.ts` have live importers and were edited).
 
-### Step 1: Create apps/web/ directory
-Already existed with all files moved in.
+### Files changed (10):
 
-### Step 2: Move app files from root to apps/web/
-All files moved: `src/`, `public/`, `index.html`, `.env`, `.env.example`, `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `components.json`, `eslint.config.mjs` (already `.mjs`)
+1. **`features/command-palette/global-search.tsx`** — `t.plateNumber` → `t.license_plate`, `t.tenantName` → `t.tenant_name`, `t.assignedDriver` → `t.assigned_driver`
+2. **`features/dashboard/dashboard.ts`** (top-level) — `truck.tenantName` → `truck.tenant_name`, `truck.riskLevel` → `truck.risk_level`, `truck.status` → `truck.tournee_status` (with proper `TourneeStatus` values), `getTruckTelemetry(id).lpgLevelPercent` → `quantityInfo(truck).percent`, `trip.truck.tenantName` → `trip.truck.tenant_name`; import swap (`getTruckTelemetry` removed, `quantityInfo` added)
+3. **`features/dashboard/data/dashboard.ts`** — same pattern as above
+4. **`features/routes/data/routes.ts`** — `truck.latitude` → `truck.lat`, `truck.longitude` → `truck.lng`; removed camelCase alias fields from fallback synthesis
+5. **`features/routes/routes.ts`** — same `latitude/longitude` → `lat/lng`; removed camelCase aliases from fallback
+6. **`features/routes/components/routes-columns.tsx`** — `truck.plateNumber` → `truck.license_plate`, `truck.assignedDriver` → `truck.assigned_driver`
+7. **`features/routes/components/route-corridor-map.tsx`** — `trip.truck.plateNumber` → `trip.truck.license_plate`, `trip.truck.currentLocation` → `trip.truck.current_location`
+8. **`features/routes/components/route-lpg-variation-panel.tsx`** — `trip.truck.currentLocation` → `trip.truck.current_location`
+9. **`roles/super-admin/map-screen.tsx`** — `TruckStatus` → `TourneeStatus` (DRAFT/PLANNED/PENDINGTRANSPORTERACK/ACKNOWLEDGED/INPROGRESS...), `truck.status` → `truck.tournee_status`, `truck.latitude/longitude` → `truck.lat/lng`, `truck.plateNumber` → `truck.license_plate`, `getTruckTelemetry` removed, `quantityInfo` imported; truckColors keyed by `TourneeStatus`
+10. **`roles/marketeur/delivery-tours-screen.tsx`** — `t.truck.plateNumber` → `t.truck.license_plate`
 
-### Step 3: Update vite.config.ts alias
-Changed `@` alias from `'.'` to `'./src'` (files are under `src/`, not flattened)
+### Naming discipline verified
+- Zero banned shadow fields (`plateNumber`, `tenantName`, `riskLevel`, `status` lowercase, `latitude`/`longitude`, `lpgLevelPercent`, `currentLocation`, `assignedDriver`) in any edited file.
+- All new field names match `@lpg/types` schema: `license_plate`, `tenant_name`, `risk_level`, `tournee_status`, `lat`/`lng`, `current_location`, `assigned_driver`.
+- LPG percent derivation uses the shared `quantityInfo` helper (VRAC → TM via `max_volume`, BOUTEILLES50KG → bottles via `max_bottle_count`).
 
-### Step 4: Update tsconfig.app.json paths
-Changed `@/*` from `./*` to `./src/*` (corrected per file layout)
-Kept `@lpg/*` workspace aliases
+## Build output
 
-### Step 5: Update index.html
-Script src is `/src/main.tsx` (absolute path from web root) — no change needed
+### `pnpm build`
+```
+> lpg-fleet-platform@0.0.0 build
+> turbo run build
 
-### Step 6: Replace eslint config with source
-Copied source `eslint.config.mjs` from `C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\eslint.config.mjs`
+@lpg/ui:build: > tsc --noEmit   (cache hit — clean)
+@lpg/web:build: > tsc -b && vite build
+```
+**Exit: 2** — but zero errors reference removed Truck fields. Remaining errors are pre-existing in features NOT touched by this task (activity, transporters' own data, marketers, sites, module-screen, recharts import, lib/utils, settings, fake-adapter, roles/*).
 
-### Step 7: Create apps/web/vercel.json
-Created with `pnpm turbo run build --filter @lpg/web` build command
+### `pnpm lint`
+**Exit: 0** — `✖ 28 problems (0 errors, 28 warnings)`. All warnings pre-existing.
 
-### Step 8: Update apps/web/package.json
-Added missing dependencies: `@radix-ui/react-*` (13 packages), `@tanstack/react-table`, `react-top-loading-bar`, `@tailwindcss/vite`
+## Self-review findings
 
-## Verification Results
+- All 10 files edited; no dead duplicates touched (all had live importers).
+- `routes.ts` top-level and `data/routes.ts` both edited — both have live importers (router config and data consumers).
+- `map-screen.tsx` `truckColors` now keyed by `TourneeStatus` enum values (DRAFT/PLANNED/PENDINGTRANSPORTERACK/ACKNOWLEDGED/INPROGRESS/CHECKPOINTACTIVE/CLOSED/CANCELLED) — matches `statusLabels`/`statusClasses` in `trucks.ts`.
+- `delivery-tours-screen.tsx` only had `plateNumber` to fix — clean single rename.
 
-| Check | Status | Details |
-|-------|--------|---------|
-| **typecheck** | ✅ PASS | `tsc --noEmit -p tsconfig.app.json` — 0 errors |
-| **lint** | ⚠️ 2 errors, 9 warnings | 2 errors: `sidebar.tsx` (Math.random purity), `trip-route-map.tsx` (mutation in effect) |
-| **build** | ✅ PASS | Produced `apps/web/dist/` with `index.html` |
-| **test** | ❌ ENV | Found 9 test files but Playwright chromium_headless_shell-1217 not installed (download timeout) |
+## Concerns
 
-## Notes
-
-- **Alias change**: Brief specified `./*` but files remain under `apps/web/src/`. Changed to `./src/*` to resolve correctly.
-- **Lint variance**: Brief expected 4 errors + 1 warning (baseline from original eslint config). After replacing with source config (per Step 6), actual is 2 errors + 9 warnings.
-- **Missing deps**: Several packages (`@tanstack/react-table`, `@radix-ui/react-*`, `react-top-loading-bar`, `@tailwindcss/vite`) were missing from `apps/web/package.json` and added to resolve typecheck/build.
-- **Test env**: Tests require Playwright headless shell download which timed out — environment limitation, not code issue.
-
-## File Changes
-
-- Created: `apps/web/vercel.json`
-- Modified: `apps/web/vite.config.ts`, `apps/web/tsconfig.app.json`, `apps/web/eslint.config.mjs`, `apps/web/package.json`
+1. **Build still has ~195 pre-existing errors** in features outside the trucks scope (activity 44, transporters 33, marketers/sites 3, module-screen 8, lib/utils 2, settings/fake-adapter 2, roles 7). These are tracked for follow-up plans but block full app launchability.
+2. **`roles/manifest.ts`** has an unrelated pre-existing change (`Object.entries` → `Object.entries` destructuring) that was already in the working tree before this task — not part of Task 3.
+3. **`routes.test.ts`** and `data/routes.test.ts` have `trips[0]!` changes that were pre-existing in the working tree (from the earlier session) — not part of Task 3.

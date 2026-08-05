@@ -41,7 +41,6 @@ import type {
   AppUser,
   SystemRole,
   Permission,
-  Region,
   RegionEntity as RegionEntityRow,
 } from '@lpg/types'
 

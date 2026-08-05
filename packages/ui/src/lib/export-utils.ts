@@ -63,7 +63,10 @@ export function exportToJson<TData>(table: Table<TData>, opts: ExportOptions = {
   const { headers, rows } = buildRows(table)
   const data = rows.map((r) => {
     const obj: Record<string, string | number> = {}
-    headers.forEach((h, i) => (obj[h] = r[i]))
+    headers.forEach((h, i) => {
+      const cell = r[i]
+      if (cell !== undefined) obj[h] = cell
+    })
     return obj
   })
   downloadFile(
