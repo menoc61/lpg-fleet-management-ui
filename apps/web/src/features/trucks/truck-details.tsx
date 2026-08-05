@@ -35,10 +35,10 @@ export function TruckDetailsPage() {
       ) : (
         <section className='mt-4 max-w-3xl space-y-4'>
           <PageHeader
-            title={`${truck.make_model} · ${truck.plate_number}`}
+            title={`${truck.type} · ${truck.license_plate}`}
             description={`${truck.id} — ${truck.tenant_name}`}
           />
-          <TruckDetailsBody truck={truck} telemetry={telemetry} />
+          <TruckDetailsBody truck={truck} telemetry={telemetry} info={undefined} />
         </section>
       )}
     </PageShell>

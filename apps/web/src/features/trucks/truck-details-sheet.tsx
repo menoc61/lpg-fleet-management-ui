@@ -1,9 +1,4 @@
 import {
-  CalendarDays,
-  MapPin,
-  Route,
-  ShieldCheck,
-  Thermometer,
   UserRound,
   Wrench,
 } from 'lucide-react'
@@ -25,6 +20,7 @@ import {
   type Truck,
   type TruckTelemetry,
 } from './trucks'
+import { quantityInfo } from './lib/quantity'
 
 type TruckDetailsSheetProps = {
   truck: Truck | null
@@ -32,37 +28,34 @@ type TruckDetailsSheetProps = {
   onOpenChange: (open: boolean) => void
 }
 
-const DOCUMENT_REFERENCE_DATE_MS = new Date(
-  '2026-04-23T00:00:00+01:00'
-).getTime()
-
 export function TruckDetailsSheet({
   truck,
   open,
   onOpenChange,
 }: TruckDetailsSheetProps) {
   const telemetry = truck ? getTruckTelemetry(truck.id) : null
+  const info = truck ? quantityInfo(truck) : null
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      {truck && telemetry ? (
+      {truck && telemetry && info ? (
         <SheetContent className='w-full overflow-y-auto sm:max-w-xl'>
           <SheetHeader className='pb-4'>
             <div className='flex items-start justify-between gap-3 pe-8'>
               <div>
                 <SheetTitle className='text-xl'>{truck.id}</SheetTitle>
                 <SheetDescription>
-                  {truck.make_model} - {truck.plate_number}
+                  {truck.type} · {truck.license_plate} — {truck.tenant_name}
                 </SheetDescription>
               </div>
-              <Badge className={cn('font-medium', statusClasses[truck.status])}>
-                {statusLabels[truck.status]}
+              <Badge className={cn('font-medium', statusClasses[truck.tournee_status])}>
+                {statusLabels[truck.tournee_status]}
               </Badge>
             </div>
           </SheetHeader>
 
           <div className='space-y-4 px-4 pb-6'>
-            <TruckDetailsBody truck={truck} telemetry={telemetry} />
+            <TruckDetailsBody truck={truck} telemetry={telemetry} info={info} />
           </div>
         </SheetContent>
       ) : null}
@@ -70,177 +63,134 @@ export function TruckDetailsSheet({
   )
 }
 
+export interface TruckDetailsBodyProps {
+  truck: Truck
+  telemetry: TruckTelemetry
+  info?: ReturnType<typeof quantityInfo>
+}
+
 export function TruckDetailsBody({
   truck,
   telemetry,
-}: {
-  truck: Truck
-  telemetry: TruckTelemetry
-}) {
+  info: providedInfo,
+}: TruckDetailsBodyProps) {
+  const info = providedInfo ?? quantityInfo(truck)
   return (
     <div className='space-y-4'>
       <div className='grid grid-cols-2 gap-3'>
-              <MetricCard
-                label='LPG'
-                value={`${telemetry.lpg_level_percent}%`}
-                detail={`${Math.round(
-                  (truck.tank_capacity_liters * telemetry.lpg_level_percent) / 100
-                ).toLocaleString()} L disponibles`}
+        <MetricCard
+          label='LPG'
+          value={
+            truck.type === 'VRAC'
+              ? `${Math.round(info.loaded)}/${truck.max_volume ?? '—'} TM`
+              : `${Math.round(info.loaded)}/${truck.max_bottle_count ?? '—'} bouteilles`
+          }
+          detail={`${info.percent}% remplis`}
+        />
+        <MetricCard
+          label='ETA'
+          value={
+            telemetry.expected_arrival
+              ? new Date(telemetry.expected_arrival).toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : '—'
+          }
+          detail='Prochaine etape'
+        />
+        <MetricCard
+          label='Risque'
+          value={riskLabels[truck.risk_level]}
+          detail='Score operationnel'
+          className={riskClasses[truck.risk_level]}
+        />
+      </div>
+
+      <Tabs defaultValue='resume'>
+        <TabsList className='grid w-full grid-cols-2'>
+          <TabsTrigger value='resume'>Resume</TabsTrigger>
+          <TabsTrigger value='docs'>Documents</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value='resume' className='space-y-3'>
+          <Card className='surface-sunken'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='flex items-center gap-2 text-sm'>
+                Mission courante
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-3'>
+              <DetailLine label='Entreprise' value={truck.tenant_name} />
+              <DetailLine label='Region' value={truck.region} />
+              <DetailLine
+                label='Position'
+                value={truck.current_location ?? '—'}
               />
-              <MetricCard
-                label='Vitesse'
-                value={`${telemetry.speed_kmh} km/h`}
-                detail={`ETA ${telemetry.eta_text}`}
+              <DetailLine label='Chauffeur' value={truck.assigned_driver ?? '—'} />
+              <DetailLine
+                label='Type'
+                value={truck.type === 'VRAC' ? 'Vrac (TM)' : 'Bouteilles 50kg'}
               />
-              <MetricCard
-                label='Risque'
-                value={riskLabels[truck.risk_level]}
-                detail='Score operationnel'
-                className={riskClasses[truck.risk_level]}
+            </CardContent>
+          </Card>
+
+          <Card className='surface-sunken'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='flex items-center gap-2 text-sm'>
+                <UserRound className='size-4 text-primary' />
+                Equipe
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-3'>
+              <DetailLine
+                label='Chauffeur'
+                value={truck.assigned_driver ?? '—'}
               />
-            </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <Tabs defaultValue='resume'>
-              <TabsList className='grid w-full grid-cols-3'>
-                <TabsTrigger value='resume'>Resume</TabsTrigger>
-                <TabsTrigger value='docs'>Documents</TabsTrigger>
-                <TabsTrigger value='maintenance'>Maintenance</TabsTrigger>
-              </TabsList>
+        <TabsContent value='docs' className='space-y-3'>
+          <Separator />
+          <DetailLine
+            label='Certificat'
+            value={truck.certificate_number ?? '—'}
+          />
+          <DetailLine
+            label='Validite'
+            value={
+              truck.certificate_expiry_at
+                ? new Date(truck.certificate_expiry_at).toLocaleDateString('fr-FR')
+                : '—'
+            }
+          />
+        </TabsContent>
+      </Tabs>
 
-              <TabsContent value='resume' className='space-y-3'>
-                <Card className='surface-sunken'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <Route className='size-4 text-primary' />
-                      Mission courante
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine label='Entreprise' value={truck.tenant_name} />
-                    <DetailLine label='Site' value={truck.marketer} />
-                    <DetailLine label='Route' value={truck.assigned_route} />
-                    <DetailLine
-                      label='Position'
-                      value={truck.current_location}
-                    />
-                    <DetailLine label='Destination' value={truck.destination} />
-                    <div>
-                      <div className='mb-1 flex justify-between text-xs'>
-                        <span className='text-muted-foreground'>
-                          Progression
-                        </span>
-                        <span className='font-medium'>
-                          {telemetry.distance_km} km restants
-                        </span>
-                      </div>
-                      <div className='h-2 overflow-hidden rounded-full bg-muted'>
-                        <div
-                          className='h-full rounded-full bg-primary'
-                          style={{ width: `${telemetry.route_progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className='surface-sunken'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <UserRound className='size-4 text-primary' />
-                      Equipe
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine
-                      label='Chauffeur'
-                      value={truck.assigned_driver}
-                    />
-                    <DetailLine label='Telephone' value={truck.driver_phone} />
-                    <DetailLine
-                      label='Fleet manager'
-                      value={truck.fleet_manager}
-                    />
-                    <DetailLine label='Region' value={truck.operating_region} />
-                    <DetailLine label='Depot' value={truck.home_depot} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value='docs' className='space-y-3'>
-                <DocumentStatus
-                  label='Permis transport GPL'
-                  value={truck.permit_expiry}
-                />
-                <DocumentStatus
-                  label='Assurance'
-                  value={truck.insurance_expiry}
-                />
-                <DocumentStatus
-                  label='Visite technique'
-                  value={truck.technical_visit_expiry}
-                />
-                <Separator />
-                <DetailLine label='GPS IMEI' value={truck.gpsImei} />
-                <DetailLine label='Contrat' value={truck.contract_tier} />
-                <DetailLine
-                  label='Dernier ping'
-                  value={formatDateTime(truck.last_ping)}
-                />
-              </TabsContent>
-
-              <TabsContent value='maintenance' className='space-y-3'>
-                <Card className='surface-sunken'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <Wrench className='size-4 text-primary' />
-                      Etat technique
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine
-                      label='Kilometrage'
-                      value={`${truck.odometerKm.toLocaleString()} km`}
-                    />
-                    <DetailLine
-                      label='Prochaine revision'
-                      value={`${truck.nextServiceKm.toLocaleString()} km`}
-                    />
-                    <DetailLine
-                      label='Dernier service'
-                      value={formatDate(truck.last_service_date)}
-                    />
-                    <DetailLine
-                      label='Capacite citerne'
-                      value={`${truck.tank_capacity_liters.toLocaleString()} L`}
-                    />
-                    <DetailLine
-                      label='Compartiments'
-                      value={`${truck.compartments}`}
-                    />
-                    <DetailLine label='Carburant' value={truck.fuelType} />
-                  </CardContent>
-                </Card>
-
-                <div className='grid grid-cols-2 gap-3'>
-                  <MiniSignal
-                    icon={<Thermometer className='size-4' />}
-                    label='Temperature'
-                    value={`${telemetry.temperature_celsius} C`}
-                  />
-                  <MiniSignal
-                    icon={<MapPin className='size-4' />}
-                    label='Distance'
-                    value={`${telemetry.distance_km} km`}
-                  />
-                  <MiniSignal
-                    icon={<CalendarDays className='size-4' />}
-                    label='Ping'
-                    value={formatDateTime(truck.last_ping)}
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+      <Card className='surface-sunken'>
+        <CardHeader className='pb-2'>
+          <CardTitle className='flex items-center gap-2 text-sm'>
+            <Wrench className='size-4 text-primary' />
+            Etat technique
+          </CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          <DetailLine
+            label='Type vehicule'
+            value={truck.type === 'VRAC' ? 'Vrac' : 'Bouteilles 50kg'}
+          />
+          <DetailLine
+            label='Capacite max'
+            value={
+              truck.type === 'VRAC'
+                ? `${truck.max_volume ?? '—'} TM`
+                : `${truck.max_bottle_count ?? '—'} bouteilles`
+            }
+          />
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
@@ -271,75 +221,4 @@ function DetailLine({ label, value }: { label: string; value: string }) {
       <span className='max-w-72 text-right font-medium'>{value}</span>
     </div>
   )
-}
-
-function DocumentStatus({ label, value }: { label: string; value: string }) {
-  const daysLeft = Math.ceil(
-    (new Date(value).getTime() - DOCUMENT_REFERENCE_DATE_MS) /
-      (1000 * 60 * 60 * 24)
-  )
-  const status =
-    daysLeft < 0 ? 'Expire' : daysLeft <= 45 ? 'Expire bientot' : 'Valide'
-  const className =
-    daysLeft < 0
-      ? 'bg-red-500/10 text-red-700 dark:text-red-300'
-      : daysLeft <= 45
-        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
-        : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-
-  return (
-    <div className='surface-sunken p-3'>
-      <div className='flex items-start justify-between gap-3'>
-        <div className='flex items-start gap-2'>
-          <ShieldCheck className='mt-0.5 size-4 text-primary' />
-          <div>
-            <p className='text-sm font-medium'>{label}</p>
-            <p className='text-xs text-muted-foreground'>
-              Expire le {formatDate(value)}
-            </p>
-          </div>
-        </div>
-        <Badge variant='outline' className={cn('border-transparent', className)}>
-          {status}
-        </Badge>
-      </div>
-    </div>
-  )
-}
-
-function MiniSignal({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-}) {
-  return (
-    <div className='surface-sunken p-3'>
-      <div className='flex items-center gap-2 text-xs text-muted-foreground'>
-        {icon}
-        {label}
-      </div>
-      <p className='mt-2 text-sm font-semibold'>{value}</p>
-    </div>
-  )
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(value))
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value))
 }

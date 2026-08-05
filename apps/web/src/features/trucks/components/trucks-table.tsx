@@ -23,9 +23,6 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
-  contractTierOptions,
-  truckMarketerOptions,
-  truckStatusOptions,
   truckTenantOptions,
   type Truck,
 } from '../trucks'
@@ -46,12 +43,7 @@ export function TrucksTable({
   onViewDetails,
 }: TrucksTableProps) {
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    compartments: false,
-    gpsImei: false,
-    permit_expiry: false,
-    last_ping: false,
-  })
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
     () => getTrucksColumns({ onViewDetails }),
@@ -71,10 +63,9 @@ export function TrucksTable({
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: 'id', searchKey: 'q', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'tournee_status', searchKey: 'status', type: 'array' },
       { columnId: 'tenant_name', searchKey: 'company', type: 'array' },
-      { columnId: 'marketer', searchKey: 'site', type: 'array' },
-      { columnId: 'contract_tier', searchKey: 'contract', type: 'array' },
+      { columnId: 'region', searchKey: 'region', type: 'array' },
     ],
   })
 
@@ -120,24 +111,9 @@ export function TrucksTable({
         searchKey='id'
         filters={[
           {
-            columnId: 'status',
-            title: 'Statut',
-            options: truckStatusOptions,
-          },
-          {
             columnId: 'tenant_name',
             title: 'Entreprise',
-            options: truckTenantOptions,
-          },
-          {
-            columnId: 'marketer',
-            title: 'Site',
-            options: truckMarketerOptions,
-          },
-          {
-            columnId: 'contract_tier',
-            title: 'Contrat',
-            options: contractTierOptions,
+            options: [...truckTenantOptions],
           },
         ]}
       />

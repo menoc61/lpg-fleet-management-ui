@@ -24,6 +24,7 @@ import {
   type Truck,
   type TruckStatus,
 } from './trucks'
+import { quantityInfo } from './lib/quantity'
 import { ARCGIS_API_KEY } from '@lpg/config'
 
 const arcgisApiKey = ARCGIS_API_KEY.trim()
@@ -46,10 +47,14 @@ type MapTheme = 'light' | 'dark'
 type HitTestResults = Awaited<ReturnType<MapView['hitTest']>>['results']
 
 const statusColors: Record<TruckStatus, [number, number, number, number]> = {
-  available: [16, 185, 129, 0.95],
-  in_transit: [14, 165, 233, 0.95],
-  maintenance: [245, 158, 11, 0.95],
-  inactive: [100, 116, 139, 0.9],
+  DRAFT: [100, 116, 139, 0.9],
+  PLANNED: [14, 165, 233, 0.95],
+  PENDINGTRANSPORTERACK: [245, 158, 11, 0.95],
+  ACKNOWLEDGED: [16, 185, 129, 0.95],
+  INPROGRESS: [14, 165, 233, 0.95],
+  CHECKPOINTACTIVE: [168, 85, 247, 0.95],
+  CLOSED: [100, 116, 139, 0.9],
+  CANCELLED: [239, 68, 68, 0.95],
 }
 
 const siteMarkerTokens: Record<
@@ -174,7 +179,7 @@ export function TrucksMap({
     const view = new MapView({
       container: mapContainerRef.current,
       map,
-      center: [initialTruck.longitude, initialTruck.latitude],
+      center: [initialTruck.lng, initialTruck.lat],
       constraints: {
         minZoom: 4,
       },
@@ -252,7 +257,7 @@ export function TrucksMap({
 
     const routeGraphics = showRoutes
       ? trucks
-          .filter((truck) => truck.status === 'in_transit')
+          .filter((truck) => truck.tournee_status === 'INPROGRESS')
           .map((truck) => createRouteGraphic(truck, mapTheme))
       : []
     const siteGraphics = sites.flatMap((site) =>
@@ -272,8 +277,8 @@ export function TrucksMap({
 
     void view
       .goTo({
-        center: [selectedTruck.longitude, selectedTruck.latitude],
-        zoom: selectedTruck.status === 'in_transit' ? 8 : 11,
+        center: [selectedTruck.lng, selectedTruck.lat],
+        zoom: selectedTruck.tournee_status === 'INPROGRESS' ? 8 : 11,
       })
       .catch(() => undefined)
   }, [isReady, selectedTruck])
@@ -378,13 +383,13 @@ function createTruckGraphic(
   mapTheme: MapTheme
 ) {
   const telemetry = getTruckTelemetry(truck.id)
-  const color = statusColors[truck.status]
+  const color = statusColors[truck.tournee_status]
   const outlineColor = getMarkerOutlineColor(mapTheme, isSelected)
 
   return new Graphic({
     geometry: new Point({
-      longitude: truck.longitude,
-      latitude: truck.latitude,
+      longitude: truck.lng,
+      latitude: truck.lat,
       spatialReference: { wkid: 4326 },
     }),
     symbol: {
@@ -400,10 +405,10 @@ function createTruckGraphic(
     attributes: {
       kind: 'truck',
       truckId: truck.id,
-      status: truck.status,
+      status: truck.tournee_status,
     },
     popupTemplate: {
-      title: `${truck.id} - ${truck.plate_number}`,
+      title: `${truck.id} - ${truck.license_plate}`,
       content: createTruckPopupContent(truck, telemetry, mapTheme),
     },
   })
@@ -511,22 +516,25 @@ function createTruckPopupContent(
   telemetry: ReturnType<typeof getTruckTelemetry>,
   mapTheme: MapTheme
 ) {
-  const loadedLiters = Math.round(
-    (truck.tank_capacity_liters * telemetry.lpg_level_percent) / 100
-  )
+  const info = quantityInfo(truck)
+  const etaText = telemetry.expected_arrival
+    ? new Date(telemetry.expected_arrival).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '—'
 
   return `
     <div class="fleet-truck-popup" data-popup-theme="${mapTheme}">
+      ${popupLine('Type', truck.type)}
+      ${popupLine('Plaque', truck.license_plate)}
       ${popupLine('Entreprise', truck.tenant_name)}
       ${popupLine('Chauffeur', truck.assigned_driver)}
-      ${popupLine('Telephone', truck.driver_phone)}
-      ${popupLine('Statut', statusLabels[truck.status])}
+      ${popupLine('Statut', statusLabels[truck.tournee_status])}
       ${popupLine('Position', truck.current_location)}
-      ${popupLine('Route', truck.assigned_route)}
-      ${popupLine('Destination', truck.destination)}
-      ${popupLine('Niveau GPL', `${telemetry.lpg_level_percent}%`)}
-      ${popupLine('Charge GPL', `${loadedLiters.toLocaleString('fr-FR')} L`)}
-      ${popupLine('ETA', telemetry.eta_text)}
+      ${popupLine('Niveau GPL', info.amount)}
+      ${popupLine('Remplissage', `${info.percent}%`)}
+      ${popupLine('ETA', etaText)}
     </div>
   `
 }
@@ -544,7 +552,7 @@ function createSitePopupContent(site: Site, mapTheme: MapTheme) {
   `
 }
 
-function popupLine(label: string, value: string) {
+function popupLine(label: string, value: string | undefined) {
   return `
     <p class="fleet-truck-popup__row">
       <strong>${label}</strong>
@@ -553,8 +561,8 @@ function popupLine(label: string, value: string) {
   `
 }
 
-function escapePopupValue(value: string) {
-  return value.replace(/[&<>"']/g, (character) => {
+function escapePopupValue(value: string | undefined) {
+  return (value ?? '—').replace(/[&<>"']/g, (character) => {
     const entities: Record<string, string> = {
       '&': '&amp;',
       '<': '&lt;',
@@ -567,20 +575,20 @@ function escapePopupValue(value: string) {
   })
 }
 
-function createRouteGraphic(truck: Truck, mapTheme: MapTheme) {
+function createRouteGraphic(truck: Truck, _mapTheme: MapTheme) {
   return new Graphic({
     geometry: new Polyline({
       paths: [
         [
-          [truck.longitude, truck.latitude],
-          [truck.destination_longitude, truck.destination_latitude],
+          [truck.lng, truck.lat],
+          [truck.lng + 0.01, truck.lat + 0.01],
         ],
       ],
       spatialReference: { wkid: 4326 },
     }),
     symbol: {
       type: 'simple-line',
-      color: mapTheme === 'dark' ? [250, 204, 21, 0.9] : [217, 119, 6, 0.85],
+      color: [250, 204, 21, 0.9],
       width: 3,
       style: 'short-dash',
     },

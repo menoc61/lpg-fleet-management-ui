@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
 import { CalendarDays, Clock3, Gauge, Search, Truck as TruckIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
@@ -13,7 +14,7 @@ import {
   trucks as trucksList,
   type Truck,
   type TruckStatus,
-} from '../trucks'
+} from './trucks'
 
 export const getTruckTelemetry = _getTruckTelemetry
 export const trucks: readonly Truck[] = trucksList
@@ -23,15 +24,10 @@ type TruckFilter = 'all' | TruckStatus
 
 type TruckFilterDef = { label: string; value: TruckFilter; count: number }
 
-const STATUS_LABELS: Record<TruckStatus, string> = {
-  AVAILABLE: 'Disponible',
-  IN_TRANSIT: 'En livraison',
-  MAINTENANCE: 'Maintenance',
-  INACTIVE: 'Inactif',
-}
+const trucksRoute = getRouteApi('/_authenticated/trucks/')
 
 export function TrucksPage() {
-  const navigate = useNavigateSafe()
+  const navigate = trucksRoute.useNavigate()
   const { resolvedTheme } = useTheme()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TruckFilter>('all')
@@ -47,34 +43,36 @@ export function TrucksPage() {
     if (!query) return [...trucks]
     return trucks.filter((truck) => {
       const haystack = [
-        truck.plate_number,
+        truck.id,
+        truck.license_plate,
         truck.assigned_driver,
         truck.region,
         truck.org_id,
-        truck.tenant_name ?? truck.marketer ?? '',
+        truck.tenant_name,
       ]
+        .filter(Boolean)
         .join(' ')
         .toLowerCase()
       return haystack.includes(query)
     })
   }, [search])
 
-  const visible = statusFilter === 'all' ? filteredTrucks : filteredTrucks.filter((t) => t.status === statusFilter)
+  const visible = statusFilter === 'all' ? filteredTrucks : filteredTrucks.filter((t) => t.tournee_status === statusFilter)
 
   const filterDefs: TruckFilterDef[] = useMemo(() => {
-    const counts: Record<TruckFilter, number> = {
-      all: trucks.length,
-      AVAILABLE: trucks.filter((t) => t.status === 'AVAILABLE').length,
-      IN_TRANSIT: trucks.filter((t) => t.status === 'IN_TRANSIT').length,
-      MAINTENANCE: trucks.filter((t) => t.status === 'MAINTENANCE').length,
-      INACTIVE: trucks.filter((t) => t.status === 'INACTIVE').length,
+    const counts: Partial<Record<TruckStatus, number>> = {}
+    for (const truck of trucks) {
+      counts[truck.tournee_status] = (counts[truck.tournee_status] ?? 0) + 1
     }
     return [
-      { label: 'Tous', value: 'all', count: counts.all },
-      { label: STATUS_LABELS.AVAILABLE, value: 'AVAILABLE', count: counts.AVAILABLE },
-      { label: STATUS_LABELS.IN_TRANSIT, value: 'IN_TRANSIT', count: counts.IN_TRANSIT },
-      { label: STATUS_LABELS.MAINTENANCE, value: 'MAINTENANCE', count: counts.MAINTENANCE },
-      { label: STATUS_LABELS.INACTIVE, value: 'INACTIVE', count: counts.INACTIVE },
+      { label: 'Tous', value: 'all', count: trucks.length },
+      { label: 'Planifiee', value: 'PLANNED', count: counts.PLANNED ?? 0 },
+      { label: 'En cours', value: 'INPROGRESS', count: counts.INPROGRESS ?? 0 },
+      { label: 'Etape atteinte', value: 'CHECKPOINTACTIVE', count: counts.CHECKPOINTACTIVE ?? 0 },
+      { label: 'Confirmee', value: 'ACKNOWLEDGED', count: counts.ACKNOWLEDGED ?? 0 },
+      { label: 'Attente transporteur', value: 'PENDINGTRANSPORTERACK', count: counts.PENDINGTRANSPORTERACK ?? 0 },
+      { label: 'Cloturee', value: 'CLOSED', count: counts.CLOSED ?? 0 },
+      { label: 'Annulee', value: 'CANCELLED', count: counts.CANCELLED ?? 0 },
     ]
   }, [])
 
@@ -92,8 +90,17 @@ export function TrucksPage() {
   const avgLpg = useMemo(() => {
     const list = visible.length > 0 ? visible : trucks
     if (list.length === 0) return 0
-    const sum = list.reduce((acc, truck) => acc + getTruckTelemetry(truck.id).lpg_level_percent, 0)
-    return Math.round(sum / list.length)
+    const { sum, count } = list.reduce(
+      (acc, truck) => {
+        const telemetry = getTruckTelemetry(truck.id)
+        const max = truck.type === 'VRAC' ? truck.max_volume : truck.max_bottle_count
+        if (!max || max <= 0) return acc
+        const pct = Math.round(((telemetry.loaded_quantity ?? 0) / max) * 100)
+        return { sum: acc.sum + pct, count: acc.count + 1 }
+      },
+      { sum: 0, count: 0 },
+    )
+    return count === 0 ? 0 : Math.round(sum / count)
   }, [visible])
 
   const selectedTruck =
@@ -111,16 +118,16 @@ export function TrucksPage() {
             <TopStat
               icon={TruckIcon}
               label='Actifs'
-              value={`${trucks.filter((t) => t.status === 'IN_TRANSIT').length}/${trucks.length}`}
+              value={`${trucks.filter((t) => t.tournee_status === 'INPROGRESS').length}/${trucks.length}`}
             />
             <TopStat
               icon={Users}
               label='Chauffeurs'
               value={`${trucks.length * 2}`}
-              hint='Estimation basée sur le parc'
+              hint='Estimation basee sur le parc'
             />
             <TopStat icon={Gauge} label='LPG moyen' value={`${avgLpg}%`} />
-            <TopStat icon={Clock3} label='Ponctualité' value="94%" hint="Objectif SLA" />
+            <TopStat icon={Clock3} label='Ponctualite' value="94%" hint="Objectif SLA" />
           </div>
 
           <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
@@ -138,7 +145,7 @@ export function TrucksPage() {
 
         <div className='mt-4 flex flex-col gap-1'>
           <h1 className='text-[30px] leading-none font-semibold tracking-tight sm:text-3xl'>
-            Dashboard Opérationnel
+            Dashboard Operationnel
           </h1>
           <p className='inline-flex items-center gap-2 text-xs text-muted-foreground sm:text-sm'>
             <CalendarDays className='size-4' />
@@ -179,7 +186,7 @@ export function TrucksPage() {
           <div>
             <h2 className='text-xl font-semibold tracking-tight'>Liste des camions</h2>
             <p className='text-sm text-muted-foreground'>
-              Sélectionnez un camion pour voir sa fiche détaillée, son contrat et
+              Selectionnez un camion pour voir sa fiche detaillee, son contrat et
               ses affectations chauffeur/livreur.
             </p>
           </div>
@@ -207,22 +214,6 @@ export function TrucksPage() {
       />
     </main>
   )
-}
-
-/* Lightweight stub for the legacy `useNavigate` call site — the table
- * accepts a NavigateFn-shaped callable; we pass a no-op that does the right
- * thing in URL-bar-driven development. Concrete behaviour (deep linking
- * etc.) is implemented in the DataTable itself. */
-function useNavigateSafe(): (to: string) => void {
-  return (to: string) => {
-    if (typeof window !== 'undefined') {
-      try {
-        window.history.pushState(null, '', to)
-      } catch {
-        // navigation is best-effort — keep this hook SSR-safe
-      }
-    }
-  }
 }
 
 function TopStat({

@@ -12,6 +12,7 @@ import {
   statusLabels,
   type Truck,
 } from '../trucks'
+import { quantityInfo } from '../lib/quantity'
 import { DataTableRowActions } from './data-table-row-actions'
 
 type TrucksColumnsProps = {
@@ -71,12 +72,11 @@ export function getTrucksColumns({
 
         return [
           row.original.id,
-          row.original.plate_number,
+          row.original.license_plate,
           row.original.tenant_name,
-          row.original.marketer,
           row.original.assigned_driver,
+          row.original.region,
           row.original.current_location,
-          row.original.destination,
         ]
           .join(' ')
           .toLowerCase()
@@ -92,12 +92,12 @@ export function getTrucksColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'plate_number',
+      accessorKey: 'license_plate',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Plaque' />
       ),
       cell: ({ row }) => (
-        <div className='font-mono text-xs'>{row.original.plate_number}</div>
+        <div className='font-mono text-xs'>{row.original.license_plate}</div>
       ),
       meta: { label: 'Plaque', className: 'w-32' },
     },
@@ -115,16 +115,16 @@ export function getTrucksColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'marketer',
+      accessorKey: 'region',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Site' />
+        <DataTableColumnHeader column={column} title='Region' />
       ),
       cell: ({ row }) => (
-        <LongText className='max-w-44'>{row.original.marketer}</LongText>
+        <LongText className='max-w-44'>{row.original.region}</LongText>
       ),
       filterFn: (row, id, value) =>
         (value as string[]).includes(String(row.getValue(id))),
-      meta: { label: 'Site' },
+      meta: { label: 'Region' },
       enableSorting: false,
     },
     {
@@ -137,20 +137,17 @@ export function getTrucksColumns({
           <LongText className='max-w-40 font-medium'>
             {row.original.assigned_driver}
           </LongText>
-          <p className='text-xs text-muted-foreground'>
-            {row.original.driver_phone}
-          </p>
         </div>
       ),
       meta: { label: 'Chauffeur', className: 'min-w-42' },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'tournee_status',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Statut' />
       ),
       cell: ({ row }) => {
-        const status = row.original.status
+        const status = row.original.tournee_status
         return (
           <Badge className={cn('font-medium', statusClasses[status])}>
             {statusLabels[status]}
@@ -165,50 +162,37 @@ export function getTrucksColumns({
     },
     {
       id: 'lpgLevel',
-      accessorFn: (truck) => getTruckTelemetry(truck.id).lpg_level_percent,
+      accessorFn: (truck) => quantityInfo(truck).percent,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='LPG' />
       ),
       cell: ({ row }) => {
+        const info = quantityInfo(row.original)
         const telemetry = getTruckTelemetry(row.original.id)
         return (
-          <div className='w-28 space-y-1'>
+          <div className='w-32 space-y-1'>
             <div className='h-1.5 overflow-hidden rounded-full bg-muted'>
               <div
                 className='h-full rounded-full bg-emerald-500 transition-all duration-700'
-                style={{ width: `${telemetry.lpg_level_percent}%` }}
+                style={{ width: `${info.percent}%` }}
               />
             </div>
             <p className='text-xs text-muted-foreground'>
-              {telemetry.lpg_level_percent}% -{' '}
-              {Math.round(
-                (row.original.tank_capacity_liters * telemetry.lpg_level_percent) /
-                  100
-              ).toLocaleString()}{' '}
-              L
+              {info.percent}% • {info.amount}
             </p>
+            {telemetry.expected_arrival ? (
+              <p className='text-[10px] text-muted-foreground'>
+                ETA{' '}
+                {new Date(telemetry.expected_arrival).toLocaleTimeString(
+                  'fr-FR',
+                  { hour: '2-digit', minute: '2-digit' }
+                )}
+              </p>
+            ) : null}
           </div>
         )
       },
-      meta: { label: 'LPG', className: 'w-32' },
-    },
-    {
-      accessorKey: 'contract_tier',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Contrat' />
-      ),
-      cell: ({ row }) => (
-        <Badge
-          variant='outline'
-          className='border-transparent bg-muted/35 text-foreground'
-        >
-          {row.original.contract_tier}
-        </Badge>
-      ),
-      filterFn: (row, id, value) =>
-        (value as string[]).includes(String(row.getValue(id))),
-      meta: { label: 'Contrat' },
-      enableSorting: false,
+      meta: { label: 'LPG', className: 'w-36' },
     },
     {
       accessorKey: 'risk_level',
@@ -227,52 +211,6 @@ export function getTrucksColumns({
       enableSorting: false,
     },
     {
-      accessorKey: 'tank_capacity_liters',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Capacite' />
-      ),
-      cell: ({ row }) => (
-        <span>{row.original.tank_capacity_liters.toLocaleString()} L</span>
-      ),
-      meta: { label: 'Capacite' },
-    },
-    {
-      accessorKey: 'compartments',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Compart.' />
-      ),
-      cell: ({ row }) => <span>{row.original.compartments}</span>,
-      meta: { label: 'Compartiments' },
-      enableSorting: false,
-    },
-    {
-      accessorKey: 'gpsImei',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='GPS IMEI' />
-      ),
-      cell: ({ row }) => (
-        <div className='font-mono text-xs'>{row.original.gpsImei}</div>
-      ),
-      meta: { label: 'GPS IMEI' },
-      enableSorting: false,
-    },
-    {
-      accessorKey: 'permit_expiry',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Permis' />
-      ),
-      cell: ({ row }) => <span>{formatDate(row.original.permit_expiry)}</span>,
-      meta: { label: 'Expiration permis' },
-    },
-    {
-      accessorKey: 'last_ping',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Dernier ping' />
-      ),
-      cell: ({ row }) => <span>{formatDateTime(row.original.last_ping)}</span>,
-      meta: { label: 'Dernier ping' },
-    },
-    {
       id: 'actions',
       cell: ({ row }) => (
         <DataTableRowActions
@@ -284,21 +222,4 @@ export function getTrucksColumns({
       enableHiding: false,
     },
   ]
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(value))
 }
