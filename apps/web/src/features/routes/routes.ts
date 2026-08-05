@@ -591,7 +591,7 @@ function requireTruck(truckId: string) {
   // Fallback: synthesize a route-friendly Truck from the first curated entry.
   // The curated vehicles use UUIDs, while legacy route data still references
   // short ids (e.g. TRX-CM-005). The trucks screen consumes a superset of
-  // fields (plateNumber/tenantName/assignedDriver/latitude/longitude) so we
+  // fields (license_plate/tenant_name/assigned_driver/lat/lng) so we
   // back-fill them here with derived defaults instead of crashing.
   const fallback = trucks[0]
   if (!fallback) {
@@ -601,18 +601,12 @@ function requireTruck(truckId: string) {
   return {
     ...f,
     id: truckId,
-    plate_number: truckId,
-    plateNumber: truckId,
+    license_plate: f.license_plate ?? truckId,
     tenant_name: f.tenant_name ?? '—',
-    tenantName: f.tenant_name ?? '—',
     assigned_driver: f.assigned_driver ?? '—',
-    assignedDriver: f.assigned_driver ?? '—',
-    driver_phone: f.driver_phone ?? '—',
-    driverPhone: f.driver_phone ?? '—',
-    latitude: f.latitude ?? 3.85,
-    longitude: f.longitude ?? 11.5,
+    lat: f.lat ?? 3.85,
+    lng: f.lng ?? 11.5,
     current_location: f.current_location ?? '—',
-    currentLocation: f.current_location ?? '—',
   }
 }
 
@@ -642,8 +636,8 @@ export function getRouteTripsView(): RouteTripView[] {
         id: `${trip.id}-fallback`,
         routeTripId: trip.id,
         recordedAt: trip.lastUpdatedAt,
-        latitude: truck.latitude,
-        longitude: truck.longitude,
+        latitude: truck.lat,
+        longitude: truck.lng,
         lpgLevelPercent: Math.round(
           (trip.remainingQuantityKg / trip.loadedQuantityKg) * 100
         ),

@@ -124,9 +124,9 @@ function buildLiveIndex(role: Role): SearchItem[] {
   for (const t of trucks) {
     items.push({
       category: 'Camions',
-      title: t.plateNumber,
-      subtitle: `${t.tenantName} - ${t.assignedDriver}`,
-      value: `${t.plateNumber} ${t.tenantName} ${t.assignedDriver} ${t.id}`,
+      title: t.license_plate,
+      subtitle: `${t.tenant_name} - ${t.assigned_driver}`,
+      value: `${t.license_plate} ${t.tenant_name} ${t.assigned_driver} ${t.id}`,
       url: `/trucks/${t.id}`,
       icon: TruckIcon,
     })

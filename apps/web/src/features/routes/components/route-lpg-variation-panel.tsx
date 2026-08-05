@@ -88,7 +88,7 @@ export function RouteLpgVariationPanel({
 
           <StageCard
             stage={liveStage}
-            hint={`Dernier ping ${trip.truck.currentLocation}`}
+            hint={`Dernier ping ${trip.truck.current_location}`}
             formatKg={formatKg}
           />
 

@@ -20,11 +20,11 @@ import {
   type SiteType,
 } from '@/features/sites/sites'
 import {
-  getTruckTelemetry,
   statusLabels,
   type Truck,
   type TruckStatus,
 } from '@/features/trucks/trucks'
+import { quantityInfo } from '@/features/trucks/lib/quantity'
 import { getRouteTripsView, routeStatusLabels, type RouteTripStatus } from '@/features/routes/routes'
 import { sites as SITES } from '@/features/sites/sites'
 import { trucks as TRUCKS } from '@/features/trucks/trucks'
@@ -44,10 +44,14 @@ const siteColors: Record<SiteType, [number, number, number, number]> = {
 }
 
 const truckColors: Record<TruckStatus, [number, number, number, number]> = {
-  available: [16, 185, 129, 0.95],
-  in_transit: [14, 165, 233, 0.95],
-  maintenance: [245, 158, 11, 0.95],
-  inactive: [100, 116, 139, 0.9],
+  DRAFT: [148, 163, 184, 0.9],
+  PLANNED: [14, 165, 233, 0.95],
+  PENDINGTRANSPORTERACK: [245, 158, 11, 0.95],
+  ACKNOWLEDGED: [16, 185, 129, 0.95],
+  INPROGRESS: [34, 197, 94, 0.95],
+  CHECKPOINTACTIVE: [168, 85, 247, 0.95],
+  CLOSED: [100, 116, 139, 0.9],
+  CANCELLED: [239, 68, 68, 0.9],
 }
 
 const CAMEROON_CENTER: [number, number] = [11.5, 5.5]
@@ -148,9 +152,9 @@ export function SuperAdminMapScreen() {
   const filteredTrucks = useMemo(() => {
     const q = filters.search
     return trucks.filter((t) => {
-      if (!matchesSearch(`${t.id} ${t.plateNumber} ${t.tenantName} ${t.marketer} ${t.assignedDriver}`, q))
+      if (!matchesSearch(`${t.id} ${t.license_plate} ${t.tenant_name} ${t.assigned_driver}`, q))
         return false
-      if (filters.truckStatuses.length && !filters.truckStatuses.includes(t.status)) return false
+      if (filters.truckStatuses.length && !filters.truckStatuses.includes(t.tournee_status)) return false
       return true
     })
   }, [trucks, filters])
@@ -172,8 +176,8 @@ export function SuperAdminMapScreen() {
           id: t.id,
           title: `Incident — ${t.reference}`,
           target: [
-            truckById.get(t.truckId)?.longitude ?? CAMEROON_CENTER[0],
-            truckById.get(t.truckId)?.latitude ?? CAMEROON_CENTER[1],
+            truckById.get(t.truckId)?.lng ?? CAMEROON_CENTER[0],
+            truckById.get(t.truckId)?.lat ?? CAMEROON_CENTER[1],
           ] as [number, number],
         })),
     [filteredTrips, truckById]
@@ -211,7 +215,10 @@ export function SuperAdminMapScreen() {
     const supplyLayer = new GraphicsLayer({ title: ' Flux approvisionnement' })
     const checkpointsLayer = new GraphicsLayer({ title: 'Checkpoints livraison' })
     const zonesLayer = new GraphicsLayer({ title: 'Zones' })
-    const heatLayer = buildHeatLayer([...trucks, ...sites])
+    const heatLayer = buildHeatLayer([
+      ...trucks.map((t) => ({ latitude: t.lat, longitude: t.lng })),
+      ...sites.map((s) => ({ latitude: s.latitude, longitude: s.longitude })),
+    ])
 
     layerRefs.current = {
       sites: sitesLayer,
@@ -616,16 +623,16 @@ function createSiteGraphic(site: Site, mapTheme: MapTheme) {
 }
 
 function createTruckGraphic(truck: Truck, mapTheme: MapTheme) {
-  const color = truckColors[truck.status as TruckStatus]
-  const telemetry = getTruckTelemetry(truck.id)
+  const color = truckColors[truck.tournee_status as TruckStatus]
+  const info = quantityInfo(truck)
   const outline = mapTheme === 'dark' ? [248, 250, 252, 1] : [15, 23, 42, 0.28]
   return new Graphic({
-    geometry: new Point({ longitude: truck.longitude, latitude: truck.latitude, spatialReference: { wkid: 4326 } }),
+    geometry: new Point({ longitude: truck.lng, latitude: truck.lat, spatialReference: { wkid: 4326 } }),
     symbol: { type: 'simple-marker', style: 'circle', color, size: 11, outline: { color: outline as [number, number, number, number], width: 1.5 } },
     attributes: { kind: 'truck', truckId: truck.id },
     popupTemplate: {
-      title: `${truck.id} — ${truck.plateNumber}`,
-      content: `<div><p><strong>Chauffeur</strong> ${truck.assignedDriver}</p><p><strong>Statut</strong> ${statusLabels[truck.status as TruckStatus]}</p><p><strong>Position</strong> ${truck.currentLocation}</p><p><strong>Niveau GPL</strong> ${telemetry.lpgLevelPercent}%</p></div>`,
+      title: `${truck.id} — ${truck.license_plate}`,
+      content: `<div><p><strong>Chauffeur</strong> ${truck.assigned_driver}</p><p><strong>Statut</strong> ${statusLabels[truck.tournee_status as TruckStatus]}</p><p><strong>Position</strong> ${truck.current_location}</p><p><strong>Niveau GPL</strong> ${info.percent}%</p></div>`,
     },
   })
 }

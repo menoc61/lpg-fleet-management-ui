@@ -58,7 +58,7 @@ export function MarketeurDeliveryToursScreen() {
                   <Badge className={STATUS_CLS[t.status]}>{routeStatusLabels[t.status]}</Badge>
                 </div>
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  {t.truck.plateNumber} · {t.stops.length} checkpoints · {t.progressPercent}%
+                  {t.truck.license_plate} · {t.stops.length} checkpoints · {t.progressPercent}%
                 </p>
                 <div className='mt-2 h-1.5 overflow-hidden rounded-full bg-muted'>
                   <div
@@ -86,7 +86,7 @@ export function MarketeurDeliveryToursScreen() {
             </CardHeader>
             <CardContent className='flex flex-1 flex-col gap-4 overflow-auto'>
               <div className='grid grid-cols-3 gap-3'>
-                <Stat icon={Truck} label='Camion' value={selected.truck.plateNumber} />
+                <Stat icon={Truck} label='Camion' value={selected.truck.license_plate} />
                 <Stat icon={PackageCheck} label='Bouteilles OUT' value={String(rfid.out)} />
                 <Stat icon={PackageX} label='Bouteilles IN' value={String(rfid.inn)} />
               </div>

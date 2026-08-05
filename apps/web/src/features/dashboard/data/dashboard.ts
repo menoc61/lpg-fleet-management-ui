@@ -6,7 +6,8 @@ import {
   type RouteTripView,
 } from '@/features/routes/data/routes'
 import { sites } from '@/features/sites/data/sites'
-import { getTruckTelemetry, trucks } from '@/features/trucks/trucks'
+import { trucks } from '@/features/trucks/trucks'
+import { quantityInfo } from '@/features/trucks/lib/quantity'
 
 export type DashboardPeriod = 'daily' | 'weekly' | 'monthly'
 export type DashboardMetricTone = 'sky' | 'emerald' | 'amber' | 'rose'
@@ -565,9 +566,9 @@ function buildFleetSummaries(totalTransportedKg: number) {
   >()
 
   for (const truck of trucks) {
-    if (!fleets.has(truck.tenantName)) {
-      fleets.set(truck.tenantName, {
-        fleetName: truck.tenantName,
+    if (!fleets.has(truck.tenant_name)) {
+      fleets.set(truck.tenant_name, {
+        fleetName: truck.tenant_name,
         truckCount: 0,
         activeTruckCount: 0,
         activeTripCount: 0,
@@ -581,17 +582,15 @@ function buildFleetSummaries(totalTransportedKg: number) {
       })
     }
 
-    const entry = fleets.get(truck.tenantName)!
+    const entry = fleets.get(truck.tenant_name)!
     entry.truckCount += 1
-    entry.activeTruckCount += ['available', 'in_transit'].includes(truck.status)
-      ? 1
-      : 0
-    entry.riskTruckCount += truck.riskLevel === 'low' ? 0 : 1
-    entry.averageLpgLevelPercent += getTruckTelemetry(truck.id).lpgLevelPercent
+    entry.activeTruckCount += ['PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE', 'PENDINGTRANSPORTERACK', 'ACKNOWLEDGED'].includes(truck.tournee_status) ? 1 : 0
+    entry.riskTruckCount += truck.risk_level === 'FAIBLE' ? 0 : 1
+    entry.averageLpgLevelPercent += quantityInfo(truck).percent
   }
 
   for (const trip of routeViews) {
-    const entry = fleets.get(trip.truck.tenantName)
+    const entry = fleets.get(trip.truck.tenant_name)
 
     if (!entry) continue
 
@@ -605,7 +604,7 @@ function buildFleetSummaries(totalTransportedKg: number) {
   return [...fleets.values()]
     .map((fleet, index) => {
       const relatedTrips = routeViews.filter(
-        (trip) => trip.truck.tenantName === fleet.fleetName
+        (trip) => trip.truck.tenant_name === fleet.fleetName
       )
       const nonPlannedTripCount = relatedTrips.filter(
         (trip) => trip.status !== 'planned'
@@ -698,10 +697,10 @@ function buildRouteContributions(
     .map((trip) => ({
       id: trip.id,
       reference: trip.reference,
-      carrierName: trip.truck.tenantName,
+      carrierName: trip.truck.tenant_name,
       truckId: trip.truck.id,
-      plateNumber: trip.truck.plateNumber,
-      driverName: trip.truck.assignedDriver,
+      plateNumber: trip.truck.license_plate,
+      driverName: trip.truck.assigned_driver,
       missionLead: trip.missionLead,
       customerName: trip.customerName,
       originLabel: trip.originSite.city,
@@ -918,9 +917,9 @@ export function buildDashboardView(): DashboardView {
     totalReserveKg / Math.max(totalDeliveredKg, 1)
   )
   const activeTrucks = trucks.filter((truck) =>
-    ['available', 'in_transit'].includes(truck.status)
+    ['PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE', 'PENDINGTRANSPORTERACK', 'ACKNOWLEDGED'].includes(truck.tournee_status)
   ).length
-  const riskTrucks = trucks.filter((truck) => truck.riskLevel !== 'low').length
+  const riskTrucks = trucks.filter((truck) => truck.risk_level !== 'FAIBLE').length
   const abnormalLossKg = routeViews.reduce(
     (total, trip) => total + trip.unaccountedKg,
     0

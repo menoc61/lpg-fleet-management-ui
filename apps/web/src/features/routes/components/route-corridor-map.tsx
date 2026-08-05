@@ -332,7 +332,7 @@ function MapSignals({
     <div className='grid gap-3 sm:grid-cols-3'>
       <SignalTile
         label='Position courante'
-        value={trip.truck.currentLocation}
+        value={trip.truck.current_location}
         icon={MapPinned}
       />
       <SignalTile
@@ -481,8 +481,8 @@ function createStopPopupContent(
 function createCurrentTruckPopupContent(trip: RouteTripView) {
   return `
     <div class="fleet-truck-popup">
-      ${popupLine('Camion', trip.truck.plateNumber)}
-      ${popupLine('Position', trip.truck.currentLocation)}
+      ${popupLine('Camion', trip.truck.license_plate)}
+      ${popupLine('Position', trip.truck.current_location)}
       ${popupLine('GPL', `${trip.latestTelemetry.lpgLevelPercent}%`)}
       ${popupLine('Volume estime', formatKg(trip.latestTelemetry.estimatedVolumeKg))}
       ${popupLine('Pression', `${trip.latestTelemetry.pressureBar.toFixed(1)} bar`)}

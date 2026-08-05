@@ -648,8 +648,8 @@ export function getRouteTripsView(): RouteTripView[] {
         id: `${trip.id}-fallback`,
         routeTripId: trip.id,
         recordedAt: trip.lastUpdatedAt,
-        latitude: truck.latitude,
-        longitude: truck.longitude,
+        latitude: truck.lat,
+        longitude: truck.lng,
         lpgLevelPercent: Math.round(
           (trip.remainingQuantityKg / trip.loadedQuantityKg) * 100
         ),
