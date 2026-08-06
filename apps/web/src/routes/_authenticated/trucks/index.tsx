@@ -1,7 +1,7 @@
 import z from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
 import { TrucksPage } from '@/features/trucks'
-import { tourneeStatusOptions } from '@/config/modules/field-options'
+import { tourneeStatusOptions } from '@/config/field-options'
 
 const trucksSearchSchema = z.object({
   page: z.number().optional().catch(1),

@@ -83,14 +83,14 @@ describe('buildDashboardView', () => {
     ])
 
     expect(dashboard.reserveSites[0]).toMatchObject({
-      siteId: 'site-bonaberi-center',
+      siteId: 'site-0001-sctm-bonaberi',
       status: 'critical',
       fillPercent: 31,
       scheduledInboundKg: 12450,
       activeTripCount: 2,
     })
     expect(dashboard.reserveSites[1]).toMatchObject({
-      siteId: 'site-scdp-yaounde',
+      siteId: 'site-0029-scdp-yaounde',
       status: 'watch',
       fillPercent: 44,
       outboundKg: 14000,

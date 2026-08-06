@@ -1,5 +1,5 @@
 import { type Organization } from '@lpg/types'
-import { getTransporterTrucks } from '../data/transporter-trucks'
+import { getTransporterTrucks } from '@/features/transporters/data/transporter-trucks'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 

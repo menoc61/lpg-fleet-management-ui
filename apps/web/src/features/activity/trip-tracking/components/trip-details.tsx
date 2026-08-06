@@ -1,59 +1,52 @@
-import { Copy, Truck, Phone } from 'lucide-react'
+import { Copy, Truck, Phone, MapPin, User, Package } from 'lucide-react'
 
 import { Avatar, AvatarFallback, Badge, Button, cn, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
 
-import type { Trip } from '../../trip-data'
+import type { TourWithDetails } from '../../trip-data'
 import { TripRouteMap } from './trip-route-map'
+import { format } from 'date-fns'
+import { getTourEta, getTourCargo, getTourVolume } from '../../trip-data'
 
-const progressRingClasses: Record<Trip['status'], string> = {
-  Planifié: 'text-slate-400',
-  'En transit': 'text-blue-500',
-  'En livraison': 'text-amber-500',
-  Livré: 'text-emerald-500',
-  Retardé: 'text-rose-500',
-}
-
-const statusBadgeClasses: Record<Trip['status'], string> = {
-  Planifié: 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400',
-  'En transit': 'border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-400',
-  'En livraison': 'border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-400',
-  Livré: 'border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-400',
-  Retardé: 'border-rose-200 bg-rose-100 text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-400',
-}
-
-type TripDetailsProps = {
-  trip: Trip | null
+const progressRingClasses: Record<TourWithDetails['status'], string> = {
+  DRAFT: 'text-slate-400',
+  PLANNED: 'text-blue-400',
+  PENDINGTRANSPORTERACK: 'text-amber-500',
+  ACKNOWLEDGED: 'text-blue-500',
+  INPROGRESS: 'text-blue-500',
+  CHECKPOINTACTIVE: 'text-amber-500',
+  CLOSED: 'text-emerald-500',
+  CANCELLED: 'text-rose-500',
 }
 
 function EmptyTripOverview() {
   return (
     <div className='grid min-h-[12rem] place-items-center rounded-lg border border-dashed text-muted-foreground text-sm'>
-      SǸlectionnez une tournǸe pour voir les dǸtails.
+      Séléctionnez une tournée pour voir les détails.
     </div>
   )
 }
 
-function TripOverview({ trip }: { trip: Trip }) {
+function TourOverview({ tour }: { tour: TourWithDetails }) {
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4'>
         <div className='flex items-center gap-2'>
-          <h1 className='font-medium text-lg tabular-nums tracking-tight sm:text-xl'>{trip.id}</h1>
+          <h1 className='font-medium text-lg tabular-nums tracking-tight sm:text-xl'>{tour.id}</h1>
           <Button variant='ghost' size='icon' className='h-8 w-8' aria-label='Copier ID'>
             <Copy className='h-4 w-4' />
           </Button>
         </div>
 
         <div className='flex items-center gap-2 text-xs sm:text-sm'>
-          <Badge variant='outline' className={cn('gap-1.5', statusBadgeClasses[trip.status])}>
-            <span className={cn('size-1.5 rounded-full bg-current', progressRingClasses[trip.status])} />
-            {trip.status}
+          <Badge variant='outline' className={cn('gap-1.5')}>
+            <span className={cn('size-1.5 rounded-full bg-current', progressRingClasses[tour.status] ?? 'text-slate-400')} />
+            {tour.statusLabel}
           </Badge>
-          <span className='text-muted-foreground'>��</span>
-          <span className='text-foreground tabular-nums'>{trip.progress}% complǸtǸ</span>
-          <span className='text-muted-foreground'>��</span>
+          <span className='text-muted-foreground'>|</span>
+          <span className='text-foreground tabular-nums'>{tour.progress}% complété</span>
+          <span className='text-muted-foreground'>|</span>
           <span className='text-foreground tabular-nums'>
-            ETA: {trip.eta} {trip.etaMeta && <span className='text-muted-foreground'>({trip.etaMeta})</span>}
+            ETA: {getTourEta(tour)}
           </span>
         </div>
       </div>
@@ -64,12 +57,12 @@ function TripOverview({ trip }: { trip: Trip }) {
         <div className='flex items-center gap-3'>
           <Avatar className='h-10 w-10'>
             <AvatarFallback className='rounded-md bg-primary/10 text-primary font-bold'>
-              {trip.driver_name.charAt(0).toUpperCase()}
+              {tour.driver?.first_name?.charAt(0).toUpperCase() ?? '—'}
             </AvatarFallback>
           </Avatar>
 
           <div className='flex flex-col'>
-            <div className='font-medium text-sm'>{trip.driver_name}</div>
+            <div className='font-medium text-sm'>{tour.driver ? `${tour.driver.first_name} ${tour.driver.last_name}` : '—'}</div>
             <div className='text-muted-foreground text-xs'>Chauffeur</div>
           </div>
         </div>
@@ -77,7 +70,7 @@ function TripOverview({ trip }: { trip: Trip }) {
         <div className='flex flex-col items-end gap-1'>
           <Badge variant='secondary' className='gap-1'>
             <Truck className='h-3 w-3' />
-            {trip.license_plate}
+            {tour.vehicle?.license_plate ?? '—'}
           </Badge>
         </div>
       </div>
@@ -86,7 +79,7 @@ function TripOverview({ trip }: { trip: Trip }) {
 
       <div className='flex flex-col gap-6'>
         <div className='flex items-start justify-between gap-4'>
-          <h2 className='font-medium'>DǸtails du transport</h2>
+          <h2 className='font-medium'>Détails du transport</h2>
           <Button variant='outline' size='sm' className='gap-2'>
             <Phone className='h-4 w-4' />
             Appeler Chauffeur
@@ -95,42 +88,115 @@ function TripOverview({ trip }: { trip: Trip }) {
 
         <div className='grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4'>
           <div className='flex flex-col gap-1.5'>
-            <div className='text-muted-foreground text-xs'>Marchandise</div>
+            <div className='text-muted-foreground text-xs flex items-center gap-1'>
+              <Package className='h-3 w-3' />
+              Marchandise
+            </div>
             <div className='text-sm font-medium flex items-center gap-2'>
               <Truck className='h-4 w-4 text-muted-foreground' />
-              {trip.cargo}
+              {getTourCargo(tour)}
             </div>
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <div className='text-muted-foreground text-xs'>Volume / QuantitǸ</div>
-            <div className='text-sm font-medium'>{trip.volume}</div>
+            <div className='text-muted-foreground text-xs flex items-center gap-1'>
+              <Package className='h-3 w-3' />
+              Volume / Quantité
+            </div>
+            <div className='text-sm font-medium'>{getTourVolume(tour)}</div>
           </div>
 
           <div className='flex flex-col gap-1.5'>
-            <div className='text-muted-foreground text-xs'>Camion assignǸ</div>
+            <div className='text-muted-foreground text-xs flex items-center gap-1'>
+              <Truck className='h-3 w-3' />
+              Camion assigné
+            </div>
             <div className='text-sm font-medium flex items-center gap-2'>
               <Truck className='h-4 w-4 text-muted-foreground' />
-              {trip.license_plate}
+              {tour.vehicle?.license_plate ?? '—'}
             </div>
           </div>
 
           <div className='flex flex-col gap-1.5 md:text-right'>
-            <div className='text-muted-foreground text-xs'>Chauffeur</div>
-            <div className='text-sm font-medium'>{trip.driver_name}</div>
+            <div className='text-muted-foreground text-xs flex items-center gap-1'>
+              <User className='h-3 w-3' />
+              Chauffeur
+            </div>
+            <div className='text-sm font-medium'>{tour.driver ? `${tour.driver.first_name} ${tour.driver.last_name}` : '—'}</div>
           </div>
         </div>
+      </div>
+
+      {/* Execution mode & checkpoints */}
+      <Separator />
+      <div className='space-y-4'>
+        <div className='flex items-center gap-3'>
+          <Badge variant={tour.execution_mode === 'INTERNAL' ? 'default' : 'secondary'} className='gap-1'>
+            <Truck className='h-3 w-3' />
+            {tour.execution_mode === 'INTERNAL' ? 'Interne' : 'Externe'}
+          </Badge>
+          <span className='text-muted-foreground text-sm'>Mode d'exécution</span>
+        </div>
+
+        {tour.checkpoints && tour.checkpoints.length > 0 && (
+          <div className='space-y-3'>
+            <h3 className='font-medium text-sm flex items-center gap-2'>
+              <MapPin className='h-4 w-4' />
+              Points de passage ({tour.checkpoints.length})
+            </h3>
+            <div className='space-y-2'>
+              {tour.checkpoints!.map((cp, idx) => (
+                <div
+                  key={cp.id}
+                  className='flex items-center gap-3 p-3 rounded-lg bg-muted/30'
+                >
+                  <div className='flex flex-col items-center w-8'>
+                    <div className='w-1.5 h-1.5 rounded-full bg-primary' />
+                    {idx < tour.checkpoints!.length - 1 && (
+                      <div className='mt-1 h-full w-0.5 bg-muted-foreground/30' />
+                    )}
+                  </div>
+                  <div className='flex-1 min-w-0'>
+                    <div className='font-medium text-sm'>{cp.site?.name ?? cp.client_site?.name ?? 'Site inconnu'}</div>
+                    <div className='text-xs text-muted-foreground'>
+                      {cp.site ? `Site: ${cp.site.id}` : `Client: ${cp.client_site?.id ?? '—'}`}
+                    </div>
+                  </div>
+                  <div className='text-right text-sm'>
+                    <div className='font-medium'>{cp.sequence}</div>
+                    <div className='text-xs text-muted-foreground'>
+                      {cp.actual_arrival
+                        ? `Arrivé: ${format(new Date(cp.actual_arrival), 'dd/MM HH:mm')}`
+                        : cp.expected_arrival
+                        ? `Prévu: ${format(new Date(cp.expected_arrival), 'dd/MM HH:mm')}`
+                        : '—'}
+                    </div>
+                    <Badge
+                      variant={
+                        cp.status === 'COMPLETED' ? 'default' :
+                        cp.status === 'REACHED' ? 'secondary' :
+                        cp.status === 'PENDING' ? 'outline' : 'destructive'
+                      }
+                    >
+                      {cp.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-export function TripDetails({ trip }: TripDetailsProps) {
+export function TripDetails({ trip }: { trip: TourWithDetails | null }) {
   if (!trip) {
     return (
       <div className='flex h-full min-h-0 flex-col overflow-hidden'>
         <div className='h-[40vh] min-h-[200px] shrink-0 overflow-hidden border-b lg:h-[420px]'>
-          <TripRouteMap trip={null} />
+          <TripRouteMap tour={null} />
         </div>
         <div className='min-h-0 flex-1 overflow-auto p-4 sm:p-6'>
           <EmptyTripOverview />
@@ -142,7 +208,7 @@ export function TripDetails({ trip }: TripDetailsProps) {
   return (
     <div className='flex h-full min-h-0 flex-col overflow-hidden'>
       <div className='h-[40vh] min-h-[200px] shrink-0 overflow-hidden border-b lg:h-[420px]'>
-        <TripRouteMap trip={trip} />
+        <TripRouteMap tour={trip} />
       </div>
       <div className='min-h-0 flex-1 overflow-hidden'>
         <div className='h-full min-h-0'>
@@ -166,21 +232,21 @@ export function TripDetails({ trip }: TripDetailsProps) {
                 value='activity'
                 className='rounded-none border-x-0 border-t-0 border-b-2 border-transparent px-2 py-3 data-[state=active]:border-primary data-[state=active]:!bg-transparent data-[state=active]:!shadow-none data-[state=active]:text-foreground text-muted-foreground hover:text-foreground'
               >
-                Journal d'activitǸ
+                Journal d'activité
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value='overview' className='m-0 p-4 sm:p-6'>
-              <TripOverview trip={trip} />
+              <TourOverview tour={trip} />
             </TabsContent>
             <TabsContent value='documents' className='m-0 p-4 sm:p-6'>
               <div className='grid min-h-[12rem] place-items-center rounded-lg border border-dashed text-muted-foreground text-sm'>
-                Gestion des Bons de Livraison et documents �� venir.
+                Gestion des Bons de Livraison et documents à venir.
               </div>
             </TabsContent>
             <TabsContent value='activity' className='m-0 p-4 sm:p-6'>
               <div className='grid min-h-[12rem] place-items-center rounded-lg border border-dashed text-muted-foreground text-sm'>
-                Historique des ǸvǸnements du trajet �� venir.
+                Historique des événements du trajet à venir.
               </div>
             </TabsContent>
           </Tabs>
@@ -189,3 +255,6 @@ export function TripDetails({ trip }: TripDetailsProps) {
     </div>
   )
 }
+
+// Import helpers
+// getTourEta, getTourCargo, getTourVolume imported at top

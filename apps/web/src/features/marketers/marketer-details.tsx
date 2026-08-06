@@ -1,5 +1,5 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { Building2, ArrowLeft } from 'lucide-react'
+import { Building2, ArrowLeft, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getMarketerById } from './data/marketers'
@@ -7,6 +7,7 @@ import { MarketerOverview } from './components/marketer-overview'
 import { MarketerSites } from './components/marketer-sites'
 import { MarketerBulkRoutes } from './components/marketer-bulk-routes'
 import { MarketerCylindersRoutes } from './components/marketer-cylinders-routes'
+import { MarketerPickupsList } from './components/marketer-pickups-list'
 
 const route = getRouteApi('/_authenticated/marketers/$marketerId')
 
@@ -60,6 +61,9 @@ export function MarketerDetailsPage() {
           <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4 lg:w-[600px]'>
             <TabsTrigger value='overview' className='whitespace-nowrap text-xs sm:text-sm'>Vue d'ensemble</TabsTrigger>
             <TabsTrigger value='sites' className='whitespace-nowrap text-xs sm:text-sm'>Sites & Dépôts</TabsTrigger>
+            <TabsTrigger value='pickups' className='whitespace-nowrap text-xs sm:text-sm'>
+              <Package className='h-3.5 w-3.5 inline mr-1' /> Enlèvements
+            </TabsTrigger>
             <TabsTrigger value='bulk' className='whitespace-nowrap text-xs sm:text-sm'>Tournées Vrac</TabsTrigger>
             <TabsTrigger value='cylinders' className='whitespace-nowrap text-xs sm:text-sm'>Tournées 50 kg</TabsTrigger>
           </TabsList>
@@ -70,6 +74,9 @@ export function MarketerDetailsPage() {
           </TabsContent>
           <TabsContent value='sites' className='m-0'>
             <MarketerSites marketer={marketer} />
+          </TabsContent>
+          <TabsContent value='pickups' className='m-0'>
+            <MarketerPickupsList marketer={marketer} />
           </TabsContent>
           <TabsContent value='bulk' className='m-0'>
             <MarketerBulkRoutes marketer={marketer} />

@@ -16,7 +16,7 @@ import { trucks } from '@/features/trucks/trucks'
 import { sites } from '@/features/sites/data/sites'
 import { transporters } from '@/features/transporters/transporters'
 import { marketers } from '@/features/marketers/data/marketers'
-import { getRouteTripsView } from '@/features/routes/routes'
+import { getRouteTripsView } from '@/features/routes/data/routes'
 import { TruckIcon, MapPin, Handshake, Building2, FileText, Home, Clock } from 'lucide-react'
 
 type SearchItem = {

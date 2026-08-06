@@ -6,6 +6,7 @@ import { getTransporterById } from './transporters'
 import { TransporterOverview } from './components/transporter-overview'
 import { TransporterTrucksList } from './components/transporter-trucks-list'
 import { TransporterHistory } from './components/transporter-history'
+import { TransporterPendingTours } from './components/transporter-pending-tours'
 
 const route = getRouteApi('/_authenticated/transporters/$transporterId')
 
@@ -56,9 +57,10 @@ export function TransporterDetailsPage() {
 
       <Tabs defaultValue='overview' className='w-full'>
         <div className='overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0'>
-          <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 lg:w-[450px]'>
+          <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4 lg:w-[600px]'>
             <TabsTrigger value='overview' className='whitespace-nowrap text-xs sm:text-sm'>Vue d'ensemble</TabsTrigger>
             <TabsTrigger value='trucks' className='whitespace-nowrap text-xs sm:text-sm'>Camions</TabsTrigger>
+            <TabsTrigger value='pending' className='whitespace-nowrap text-xs sm:text-sm'>En attente d'accusé</TabsTrigger>
             <TabsTrigger value='history' className='whitespace-nowrap text-xs sm:text-sm'>Historique Tournées</TabsTrigger>
           </TabsList>
         </div>
@@ -68,6 +70,9 @@ export function TransporterDetailsPage() {
           </TabsContent>
           <TabsContent value='trucks' className='m-0'>
             <TransporterTrucksList transporter={transporter} />
+          </TabsContent>
+          <TabsContent value='pending' className='m-0'>
+            <TransporterPendingTours transporter={transporter} />
           </TabsContent>
           <TabsContent value='history' className='m-0'>
             <TransporterHistory transporter={transporter} />

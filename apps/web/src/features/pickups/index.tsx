@@ -41,7 +41,7 @@ export function PickupsPage({ role }: { role: 'MARKETEUR' | 'ADMIN' | 'SUPERADMI
         actions={
           role === 'MARKETEUR' ? (
             <Button asChild className='gap-2'>
-              <a href='/marketeur/supply'>
+              <a href='/marketers/supply'>
                 <Plus className='size-4' /> Nouvelle requête
               </a>
             </Button>

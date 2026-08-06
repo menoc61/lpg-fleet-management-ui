@@ -29,8 +29,8 @@ const SLUG_BY_ROLE: Record<Role, string> = {
   SUPERVISOR: 'supervisor',
   INTEGRATEUR: 'integrateur',
   AGENT: 'agent',
-  MARKETEUR: 'marketeur',
-  TRANSPORTEUR: 'transporteur',
+  MARKETEUR: 'marketers',
+  TRANSPORTEUR: 'transporters',
   LIVREUR: 'livreur',
 }
 

@@ -1,15 +1,15 @@
 import { curated } from '@lpg/mock-data'
-import type { DeliveryTour, Checkpoint, Site, ClientSite, Vehicle, Driver, User, Organization } from '@lpg/types'
+import type { DeliveryTour, TransporterContract, Organization, Vehicle, Driver, Checkpoint, Site, ClientSite } from '@lpg/types'
 import { format } from 'date-fns'
 
 export type TourStatus = DeliveryTour['status']
 
-export interface TourWithDetails extends DeliveryTour {
+export interface TransporterTourWithDetails extends DeliveryTour {
   marketeur?: Organization
   transporter?: Organization
   vehicle?: Vehicle
   driver?: Driver
-  livreur?: User
+  contract?: TransporterContract
   checkpoints?: (Checkpoint & { site?: Site; client_site?: ClientSite })[]
   progress: number
   statusLabel: string
@@ -61,7 +61,7 @@ function tourProgress(status: DeliveryTour['status']): number {
   }
 }
 
-function buildTourWithDetails(tour: DeliveryTour): TourWithDetails {
+function buildTransporterTourWithDetails(tour: DeliveryTour): TransporterTourWithDetails {
   const marketeur = curated.organizations.find((o) => o.id === tour.marketeur_org_id)
   const transporter = tour.transporter_org_id
     ? curated.organizations.find((o) => o.id === tour.transporter_org_id)
@@ -72,8 +72,10 @@ function buildTourWithDetails(tour: DeliveryTour): TourWithDetails {
   const driver = tour.driver_id
     ? curated.drivers.find((d) => d.id === tour.driver_id)
     : undefined
-  const livreur = tour.livreur_user_id
-    ? curated.users.find((u) => u.id === tour.livreur_user_id)
+  const contract = tour.transporter_org_id
+    ? curated.transporter_contracts.find(
+        (c) => c.marketeur_org_id === tour.marketeur_org_id && c.transporter_org_id === tour.transporter_org_id && c.is_active
+      )
     : undefined
 
   const tourCheckpoints = curated.checkpoints
@@ -93,41 +95,37 @@ function buildTourWithDetails(tour: DeliveryTour): TourWithDetails {
     transporter,
     vehicle,
     driver,
-    livreur,
+    contract,
     checkpoints: tourCheckpoints,
     progress: tourProgress(tour.status),
     statusLabel: tourStatusLabel(tour.status),
   }
 }
 
-export function getToursForMarketer(marketerOrgId: string): TourWithDetails[] {
-  return curated.delivery_tours
-    .filter((t) => t.marketeur_org_id === marketerOrgId)
-    .map(buildTourWithDetails)
-}
-
-export function getToursForTransporter(transporterOrgId: string): TourWithDetails[] {
+export function getToursForTransporter(transporterOrgId: string): TransporterTourWithDetails[] {
   return curated.delivery_tours
     .filter((t) => t.transporter_org_id === transporterOrgId)
-    .map(buildTourWithDetails)
+    .map(buildTransporterTourWithDetails)
 }
 
-export function getToursForLivreur(livreurUserId: string): TourWithDetails[] {
+export function getToursForMarketer(marketerOrgId: string): TransporterTourWithDetails[] {
   return curated.delivery_tours
-    .filter((t) => t.livreur_user_id === livreurUserId)
-    .map(buildTourWithDetails)
+    .filter((t) => t.marketeur_org_id === marketerOrgId)
+    .map(buildTransporterTourWithDetails)
 }
 
-export function getAllTours(): TourWithDetails[] {
-  return curated.delivery_tours.map(buildTourWithDetails)
+export function getAllTransporterTours(): TransporterTourWithDetails[] {
+  return curated.delivery_tours
+    .filter((t) => t.transporter_org_id != null)
+    .map(buildTransporterTourWithDetails)
 }
 
-export function getTourById(id: string): TourWithDetails | undefined {
+export function getTransporterTourById(id: string): TransporterTourWithDetails | undefined {
   const tour = curated.delivery_tours.find((t) => t.id === id)
-  return tour ? buildTourWithDetails(tour) : undefined
+  return tour ? buildTransporterTourWithDetails(tour) : undefined
 }
 
-// Helper to get ETA string
+// Helper functions for display
 export function getTourEta(tour: DeliveryTour): string {
   if (tour.started_at) {
     const start = new Date(tour.started_at)
@@ -137,16 +135,14 @@ export function getTourEta(tour: DeliveryTour): string {
   return '—'
 }
 
-// Helper to get cargo description
 export function getTourCargo(tour: DeliveryTour): string {
   return tour.type === 'VRAC' ? 'GPL vrac' : 'Bouteilles 50 kg'
 }
 
-// Helper to get volume string
 export function getTourVolume(tour: DeliveryTour): string {
   return `${tour.requested_quantity} ${tour.type === 'VRAC' ? 't' : 'btl'}`
 }
 
-// Backward compatibility aliases
-export type Trip = TourWithDetails
-export const trips = getAllTours()
+export function getExecutionModeLabel(mode: DeliveryTour['execution_mode']): string {
+  return mode === 'INTERNAL' ? 'Interne' : 'Externe'
+}

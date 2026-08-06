@@ -1,14 +1,17 @@
-import { type Organization } from '@lpg/types'
-import { getTransporterTrucks } from '../data/transporter-trucks'
-import { getTransporterRoutes } from '../data/transporter-routes'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Truck, Route } from 'lucide-react'
+import { type Organization, type Vehicle } from '@lpg/types'
+import { getTransporterTrucks } from '@/features/transporters/data/transporter-trucks'
+import { getToursForTransporter } from '@/features/transporters/data/transporter-tours'
+import { Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
+import { Truck, Route, CheckCircle } from 'lucide-react'
 
 export function TransporterOverview({ transporter }: { transporter: Organization }) {
-  const trucks = getTransporterTrucks(transporter.id)
-  const routes = getTransporterRoutes(transporter.id)
+  const trucks: Vehicle[] = getTransporterTrucks(transporter.id)
+  const tours = getToursForTransporter(transporter.id)
   const availableTrucks = trucks.filter((t) => t.is_active).length
-  const activeRoutes = routes.filter((r) => r.status === 'INPROGRESS').length
+  const activeTours = tours.filter((t) => 
+    t.status === 'INPROGRESS' || t.status === 'CHECKPOINTACTIVE'
+  ).length
+  const pendingAck = tours.filter((t) => t.status === 'PENDINGTRANSPORTERACK').length
 
   return (
     <div className='grid gap-4 grid-cols-2 lg:grid-cols-4'>
@@ -28,8 +31,18 @@ export function TransporterOverview({ transporter }: { transporter: Organization
           <Route className='w-4 h-4 text-muted-foreground' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{activeRoutes}</div>
-          <p className='text-xs text-muted-foreground'>sur {routes.length} total</p>
+          <div className='text-2xl font-bold'>{activeTours}</div>
+          <p className='text-xs text-muted-foreground'>sur {tours.length} total</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className='flex flex-row items-center justify-between pb-2 space-y-0'>
+          <CardTitle className='text-sm font-medium'>En attente d\'accusé</CardTitle>
+          <CheckCircle className='w-4 h-4 text-muted-foreground' />
+        </CardHeader>
+        <CardContent>
+          <div className='text-2xl font-bold'>{pendingAck}</div>
+          <p className='text-xs text-muted-foreground'>à reconnaître</p>
         </CardContent>
       </Card>
       <Card>
@@ -38,18 +51,10 @@ export function TransporterOverview({ transporter }: { transporter: Organization
           <Truck className='w-4 h-4 text-muted-foreground' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{trucks.reduce((sum, t) => sum + (t.max_volume ?? 0), 0)} TM</div>
+          <div className='text-2xl font-bold'>
+            {trucks.reduce((sum, t) => sum + (t.max_volume ?? 0), 0)} TM
+          </div>
           <p className='text-xs text-muted-foreground'>Tous camions confondus</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between pb-2 space-y-0'>
-          <CardTitle className='text-sm font-medium'>Statut</CardTitle>
-          <Truck className='w-4 h-4 text-muted-foreground' />
-        </CardHeader>
-        <CardContent>
-          <div className='text-2xl font-bold capitalize'>{transporter.is_active ? 'Actif' : 'Inactif'}</div>
-          <p className='text-xs text-muted-foreground'>{transporter.vehicle_count ?? 0} véhicules</p>
         </CardContent>
       </Card>
     </div>

@@ -220,6 +220,9 @@ export interface AppUser extends BaseEntity {
   must_change_password?: boolean
 }
 
+// Alias for backward compatibility
+export type User = AppUser
+
 export interface RegionEntity {
   id: string
   name: string
@@ -281,7 +284,7 @@ export interface Site extends BaseEntity {
   name: string
   functions?: SiteType[] | null
   address?: string
-  geo_point?: [number, number] | null
+  geo_point?: number[] | [number, number] | null
   geo_confidence_score?: number
   delivery_count?: number
   is_verified: boolean
@@ -312,7 +315,7 @@ export interface ClientSite extends BaseEntity {
   region: Region
   name: string
   address?: string
-  geo_point?: [number, number] | null
+  geo_point?: number[] | [number, number] | null
   geo_confidence_score?: number
   delivery_count?: number
   is_verified: boolean

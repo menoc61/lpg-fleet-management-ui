@@ -9,8 +9,8 @@ export const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className='flex items-center border-b px-3' cmdk-input-wrapper=''>
-    <Search className='mr-2 size-4 shrink-0 opacity-50' />
+  <div className={cn('flex items-center gap-2 border border-border bg-background rounded-xl px-3 py-1.5 shadow-sm transition-all duration-200 hover:border-border/70 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20', className)} cmdk-input-wrapper=''>
+    <Search className='mr-2 size-4 shrink-0 opacity-50 text-muted-foreground' />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -97,7 +97,7 @@ export const CommandDialog = ({
   <Dialog open={open} onOpenChange={onOpenChange}>
     <DialogContent
       showCloseButton={false}
-      className="overflow-hidden p-0 shadow-lg sm:max-w-[520px] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
+      className="overflow-hidden p-0 shadow-xl ring-1 ring-border/20 sm:max-w-[520px] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
     >
       <CommandPrimitive className="[[--cmdk-navigation-icons]:size-5]">
         {children}

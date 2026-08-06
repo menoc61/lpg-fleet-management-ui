@@ -14,9 +14,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedRoleIndexRouteImport } from './routes/_authenticated/$role/index'
-import { Route as AuthenticatedRoleModuleRouteImport } from './routes/_authenticated/$role/$module'
-import { Route as AuthenticatedRoleDashboardRouteImport } from './routes/_authenticated/$role/dashboard'
 import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
 import { Route as AuthenticatedClientSitesIndexRouteImport } from './routes/_authenticated/client-sites/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
@@ -60,22 +57,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRoleIndexRoute = AuthenticatedRoleIndexRouteImport.update({
-  id: '/$role/',
-  path: '/$role/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedRoleModuleRoute = AuthenticatedRoleModuleRouteImport.update({
-  id: '/$role/$module',
-  path: '/$role/$module',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedRoleDashboardRoute =
-  AuthenticatedRoleDashboardRouteImport.update({
-    id: '/$role/dashboard',
-    path: '/$role/dashboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedActivityTripTrackingRoute =
   AuthenticatedActivityTripTrackingRouteImport.update({
     id: '/activity/trip-tracking',
@@ -189,15 +170,12 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/$role/$module': typeof AuthenticatedRoleModuleRoute
-  '/$role/dashboard': typeof AuthenticatedRoleDashboardRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
-  '/$role/': typeof AuthenticatedRoleIndexRoute
   '/client-sites/': typeof AuthenticatedClientSitesIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/marketers/': typeof AuthenticatedMarketersIndexRoute
@@ -215,15 +193,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/terms': typeof TermsRoute
   '/': typeof AuthenticatedIndexRoute
-  '/$role/$module': typeof AuthenticatedRoleModuleRoute
-  '/$role/dashboard': typeof AuthenticatedRoleDashboardRoute
   '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
-  '/$role': typeof AuthenticatedRoleIndexRoute
   '/client-sites': typeof AuthenticatedClientSitesIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/marketers': typeof AuthenticatedMarketersIndexRoute
@@ -244,15 +219,12 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/$role/$module': typeof AuthenticatedRoleModuleRoute
-  '/_authenticated/$role/dashboard': typeof AuthenticatedRoleDashboardRoute
   '/_authenticated/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/_authenticated/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/_authenticated/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/_authenticated/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/_authenticated/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
-  '/_authenticated/$role/': typeof AuthenticatedRoleIndexRoute
   '/_authenticated/client-sites/': typeof AuthenticatedClientSitesIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/marketers/': typeof AuthenticatedMarketersIndexRoute
@@ -273,15 +245,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/terms'
     | '/dashboard'
-    | '/$role/$module'
-    | '/$role/dashboard'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
     | '/settings/notification-groups'
     | '/settings/profile'
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
-    | '/$role/'
     | '/client-sites/'
     | '/dashboard/'
     | '/marketers/'
@@ -299,15 +268,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/terms'
     | '/'
-    | '/$role/$module'
-    | '/$role/dashboard'
     | '/activity/trip-tracking'
     | '/marketers/$marketerId'
     | '/settings/notification-groups'
     | '/settings/profile'
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
-    | '/$role'
     | '/client-sites'
     | '/dashboard'
     | '/marketers'
@@ -327,15 +293,12 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_authenticated/dashboard'
     | '/_authenticated/'
-    | '/_authenticated/$role/$module'
-    | '/_authenticated/$role/dashboard'
     | '/_authenticated/activity/trip-tracking'
     | '/_authenticated/marketers/$marketerId'
     | '/_authenticated/settings/notification-groups'
     | '/_authenticated/settings/profile'
     | '/_authenticated/transporters/$transporterId'
     | '/_authenticated/trucks/$truckId'
-    | '/_authenticated/$role/'
     | '/_authenticated/client-sites/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/marketers/'
@@ -391,27 +354,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/$role/': {
-      id: '/_authenticated/$role/'
-      path: '/$role'
-      fullPath: '/$role/'
-      preLoaderRoute: typeof AuthenticatedRoleIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/$role/$module': {
-      id: '/_authenticated/$role/$module'
-      path: '/$role/$module'
-      fullPath: '/$role/$module'
-      preLoaderRoute: typeof AuthenticatedRoleModuleRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/$role/dashboard': {
-      id: '/_authenticated/$role/dashboard'
-      path: '/$role/dashboard'
-      fullPath: '/$role/dashboard'
-      preLoaderRoute: typeof AuthenticatedRoleDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/activity/trip-tracking': {
@@ -566,15 +508,12 @@ const AuthenticatedDashboardRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedRoleModuleRoute: typeof AuthenticatedRoleModuleRoute
-  AuthenticatedRoleDashboardRoute: typeof AuthenticatedRoleDashboardRoute
   AuthenticatedActivityTripTrackingRoute: typeof AuthenticatedActivityTripTrackingRoute
   AuthenticatedMarketersMarketerIdRoute: typeof AuthenticatedMarketersMarketerIdRoute
   AuthenticatedSettingsNotificationGroupsRoute: typeof AuthenticatedSettingsNotificationGroupsRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
   AuthenticatedTransportersTransporterIdRoute: typeof AuthenticatedTransportersTransporterIdRoute
   AuthenticatedTrucksTruckIdRoute: typeof AuthenticatedTrucksTruckIdRoute
-  AuthenticatedRoleIndexRoute: typeof AuthenticatedRoleIndexRoute
   AuthenticatedClientSitesIndexRoute: typeof AuthenticatedClientSitesIndexRoute
   AuthenticatedMarketersIndexRoute: typeof AuthenticatedMarketersIndexRoute
   AuthenticatedPickupsIndexRoute: typeof AuthenticatedPickupsIndexRoute
@@ -589,8 +528,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedRoleModuleRoute: AuthenticatedRoleModuleRoute,
-  AuthenticatedRoleDashboardRoute: AuthenticatedRoleDashboardRoute,
   AuthenticatedActivityTripTrackingRoute:
     AuthenticatedActivityTripTrackingRoute,
   AuthenticatedMarketersMarketerIdRoute: AuthenticatedMarketersMarketerIdRoute,
@@ -600,7 +537,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTransportersTransporterIdRoute:
     AuthenticatedTransportersTransporterIdRoute,
   AuthenticatedTrucksTruckIdRoute: AuthenticatedTrucksTruckIdRoute,
-  AuthenticatedRoleIndexRoute: AuthenticatedRoleIndexRoute,
   AuthenticatedClientSitesIndexRoute: AuthenticatedClientSitesIndexRoute,
   AuthenticatedMarketersIndexRoute: AuthenticatedMarketersIndexRoute,
   AuthenticatedPickupsIndexRoute: AuthenticatedPickupsIndexRoute,

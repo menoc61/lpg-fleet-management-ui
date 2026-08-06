@@ -167,27 +167,27 @@ export type DashboardView = {
 }
 
 const reserveConfigBySiteId = {
-  'site-bipaga': {
+  'site-0033-scdp-kribi': {
     capacityKg: 52000,
     reserveKg: 41800,
     targetMinPercent: 42,
   },
-  'site-scdp-douala': {
+  'site-0028-scdp-bonaberi': {
     capacityKg: 32000,
     reserveKg: 17350,
     targetMinPercent: 40,
   },
-  'site-scdp-yaounde': {
+  'site-0029-scdp-yaounde': {
     capacityKg: 26000,
     reserveKg: 11400,
     targetMinPercent: 45,
   },
-  'site-bonaberi-center': {
+  'site-0001-sctm-bonaberi': {
     capacityKg: 20000,
     reserveKg: 6200,
     targetMinPercent: 38,
   },
-  'site-bafoussam-center': {
+  'site-0003-sctm-bafoussam': {
     capacityKg: 14000,
     reserveKg: 9800,
     targetMinPercent: 40,

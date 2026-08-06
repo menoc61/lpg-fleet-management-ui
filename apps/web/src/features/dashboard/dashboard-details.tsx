@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
-import { buildDashboardView } from './dashboard'
+import { buildDashboardView } from './data/dashboard'
 
 export function FleetDetailPage() {
   const { fleetName } = useParams({ from: '/_authenticated/dashboard/fleets/$fleetName' })
