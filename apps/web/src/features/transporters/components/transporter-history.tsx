@@ -1,5 +1,5 @@
 import { type Organization } from '@lpg/types'
-import { getToursForTransporter } from '../data/transporter-tours'
+import { getToursForTransporter, type TransporterTourWithDetails } from '../data/transporter-tours'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
@@ -20,7 +20,7 @@ const executionModeBadge: Record<string, 'default' | 'secondary' | 'outline'> = 
   EXTERNAL: 'secondary',
 }
 
-function getDriverName(tour: any): string {
+function getDriverName(tour: TransporterTourWithDetails): string {
   if (!tour.driver) return '—'
   const firstName = tour.driver.first_name?.trim() ?? ''
   const lastName = tour.driver.last_name?.trim() ?? ''

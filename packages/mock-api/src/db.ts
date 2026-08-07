@@ -22,8 +22,8 @@ export const collections: Collections = {
   clients: curated.clients,
   client_sites: curated.client_sites,
   user_site_assignments: (curated as any).user_site_assignments ?? (empty as never[]),
-  custom_roles: (curated as any).custom_roles ?? (empty as never[]),
-  user_custom_roles: (curated as any).user_custom_roles ?? (empty as never[]),
+  custom_roles: curated.custom_roles,
+  user_custom_roles: curated.user_custom_roles,
   vehicles: curated.vehicles,
   drivers: curated.drivers,
   devices: curated.devices,
@@ -32,7 +32,7 @@ export const collections: Collections = {
   delivery_tours: curated.delivery_tours,
   checkpoints: curated.checkpoints,
   scan_events: curated.scan_events,
-  rfid_tags: (curated as any).rfid_tags ?? (empty as never[]),
+  rfid_tags: curated.rfid_tags,
   declarations: curated.declarations,
   reconciliations: curated.reconciliations,
   redressements: curated.redressements,
@@ -43,9 +43,9 @@ export const collections: Collections = {
   notification_group_members: curated.notification_group_members,
   notification_rules: curated.notification_rules,
   notifications: curated.notifications,
-  reports: (curated as any).reports ?? (empty as never[]),
-  audit_logs: (curated as any).audit_logs ?? (empty as never[]),
-  settings: (curated as any).settings ?? (empty as never[]),
+  reports: curated.reports,
+  audit_logs: curated.audit_logs,
+  settings: curated.settings,
 }
 
 function ensureCollection(name: EntityName) {

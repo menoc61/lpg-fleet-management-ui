@@ -94,3 +94,13 @@ Rules:
 
 Note: TODO.md, schema SQL, and this file change over time — re-read them as needed; this file
 is the standing contract and should be kept in sync with any new rule the user adds.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues, accessed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context — read `CONTEXT.md` and `docs/adr/` at the repo root when exploring the codebase. See `docs/agents/domain.md`.

@@ -36,6 +36,12 @@ export {
   system_roles,
   permissions,
   regions,
+  rfid_tags,
+  settings,
+  reports,
+  audit_logs,
+  custom_roles,
+  user_custom_roles,
 } from './entities.ts'
 
 export type {
@@ -67,6 +73,15 @@ export type {
   Notification,
   CuratedFixtures,
 } from './curated.ts'
+
+export type {
+  Setting,
+  Report,
+  AuditLog,
+  RfidTag,
+  CustomRole,
+  UserCustomRole,
+} from '@lpg/types'
 
 export * from './analytics.ts'
 

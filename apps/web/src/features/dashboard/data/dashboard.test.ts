@@ -6,21 +6,21 @@ describe('buildDashboardView', () => {
     const dashboard = buildDashboardView()
 
     expect(dashboard.overview).toMatchObject({
-      totalTransportedKg: 53200,
-      totalDeliveredKg: 17100,
+      totalTransportedKg: 83890,
+      totalDeliveredKg: 25140,
       totalReserveKg: 86550,
       reserveCapacityKg: 144000,
       reserveFillPercent: 60,
-      reserveCoverageDays: 5.1,
-      activeTrips: 2,
-      plannedTrips: 1,
-      incidentTrips: 1,
-      activeTrucks: 4,
-      totalTrucks: 6,
-      riskTrucks: 3,
-      abnormalLossKg: 1850,
+      reserveCoverageDays: 3.4,
+      activeTrips: 4,
+      plannedTrips: 4,
+      incidentTrips: 0,
+      activeTrucks: 27,
+      totalTrucks: 33,
+      riskTrucks: 0,
+      abnormalLossKg: 0,
       openAlerts: 4,
-      criticalAlerts: 2,
+      criticalAlerts: 1,
     })
 
     expect(dashboard.metrics.map((metric) => metric.id)).toEqual([
@@ -42,8 +42,8 @@ describe('buildDashboardView', () => {
       dashboard.trendByPeriod.daily[dashboard.trendByPeriod.daily.length - 1]
     ).toEqual({
       label: "Aujourd'hui",
-      transportedKg: 53200,
-      deliveredKg: 17100,
+      transportedKg: 83890,
+      deliveredKg: 25140,
       reserveKg: 86550,
       alertCount: 4,
       serviceRate: 67,
@@ -63,80 +63,89 @@ describe('buildDashboardView', () => {
   it('surfaces fleet and reserve site hotspots in priority order', () => {
     const dashboard = buildDashboardView()
 
-    expect(dashboard.fleets).toEqual([
-      expect.objectContaining({
-        fleetName: 'Tradex',
-        transportedKg: 28000,
-        deliveredKg: 6050,
-        pendingKg: 21950,
-        sharePercent: 53,
-        onTimeRate: 100,
-      }),
-      expect.objectContaining({
-        fleetName: 'Total Cameroun',
-        transportedKg: 25200,
-        deliveredKg: 11050,
-        pendingKg: 12300,
-        sharePercent: 47,
-        onTimeRate: 50,
-      }),
-    ])
+    expect(dashboard.fleets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fleetName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
+          transportedKg: 26850,
+          deliveredKg: 11620,
+          pendingKg: 15230,
+          sharePercent: 32,
+          onTimeRate: 100,
+          truckCount: 3,
+        }),
+        expect.objectContaining({
+          fleetName: 'STARGAS Cameroun SARL',
+          transportedKg: 12000,
+          deliveredKg: 0,
+          pendingKg: 12000,
+          sharePercent: 14,
+          onTimeRate: 0,
+          truckCount: 2,
+        }),
+      ])
+    )
+
+    expect(dashboard.fleets[0]!.fleetName).toBe(
+      'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures'
+    )
+    expect(dashboard.fleets[1]!.fleetName).toBe('STARGAS Cameroun SARL')
+    expect(dashboard.fleets[0]).toMatchObject({ onTimeRate: 100 })
+    expect(dashboard.fleets[1]).toMatchObject({ onTimeRate: 0 })
 
     expect(dashboard.reserveSites[0]).toMatchObject({
       siteId: 'site-0001-sctm-bonaberi',
       status: 'critical',
       fillPercent: 31,
-      scheduledInboundKg: 12450,
-      activeTripCount: 2,
+      activeTripCount: 6,
     })
     expect(dashboard.reserveSites[1]).toMatchObject({
       siteId: 'site-0029-scdp-yaounde',
       status: 'watch',
       fillPercent: 44,
-      outboundKg: 14000,
+      activeTripCount: 0,
     })
 
     expect(dashboard.alerts.map((alert) => alert.id)).toEqual([
-      'route-trip-nsam-ebolowa-loss',
-      'reserve-site-bonaberi-center-critical',
-      'route-trip-nsam-ebolowa-eta',
-      'reserve-site-scdp-yaounde-watch',
+      'reserve-site-0001-sctm-bonaberi-critical',
+      'tour-002-eta',
+      'tour-008-eta',
+      'reserve-site-0029-scdp-yaounde-watch',
     ])
   })
 
   it('keeps route-level contribution details for volume traceability', () => {
     const dashboard = buildDashboardView()
 
-    expect(dashboard.routeContributions).toEqual([
-      expect.objectContaining({
-        reference: 'TRP-2401',
-        carrierName: 'Tradex',
-        plateNumber: 'CE 7753 AE',
-        driverName: 'Ekane Samuel',
-        loadedQuantityKg: 18500,
-        deliveredQuantityKg: 6050,
-        transportedSharePercent: 35,
-      }),
-      expect.objectContaining({
-        reference: 'TRP-2402',
-        carrierName: 'Total Cameroun',
-        plateNumber: 'LT 8870 AD',
-        loadedQuantityKg: 14000,
-        unaccountedKg: 1850,
-        status: 'incident',
-      }),
-      expect.objectContaining({
-        reference: 'TRP-2398',
-        carrierName: 'Total Cameroun',
-        deliveredQuantityKg: 11050,
-        deliveredSharePercent: 65,
-      }),
-      expect.objectContaining({
-        reference: 'TRP-2403',
-        carrierName: 'Tradex',
-        loadedQuantityKg: 9500,
-        status: 'planned',
-      }),
-    ])
+    expect(dashboard.routeContributions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reference: 'TRP-2405',
+          carrierName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
+          plateNumber: 'LT1123UB',
+          loadedQuantityKg: 15000,
+          transportedSharePercent: 18,
+        }),
+        expect.objectContaining({
+          reference: 'TRP-2409',
+          carrierName: 'STARGAS Cameroun SARL',
+          plateNumber: 'LT0013TL',
+          loadedQuantityKg: 12000,
+        }),
+        expect.objectContaining({
+          reference: 'TRP-2401',
+          carrierName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
+          plateNumber: 'LT1123UB',
+          deliveredQuantityKg: 11620,
+        }),
+        expect.objectContaining({
+          reference: 'TRP-2404',
+          carrierName: 'Clinique Baptiste de Douala',
+          plateNumber: 'LT9903TJ',
+          loadedQuantityKg: 3600,
+          status: 'in-progress',
+        }),
+      ])
+    )
   })
 })

@@ -15,6 +15,7 @@ import deliveryToursJson from './seed/curated/06_delivery_tours.json'
 import complianceJson from './seed/curated/07_compliance.json'
 import anomaliesJson from './seed/curated/08_anomalies.json'
 import notificationsJson from './seed/curated/09_notifications.json'
+import systemConfigJson from './seed/curated/10_system_config.json'
 import type {
   Role,
   OrgType,
@@ -40,6 +41,12 @@ import type {
   CheckpointStatus,
   ScanDirection,
   MfaStatus,
+  Setting,
+  Report,
+  AuditLog,
+  RfidTag,
+  CustomRole,
+  UserCustomRole,
 } from '@lpg/types'
 
 export interface Region {
@@ -494,6 +501,12 @@ export interface CuratedFixtures {
   notification_group_members: NotificationGroupMember[]
   notification_rules: NotificationRule[]
   notifications: Notification[]
+  settings: Setting[]
+  reports: Report[]
+  audit_logs: AuditLog[]
+  rfid_tags: RfidTag[]
+  custom_roles: CustomRole[]
+  user_custom_roles: UserCustomRole[]
 }
 
 export const curated: CuratedFixtures = {
@@ -525,4 +538,10 @@ export const curated: CuratedFixtures = {
   notification_group_members: notificationsJson.notification_group_members as NotificationGroupMember[],
   notification_rules: notificationsJson.notification_rules as NotificationRule[],
   notifications: notificationsJson.notifications as Notification[],
+  settings: systemConfigJson.settings as Setting[],
+  reports: systemConfigJson.reports as Report[],
+  audit_logs: systemConfigJson.audit_logs as AuditLog[],
+  rfid_tags: systemConfigJson.rfid_tags as RfidTag[],
+  custom_roles: systemConfigJson.custom_roles as CustomRole[],
+  user_custom_roles: systemConfigJson.user_custom_roles as UserCustomRole[],
 }

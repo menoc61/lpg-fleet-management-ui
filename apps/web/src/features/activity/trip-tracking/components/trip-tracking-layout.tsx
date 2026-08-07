@@ -7,16 +7,11 @@ import { TourList } from './trip-list'
 
 export function SuiviTripsLayout() {
   const [detailsOpen, setDetailsOpen] = React.useState(false)
-  const [selectedTripId, setSelectedTripId] = React.useState<string | null>(null)
-  
+
   const allTours = getAllTours()
-  
-  // Initialize with first tour if available
-  React.useEffect(() => {
-    if (!selectedTripId && allTours.length > 0) {
-      setSelectedTripId(allTours[0]!.id)
-    }
-  }, [allTours, selectedTripId])
+  const [selectedTripId, setSelectedTripId] = React.useState<string | null>(
+    () => allTours[0]?.id ?? null,
+  )
 
   const selectedTrip = allTours.find((tour) => tour.id === selectedTripId) ?? null
 

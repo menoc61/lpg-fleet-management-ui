@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { DataTable } from '@lpg/ui'
-import type { PickupRequest } from '@lpg/types'
-import { pickupsColumns } from './pickups-columns'
+import { pickupsColumns, type PickupWithSites } from './pickups-columns'
 
 interface PickupsTableProps {
-  data: (PickupRequest & { source_site?: any; destination_site?: any })[]
+  data: PickupWithSites[]
   search?: string
-  onViewDetails: (pickup: PickupRequest & { source_site?: any; destination_site?: any }) => void
+  onViewDetails: (pickup: PickupWithSites) => void
 }
 
 export function PickupsTable({ data, onViewDetails }: PickupsTableProps) {

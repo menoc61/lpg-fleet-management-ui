@@ -7,7 +7,6 @@ import {
 } from '@lpg/ui'
 import { AppTitle } from './app-title'
 import { NavGroup } from './nav-group'
-import { RoleSwitcher } from './role-switcher'
 import { NavUser } from './nav-user'
 import { useRoleStore } from '@/store/role-store'
 import { getSidebarData } from '@/config/rbac/sidebar-by-role'
@@ -27,7 +26,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <RoleSwitcher />
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

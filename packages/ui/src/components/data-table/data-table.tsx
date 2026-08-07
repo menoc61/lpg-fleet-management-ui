@@ -49,7 +49,7 @@ import { type NavigateFn, useTableUrlState } from '../../hooks/use-table-url-sta
 export type FacetedFilterConfig = {
   columnId: string
   title: string
-  options: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[]
+  options: ReadonlyArray<{ label: string; value: string; icon?: React.ComponentType<{ className?: string }> }>
 }
 
 export type DataTableProps<TData> = {

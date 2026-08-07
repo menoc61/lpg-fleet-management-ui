@@ -81,9 +81,9 @@ export interface NavItemDecl {
   label: string
   /** Lucide icon component. */
   icon?: NavIcon
-  /** URL segment relative to /:roleSlug (e.g. 'users'). Pure staticLink allowed. */
+  /** Bare URL segment of the feature route (e.g. 'users' → '/users'). Static items use a literal path. */
   path?: string
-  /** Set to true for items that ignore the role prefix (paths like '/grafana'). */
+  /** Set to true for items with a literal absolute path (e.g. '/grafana') that never takes a role prefix. */
   static?: boolean
   /** Visual badge (e.g. '!' for alerts). */
   badge?: string
@@ -257,13 +257,6 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     id: 'device-assignments',
     label: 'Affectations appareils',
     icon: Link2,
-    path: 'device-assignments',
-    requires: ['devices.read'],
-  },
-  {
-    id: 'device-history',
-    label: 'Historique statuts appareils',
-    icon: History,
     path: 'device-assignments',
     requires: ['devices.read'],
   },
@@ -459,13 +452,6 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     path: 'supply',
     requires: ['pickups.create'],
   },
-  {
-    id: 'tours-mgmt',
-    label: 'Tournées',
-    icon: Route,
-    path: 'tours',
-    requires: ['tours.write'],
-  },
 
   /* ----------- TRANSPORTEUR-specific ----------- */
   {
@@ -612,7 +598,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     id: 'settings',
     label: 'Paramètres globaux',
     icon: Gauge,
-    path: 'settings',
+    path: 'settings/system',
     requires: ['settings.read'],
   },
 
@@ -804,7 +790,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
       },
       {
         title: 'Authentification & Sécurité',
-        items: ['users', 'device-assignments', 'device-history'],
+        items: ['users', 'device-assignments'],
       },
       { title: 'Maintenance', items: ['maintenance', 'firmware', 'logs'] },
     ],
@@ -874,13 +860,22 @@ function visibleIdsFor(role: Role): Set<string> {
   return visible
 }
 
-function toSidebarItem(_role: Role, decl: NavItemDecl, roleSlug: string) {
-  const path = decl.static
-    ? decl.path ?? '/'
-    : `/${roleSlug}/${decl.path ?? decl.id}`
+/**
+ * Resolve a nav item's absolute feature path (AGENTS.md §5 — bare paths only,
+ * no role prefix). Static items keep their literal path (e.g. '/grafana');
+ * others become `/<path>` (or `/<id>` when no path is declared).
+ *
+ * Single source of truth — the sidebar and the route guard both use this so
+ * a link can never exist that the guard doesn't know how to authorize.
+ */
+export function resolveFeaturePath(decl: NavItemDecl): string {
+  return decl.static ? decl.path ?? '/' : `/${decl.path ?? decl.id}`
+}
+
+function toSidebarItem(_role: Role, decl: NavItemDecl) {
   return {
     title: decl.label,
-    url: path,
+    url: resolveFeaturePath(decl),
     icon: decl.icon,
     badge: decl.badge,
   }
@@ -889,7 +884,7 @@ function toSidebarItem(_role: Role, decl: NavItemDecl, roleSlug: string) {
 /**
  * Build the sidebar for a role. Pure — recompute on role change.
  */
-export function buildSidebarFor(role: Role, roleSlug: string): SidebarData {
+export function buildSidebarFor(role: Role): SidebarData {
   const decl = ROLE_NAV_DECL[role]
   const visible = visibleIdsFor(role)
   if (!decl) return { navGroups: [] }
@@ -902,7 +897,7 @@ export function buildSidebarFor(role: Role, roleSlug: string): SidebarData {
           if (!item) return false
           return visible.has(item.id)
         })
-        .map((item) => toSidebarItem(role, item, roleSlug))
+        .map((item) => toSidebarItem(role, item))
       return items.length ? { title: group.title, items } : null
     })
     .filter((group): group is { title: string; items: ReturnType<typeof toSidebarItem>[] } => group !== null)

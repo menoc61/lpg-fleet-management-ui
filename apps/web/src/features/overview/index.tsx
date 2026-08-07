@@ -1,0 +1,67 @@
+import { useMemo } from 'react'
+import { LayoutDashboard } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Main } from '@/components/layout/main'
+import { ROLE_LABELS } from '@/config/rbac/roles'
+import { useRoleStore } from '@/store/role-store'
+import { getOverviewCards, type OverviewCard } from './data/overview'
+
+export function OverviewPage() {
+  const activeRole = useRoleStore((s) => s.activeRole)
+  const cards = useMemo(() => getOverviewCards(activeRole), [activeRole])
+  const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
+
+  return (
+    <Main fluid className='space-y-6 bg-muted/20'>
+      <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+        <div className='space-y-1'>
+          <div className='flex items-center gap-3'>
+            <div className='flex size-10 items-center justify-center rounded-xl border bg-muted/30'>
+              <LayoutDashboard className='size-5 text-primary' />
+            </div>
+            <h1 className='font-manrope text-3xl font-semibold tracking-tight'>
+              Vue d&apos;ensemble
+            </h1>
+          </div>
+          <p className='max-w-3xl text-sm text-muted-foreground sm:text-base'>
+            Indicateurs clés consolidés pour votre rôle.
+          </p>
+        </div>
+
+        <Badge
+          variant='outline'
+          className='w-fit rounded-xl border-transparent bg-muted/40 px-3 py-2 text-foreground'
+        >
+          {roleLabel}
+        </Badge>
+      </section>
+
+      <section className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+        {cards.map((card) => (
+          <OverviewCardItem key={card.id} card={card} />
+        ))}
+      </section>
+    </Main>
+  )
+}
+
+function OverviewCardItem({ card }: { card: OverviewCard }) {
+  return (
+    <Card className='flex h-full flex-col rounded-2xl border-border/60 shadow-none transition-colors'>
+      <CardHeader className='pb-3'>
+        <CardTitle className='text-base font-medium'>{card.label}</CardTitle>
+      </CardHeader>
+      <CardContent className='flex flex-1 flex-col justify-between gap-3'>
+        <p className='text-4xl font-semibold tracking-tight'>{card.value}</p>
+        <CardDescription>{card.detail}</CardDescription>
+      </CardContent>
+    </Card>
+  )
+}

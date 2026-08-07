@@ -72,10 +72,10 @@ export function getPickups(): Pickup[] {
   }))
 
   const extras: Pickup[] = EXTRA_STATUSES.map((status, idx) => {
-    const source = sites[seededIndex(`src-${idx}`, Math.max(sites.length, 1))] ?? sites[0]
-    const destination = sites[seededIndex(`dst-${idx}`, Math.max(sites.length, 1))] ?? sites[Math.min(1, sites.length - 1)]
-    const marketeur = organizations.find((o) => o.type === 'MARKETEUR') ?? organizations[0]
-    const [requestedAt, validatedAt, startedAt, completedAt] = EXTRA_TIMES[idx]
+    const source = sites[seededIndex(`src-${idx}`, Math.max(sites.length, 1))] ?? sites[0]!
+    const destination = sites[seededIndex(`dst-${idx}`, Math.max(sites.length, 1))] ?? sites[Math.min(1, sites.length - 1)]!
+    const marketeur = organizations.find((o) => o.type === 'MARKETEUR') ?? organizations[0]!
+    const [requestedAt, validatedAt, startedAt, completedAt] = EXTRA_TIMES[idx]!
     return {
       id: `pickup-extra-${idx}`,
       reference: `PU-${2001 + idx}`,

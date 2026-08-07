@@ -274,6 +274,9 @@ importers:
       '@lpg/mock-data':
         specifier: workspace:*
         version: link:../mock-data
+      '@lpg/permissions':
+        specifier: workspace:*
+        version: link:../permissions
       '@lpg/types':
         specifier: workspace:*
         version: link:../types

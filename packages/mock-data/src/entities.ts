@@ -42,6 +42,12 @@ import type {
   SystemRole,
   Permission,
   RegionEntity as RegionEntityRow,
+  Setting,
+  Report,
+  AuditLog,
+  RfidTag,
+  CustomRole,
+  UserCustomRole,
 } from '@lpg/types'
 
 const organizations = curated.organizations as Organization[]
@@ -72,6 +78,12 @@ const integration_auth = curated.integration_auth as unknown as IntegrationAuth[
 const system_roles = curated.system_roles as SystemRole[]
 const permissions = curated.permissions as Permission[]
 const regions = curated.regions as RegionEntityRow[]
+const settings = curated.settings as Setting[]
+const reports = curated.reports as Report[]
+const audit_logs = curated.audit_logs as AuditLog[]
+const rfid_tags = curated.rfid_tags as RfidTag[]
+const custom_roles = curated.custom_roles as CustomRole[]
+const user_custom_roles = curated.user_custom_roles as UserCustomRole[]
 
 export {
   organizations,
@@ -102,4 +114,10 @@ export {
   system_roles,
   permissions,
   regions,
+  settings,
+  reports,
+  audit_logs,
+  rfid_tags,
+  custom_roles,
+  user_custom_roles,
 }

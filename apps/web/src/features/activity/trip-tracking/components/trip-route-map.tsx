@@ -191,6 +191,7 @@ export function TripRouteMap({ tour }: TourRouteMapProps) {
     // (In our schema, the last checkpoint is typically the destination)
 
     if (stops.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- guarded early exit before async route solve
       setError('Pas assez de points géolocalisés pour calculer l\'itinéraire')
       setIsCalculating(false)
       return

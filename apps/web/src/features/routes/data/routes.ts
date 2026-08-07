@@ -232,7 +232,6 @@ function stopTitle(role: RouteStopRole, checkpoint: Checkpoint): string {
 }
 
 function buildStops(
-  tourId: string,
   tourCheckpoints: Checkpoint[],
   tour: DeliveryTour,
 ): RouteTripStop[] {
@@ -337,7 +336,7 @@ function fallbackTruckId(marketeurOrgId: string | null | undefined, tourType: st
   const candidates = vehicles.filter(
     (v) => v.org_id === marketeurOrgId && v.type === tourType && v.is_active,
   )
-  if (candidates.length > 0) return candidates[0].id
+  if (candidates.length > 0) return candidates[0]!.id
   const any = vehicles.find((v) => v.type === tourType && v.is_active)
   return any?.id ?? trucks[0]?.id ?? ''
 }
@@ -464,7 +463,7 @@ function buildView(tour: DeliveryTour, index: number): RouteTripView {
   const tourCheckpoints = (checkpoints ?? []).filter(
     (checkpoint) => checkpoint.tournee_id === tour.id,
   )
-  const stops = buildStops(tour.id, tourCheckpoints, tour)
+  const stops = buildStops(tourCheckpoints, tour)
   const originSiteId = stops[0]?.siteId ?? ''
   const destinationSiteId = stops[stops.length - 1]?.siteId ?? ''
   const originSite = requireSite(originSiteId)
@@ -494,12 +493,12 @@ function buildView(tour: DeliveryTour, index: number): RouteTripView {
   }
   const firstTelemetry = telemetry[0] ?? latestTelemetry
   const events = buildEvents(tour.id, tour, tourCheckpoints, status)
-  const nextStop = stops.find((stop) => !stop.completed) ?? stops[stops.length - 1]!
   const deliveredPercent = Math.round((delivered / (loaded || 1)) * 100)
   const remainingPercent = Math.round((remaining / (loaded || 1)) * 100)
   const unaccountedKg = Math.max(loaded - delivered - remaining, 0)
 
   const stopViews = stops.map((stop) => ({ ...stop, site: requireSite(stop.siteId) }))
+  const nextStop = stopViews.find((stop) => !stop.completed) ?? stopViews[stopViews.length - 1]!
 
   return {
     id: tour.id,

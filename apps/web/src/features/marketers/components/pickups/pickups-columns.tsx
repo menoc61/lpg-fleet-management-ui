@@ -1,12 +1,18 @@
 import { format } from 'date-fns'
 import { Badge } from '@lpg/ui'
 import type { ColumnDef } from '@tanstack/react-table'
-import type { PickupRequest } from '@lpg/types'
+import type { PickupRequest, Site, ClientSite, User } from '@lpg/types'
 import { pickupStatusOptions } from '../../data/pickups'
 
+export type PickupWithSites = PickupRequest & {
+  source_site?: Site
+  destination_site?: Site | ClientSite
+  requester?: User
+}
+
 export const pickupsColumns = (
-  onViewDetails: (pickup: PickupRequest & { source_site?: any; destination_site?: any }) => void
-): ColumnDef<PickupRequest & { source_site?: any; destination_site?: any }>[] => [
+  onViewDetails: (pickup: PickupWithSites) => void
+): ColumnDef<PickupWithSites>[] => [
   {
     accessorKey: 'id',
     header: 'ID',

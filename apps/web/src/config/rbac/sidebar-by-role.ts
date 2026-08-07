@@ -1,59 +1,54 @@
 /**
  * Role → sidebar routing.
  *
- * The actual sidebar content is now permission-driven: see
- * `./nav-items.ts`. This file only:
+ * The actual sidebar content is permission-driven: see `./nav-items.ts`.
+ * This file only exposes:
  *
- *   • maps a `Role` to a URL slug (single source for routing),
- *   • exposes `getSidebarData(role)` that delegates to
- *     `buildSidebarFor(role, roleSlug)`.
+ *   • `LANDING_BY_ROLE` — the bare feature path each role lands on after
+ *     login (single source of truth; used by `routes/_authenticated/index.tsx`
+ *     and the route-access guard).
+ *   • `getSidebarData(role)` — delegates to `buildSidebarFor(role)`.
  *
- * No link labels, no icons, no permission codes are declared here — they
- * all live in `nav-items.ts`. Adding a nav item is a one-line change in one
- * file; the sidebar picks it up automatically once the role holds the
- * permission.
+ * Per AGENTS.md §5 there are **no role-prefixed URLs**: every nav item points
+ * at a bare feature path (`/trucks`, `/marketers`, …) regardless of the
+ * active role. The role only governs *which* items are visible, never the
+ * URL shape. Link labels, icons, and permission codes live in `nav-items.ts`.
  */
 
-import { ROLES, type Role } from '@lpg/permissions'
+import type { Role } from '@lpg/permissions'
 import type { SidebarData } from '@/components/layout/types'
-import { buildSidebarFor, isWebRole } from './nav-items'
+import { buildSidebarFor } from './nav-items'
 
 /**
- * URL slug per role. Live alongside the system roles in
- * `@lpg/permissions` so the same source of truth governs both routing and
- * permission grants.
+ * Post-login / post-switch landing path per role. Bare feature routes only
+ * (AGENTS.md §5). Each role lands on its own home feature — a route that
+ * actually exists. `/dashboard` is reserved for roles with no dedicated home
+ * feature yet (SUPERADMIN per §5; SUPERVISOR & LIVREUR until built).
+ *
+ * GAP: the `overview` nav item still resolves to `/overview`, which has no
+ * route — see TODO: give SUPERVISOR/ADMIN/AGENT a real technical home.
  */
-const SLUG_BY_ROLE: Record<Role, string> = {
-  SUPERADMIN: 'super-admin',
-  ADMIN: 'admin',
-  SUPERVISOR: 'supervisor',
-  INTEGRATEUR: 'integrateur',
-  AGENT: 'agent',
-  MARKETEUR: 'marketers',
-  TRANSPORTEUR: 'transporters',
-  LIVREUR: 'livreur',
+export const LANDING_BY_ROLE: Record<Role, string> = {
+  SUPERADMIN: '/dashboard',
+  ADMIN: '/organizations',
+  SUPERVISOR: '/dashboard',
+  INTEGRATEUR: '/devices',
+  AGENT: '/client-sites',
+  MARKETEUR: '/marketers',
+  TRANSPORTEUR: '/transporters',
+  LIVREUR: '/dashboard',
 }
-
-export const ROLE_SLUGS = SLUG_BY_ROLE
-
-export function roleSlug(role: Role): string {
-  return SLUG_BY_ROLE[role]
-}
-
-export function roleFromSlug(slug: string): Role | undefined {
-  return (Object.keys(SLUG_BY_ROLE) as Role[]).find((r) => SLUG_BY_ROLE[r] === slug)
-}
-
-/**
- * Roles that should appear in the web UI's role switcher / sidebar.
- * (LIVREUR is PDA-only — no web sidebar.)
- */
-export const WEB_ROLE_SLUGS: ReadonlyArray<{ role: Role; slug: string }> = ROLES.filter(isWebRole).map((role) => ({
-  role,
-  slug: SLUG_BY_ROLE[role],
-}))
 
 /** Delegates entirely to the permission-driven projection. */
 export function getSidebarData(role: Role): SidebarData {
-  return buildSidebarFor(role, SLUG_BY_ROLE[role])
+  return buildSidebarFor(role)
+}
+
+/**
+ * Landing path for a role (clamped to `/dashboard` for unknown roles).
+ * Shared by the post-login redirect and the role switcher so they can never
+ * drift apart.
+ */
+export function landingPathFor(role: Role): string {
+  return LANDING_BY_ROLE[role] ?? '/dashboard'
 }

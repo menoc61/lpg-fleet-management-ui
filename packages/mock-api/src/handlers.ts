@@ -7,6 +7,7 @@ import type { Request, Response, Router } from 'express'
 import { Router as makeRouter } from 'express'
 import { signToken, verifyToken } from './jwt.ts'
 import { AUTH_FIXTURES } from '@lpg/mock-data'
+import { ROLE_GRANTS, type PermissionCode } from '@lpg/permissions'
 import {
   listEntities,
   getEntity,
@@ -126,19 +127,10 @@ function meRouter(): Router {
     return updated ? ok(res, updated) : notFound(res)
   })
 
-  r.get('/permissions', requireAuth, (_req, res) => {
-    const perms = {
-      can: [
-        'read:organizations', 'read:users', 'read:sites', 'read:client_sites',
-        'read:clients', 'read:vehicles', 'read:drivers', 'read:devices',
-        'read:delivery_tours', 'read:checkpoints', 'read:scan_events',
-        'read:pickup_requests', 'read:declarations', 'read:reconciliations',
-        'read:redressements', 'read:anomalies', 'read:risk_scores',
-        'read:notification_groups', 'read:notification_rules', 'read:transporter_contracts',
-        'read:audit_logs', 'read:rfid_tags', 'read:reports',
-      ],
-    }
-    return ok(res, perms)
+  r.get('/permissions', requireAuth, (req, res) => {
+    const payload = (req as any).auth
+    const grants = ROLE_GRANTS[payload.role as keyof typeof ROLE_GRANTS] ?? []
+    return ok(res, { can: grants as PermissionCode[] })
   })
   return r
 }
@@ -561,7 +553,38 @@ function riskScoresRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
   r.get('/', (req, res) => paginatedList(req, res, 'risk_scores'))
+  r.post('/recompute', (_req, res) => {
+    const recomputed = findEntities('risk_scores', () => true).map(
+      (rs: any) => ({
+        id: rs.id,
+        entity_type: rs.entity_type,
+        entity_id: rs.entity_id,
+        score: clampScore(rs.score ?? 0),
+        level: riskLevelFor(rs.score ?? 0),
+        model_version: 'CSPH-RISK-v2.2',
+        recomputed_at: new Date().toISOString(),
+      }),
+    )
+    return ok(res, {
+      recomputed: recomputed.length,
+      model_version: 'CSPH-RISK-v2.2',
+      generated_at: new Date().toISOString(),
+      data: recomputed,
+    })
+  })
   return r
+}
+
+function clampScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)))
+}
+
+function riskLevelFor(score: number): string {
+  if (score >= 85) return 'CRITIQUEEXTREME'
+  if (score >= 70) return 'CRITIQUE'
+  if (score >= 45) return 'ELEVE'
+  if (score >= 20) return 'MODERE'
+  return 'FAIBLE'
 }
 
 // ============ NOTIFICATIONS ============

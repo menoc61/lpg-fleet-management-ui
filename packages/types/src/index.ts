@@ -176,6 +176,7 @@ export type AuditAction =
   | 'GPSPOSITIONCAPTURED'
   | 'SETTINGCHANGED'
 
+export type ReportType = 'OPERATIONAL' | 'FINANCIAL' | 'COMPLIANCE'
 export type ReportFormat = 'PDF' | 'EXCEL' | 'CSV' | 'JSON'
 export type ReportStatus = 'PENDING' | 'GENERATING' | 'READY' | 'FAILED' | 'EXPIRED'
 
@@ -570,7 +571,7 @@ export interface Notification {
 export interface Report extends BaseEntity {
   id: string
   name: string
-  type: string
+  type: ReportType
   format: ReportFormat
   parameters_json: Record<string, unknown>
   status: ReportStatus

@@ -51,7 +51,7 @@ function cityFromAddress(address: string | undefined): string {
   const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
   const beforeCam = parts.filter((p) => !/cameroun/i.test(p))
   if (beforeCam.length === 0) return '—'
-  const last = beforeCam[beforeCam.length - 1]
+  const last = beforeCam[beforeCam.length - 1]!
   const tokens = last.split(/\s+/)
   return tokens[tokens.length - 1] ?? '—'
 }

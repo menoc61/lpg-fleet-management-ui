@@ -18,14 +18,14 @@ describe('buildRouteLpgVariation', () => {
       deltaKg: 0,
     })
     expect(variation.stages[1]).toMatchObject({
-      quantityKg: 230,
+      quantityKg: 237,
       percent: 2,
-      deltaKg: -11620,
+      deltaKg: -11613,
       deltaPercent: -98,
     })
     expect(variation.stages[2]).toMatchObject({
       label: 'Niveau final',
-      quantityKg: 230,
+      quantityKg: 237,
       percent: 2,
       deltaKg: 0,
       deltaPercent: 0,
@@ -46,7 +46,7 @@ describe('buildRouteLpgVariation', () => {
 
     expect(variation.stages[2]).toMatchObject({
       label: 'Niveau final',
-      quantityKg: 230,
+      quantityKg: 237,
       percent: 2,
       deltaKg: 0,
       deltaPercent: 0,

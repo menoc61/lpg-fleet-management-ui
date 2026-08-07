@@ -30,7 +30,7 @@ describe('buildRouteSummary', () => {
       activeVolumeKg: 21240,
       deliveredVolumeKg: 25140,
       onTimeRate: 67,
-      attentionCount: 3,
+      attentionCount: 5,
     })
   })
 })

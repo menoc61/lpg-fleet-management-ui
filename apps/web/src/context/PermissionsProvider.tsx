@@ -26,8 +26,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     : null
 
   const setSession = (newSession: MockSession | null) => {
-    // Session is driven by the auth store; explicit set is a no-op for role
-    // switcher but kept for API compatibility.
+    // Session is driven by the auth store; kept for API compatibility.
     if (!newSession) logout()
   }
 

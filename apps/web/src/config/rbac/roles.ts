@@ -5,19 +5,18 @@
  * the same Role union exported by `@lpg/types`). This file only:
  *
  *   • re-exports the canonical `Role` type,
- *   • re-exports `ROLE_LABELS` / `ROLE_DESCRIPTIONS` for UI consumption,
+ *   • re-exports `ROLE_LABELS` for UI consumption,
  *   • provides `WEB_ROLES` — the subset of roles that have a web sidebar.
  *
  * LIVREUR (PDA mobile app) is a data-layer role with grants in the permission
  * matrix but no web interface. It is included in `Role` so backend code and
- * the permission matrix stay exhaustive, but the sidebar/role-switcher code
- * filters it out via `isWebRole()` / `WEB_ROLES`.
+ * the permission matrix stay exhaustive, but the sidebar code filters it out
+ * via `isWebRole()` / `WEB_ROLES`.
  */
 
 export {
   ROLES,
   ROLE_LABELS,
-  ROLE_DESCRIPTIONS,
   type Role,
 } from '@lpg/permissions'
 
