@@ -332,6 +332,13 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     path: 'tours-history',
     requires: ['tours.read'],
   },
+  {
+    id: 'tour-tracking',
+    label: 'Suivi des tournées',
+    icon: MapIcon,
+    path: 'tour-tracking',
+    requires: ['tours.read'],
+  },
 
   /* ----------- Compliance: declarations → reconciliations → redressements ----------- */
   {
@@ -733,6 +740,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
         items: [
           'pickups',
           'tours',
+          'tour-tracking',
           'declarations',
           'reconciliations',
           'redressements',
@@ -800,7 +808,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
       { title: 'Suivi terrain', items: ['overview', 'marketers', 'client-sites'] },
       {
         title: 'Investigation (Piste métier)',
-        items: ['declarations', 'anomalies-investigation', 'tours', 'visits'],
+        items: ['declarations', 'anomalies-investigation', 'tours', 'tour-tracking', 'visits'],
       },
       { title: 'Actions', items: ['reconciliations', 'passwords'] },
     ],
@@ -814,7 +822,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
       },
       {
         title: 'Flux 2 — Livraison',
-        items: ['tours-internal', 'tours-external', 'transporter-contracts', 'clients'],
+        items: ['tours-internal', 'tours-external', 'tour-tracking', 'transporter-contracts', 'clients'],
       },
       {
         title: 'Déclarations & Performance',

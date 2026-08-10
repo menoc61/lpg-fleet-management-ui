@@ -16,7 +16,7 @@ import { trucks } from '@/features/trucks/trucks'
 import { sites } from '@/features/sites/data/sites'
 import { transporters } from '@/features/transporters/transporters'
 import { marketers } from '@/features/marketers/data/marketers'
-import { getRouteTripsView } from '@/features/routes/data/routes'
+import { getRouteTripsView } from '@/features/tours/data/tour-activity'
 import { TruckIcon, MapPin, Handshake, Building2, FileText, Home, Clock } from 'lucide-react'
 
 type SearchItem = {
@@ -138,7 +138,7 @@ function buildLiveIndex(role: Role): SearchItem[] {
       title: trip.reference,
       subtitle: `${trip.customerName} — ${trip.truck}`,
       value: `${trip.reference} ${trip.customerName} ${trip.id}`,
-      url: `/routes/${trip.id}`,
+      url: `/tours?tour=${trip.id}`,
       icon: FileText,
     })
   }

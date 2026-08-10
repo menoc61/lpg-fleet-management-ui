@@ -1,19 +1,29 @@
-import { sites, type Site } from '@/features/sites/data/sites'
-import { trucks, type Truck } from '@/features/trucks/trucks'
 import {
   anomalies,
   checkpoints,
+  client_sites,
+  curated,
   delivery_tours,
   drivers,
+  organizations,
   scan_events,
+  users,
   vehicles,
 } from '@lpg/mock-data'
 import type {
   Anomaly,
   Checkpoint,
   DeliveryTour,
+  ExecutionMode,
+  Setting,
   TourneeStatus,
+  TourneeType,
 } from '@lpg/types'
+import { sites, type Site } from '@/features/sites/data/sites'
+import { trucks, type Truck } from '@/features/trucks/trucks'
+import { resolveSlaThresholds, tourSlaFlags } from './tour-machine'
+
+export type { ExecutionMode, TourneeStatus }
 
 export type RouteTripStatus =
   | 'planned'
@@ -168,6 +178,21 @@ function requireSite(siteId: string) {
   return site
 }
 
+function placeholderSite(): Site {
+  return {
+    id: '',
+    name: '—',
+    type: 'DEPOT' as Site['type'],
+    city: '',
+    region: '',
+    operator: '',
+    latitude: 0,
+    longitude: 0,
+    description: '',
+    status: 'inactive' as Site['status'],
+  }
+}
+
 function requireTruck(truckId: string) {
   const truck = truckById.get(truckId)
 
@@ -178,7 +203,7 @@ function requireTruck(truckId: string) {
   return truck
 }
 
-function routeStatusFromTournee(status: TourneeStatus): RouteTripStatus {
+export function routeStatusFromTournee(status: TourneeStatus): RouteTripStatus {
   switch (status) {
     case 'CLOSED':
       return 'completed'
@@ -197,6 +222,95 @@ function driverName(driverId: string | null | undefined): string {
   const driver = driverById.get(driverId)
   if (!driver) return '—'
   return `${driver.first_name} ${driver.last_name}`.trim()
+}
+
+export type TourSlice =
+  | 'ALL'
+  | 'INTERNAL'
+  | 'EXTERNAL'
+  | 'PENDING'
+  | 'ACTIVE'
+  | 'HISTORY'
+
+export type TourActivity = RouteTripView & {
+  tourneeStatus: TourneeStatus
+  tourneeType: TourneeType
+  execution_mode: ExecutionMode
+  marketeur_name: string
+  transporter_name: string | null
+  vehicle_plate: string | null
+  driver_name: string | null
+  livreur_name: string | null
+  requested_quantity: number
+  loaded_quantity: number | null
+  delivered_quantity: number | null
+  checkpoint_count: number
+  completed_checkpoints: number
+  created_at: string
+  transport_assigned_at: string | null
+  sla_transporter_no_ack: boolean
+  sla_unassigned_too_long: boolean
+  anomaly_ids: string[]
+}
+
+export interface TourEnrichOptions {
+  checkpoints?: typeof curated.checkpoints
+  anomalies?: Anomaly[]
+  settings?: Setting[]
+  now?: Date
+}
+
+export const tourneeTypeLabels: Record<TourneeType, string> = {
+  VRAC: 'Vrac (TM)',
+  BOUTEILLES50KG: 'Bouteilles 50 kg',
+}
+
+export const tourStatusLabels: Record<TourneeStatus, string> = {
+  DRAFT: 'Brouillon',
+  PLANNED: 'Planifiée',
+  PENDINGTRANSPORTERACK: 'En attente transporteur',
+  ACKNOWLEDGED: 'Accusée',
+  INPROGRESS: 'En transit',
+  CHECKPOINTACTIVE: 'En livraison',
+  CLOSED: 'Livrée',
+  CANCELLED: 'Annulée',
+}
+
+export const executionModeLabels: Record<ExecutionMode, string> = {
+  INTERNAL: 'Interne',
+  EXTERNAL: 'Externalisée',
+}
+
+export const tourStatusOptions: readonly { label: string; value: TourneeStatus }[] = (
+  Object.keys(tourStatusLabels) as TourneeStatus[]
+).map((value) => ({ label: tourStatusLabels[value], value }))
+
+export const executionModeOptions: readonly { label: string; value: ExecutionMode }[] = (
+  Object.keys(executionModeLabels) as ExecutionMode[]
+).map((value) => ({ label: executionModeLabels[value], value }))
+
+function orgName(id: string | null | undefined): string | null {
+  if (!id) return null
+  return organizations.find((o) => o.id === id)?.name ?? id
+}
+
+function personName(id: string | null | undefined): string | null {
+  if (!id) return null
+  const user = users.find((u) => u.id === id)
+  if (user) return `${user.first_name} ${user.last_name}`.trim()
+  const driver = drivers.find((d) => d.id === id)
+  if (driver) return `${driver.first_name} ${driver.last_name}`.trim()
+  return id
+}
+
+function vehiclePlate(id: string | null | undefined): string | null {
+  if (!id) return null
+  return vehicles.find((v) => v.id === id)?.license_plate ?? id
+}
+
+function siteName(id: string | null | undefined): string | null {
+  if (!id) return null
+  return [...sites, ...client_sites].find((s) => s.id === id)?.name ?? id
 }
 
 function tourReference(index: number): string {
@@ -459,15 +573,17 @@ function getHighestSeverity(events: readonly RouteEvent[]): RouteEventSeverity {
   return 'low'
 }
 
-function buildView(tour: DeliveryTour, index: number): RouteTripView {
-  const tourCheckpoints = (checkpoints ?? []).filter(
+function buildView(tour: DeliveryTour, index: number, checkpointsSource?: typeof checkpoints): TourActivity {
+  const tourCheckpoints = (checkpointsSource ?? checkpoints).filter(
     (checkpoint) => checkpoint.tournee_id === tour.id,
   )
   const stops = buildStops(tourCheckpoints, tour)
   const originSiteId = stops[0]?.siteId ?? ''
   const destinationSiteId = stops[stops.length - 1]?.siteId ?? ''
-  const originSite = requireSite(originSiteId)
-  const destinationSite = requireSite(destinationSiteId)
+  const originSite = originSiteId ? requireSite(originSiteId) : placeholderSite()
+  const destinationSite = destinationSiteId
+    ? requireSite(destinationSiteId)
+    : placeholderSite()
   const status = routeStatusFromTournee(tour.status)
   const loaded = tour.loaded_quantity ?? tour.requested_quantity ?? 0
   const delivered = tour.delivered_quantity ?? (status === 'completed' ? loaded : 0)
@@ -542,6 +658,31 @@ function buildView(tour: DeliveryTour, index: number): RouteTripView {
     ),
     unaccountedKg,
     attentionLevel: getHighestSeverity(events),
+    tourneeStatus: tour.status,
+    tourneeType: tour.type,
+    execution_mode: tour.execution_mode,
+    marketeur_name: orgName(tour.marketeur_org_id) ?? '—',
+    transporter_name: orgName(tour.transporter_org_id),
+    vehicle_plate: vehiclePlate(tour.vehicle_id),
+    driver_name: personName(tour.driver_id),
+    livreur_name: personName(tour.livreur_user_id),
+    requested_quantity: tour.requested_quantity,
+    loaded_quantity: tour.loaded_quantity ?? null,
+    delivered_quantity: tour.delivered_quantity ?? null,
+    checkpoint_count: tourCheckpoints.length,
+    completed_checkpoints: tourCheckpoints.filter((cp) => cp.status === 'COMPLETED').length,
+    created_at: tour.created_at ?? '',
+    transport_assigned_at: tour.transporter_assigned_at ?? null,
+    sla_transporter_no_ack: tourSlaFlags(tour, resolveSlaThresholds(curated.settings)).transporterNoAck,
+    sla_unassigned_too_long: tourSlaFlags(tour, resolveSlaThresholds(curated.settings)).unassignedTooLong,
+    anomaly_ids: curated.anomalies
+      .filter(
+        (a) =>
+          a.entity_type === 'TOURNEE' &&
+          a.entity_id === tour.id &&
+          (['TRANSPORTERNOACK', 'TOURNEEUNASSIGNEDTOOLONG'] as readonly string[]).includes(a.type),
+      )
+      .map((a) => a.id),
   }
 }
 
@@ -556,8 +697,88 @@ function isOnTime(checkpoints: Checkpoint[]): boolean {
   )
 }
 
-export function getRouteTripsView(): RouteTripView[] {
-  return delivery_tours.map((tour, index) => buildView(tour, index))
+function slicePredicate(slice: TourSlice): (tour: DeliveryTour) => boolean {
+  switch (slice) {
+    case 'INTERNAL':
+      return (tour) => tour.execution_mode === 'INTERNAL'
+    case 'EXTERNAL':
+      return (tour) => tour.execution_mode === 'EXTERNAL'
+    case 'PENDING':
+      return (tour) => tour.status === 'PENDINGTRANSPORTERACK'
+    case 'ACTIVE':
+      return (tour) => tour.status === 'INPROGRESS' || tour.status === 'CHECKPOINTACTIVE'
+    case 'HISTORY':
+      return (tour) => tour.status === 'CLOSED' || tour.status === 'CANCELLED'
+    default:
+      return () => true
+  }
+}
+
+export function getTourActivity(slice: TourSlice = 'ALL'): TourActivity[] {
+  return delivery_tours
+    .filter(slicePredicate(slice))
+    .map((tour, index) => buildView(tour, index))
+}
+
+export function getTourActivityById(id: string): TourActivity | undefined {
+  const index = delivery_tours.findIndex((tour) => tour.id === id)
+  if (index === -1) return undefined
+  return buildView(delivery_tours[index]!, index)
+}
+
+export function toTourActivities(
+  tours: readonly DeliveryTour[],
+  opts: TourEnrichOptions = {},
+): TourActivity[] {
+  return tours.map((tour, index) => buildView(tour, index, opts.checkpoints))
+}
+
+export function buildTourActivity(
+  tour: DeliveryTour,
+  index: number,
+  opts: TourEnrichOptions = {},
+): TourActivity {
+  return buildView(tour, index, opts.checkpoints)
+}
+
+export const getRouteTripsView = getTourActivity
+export const buildTourSummary = buildRouteSummary
+export const getTourCustomerOptions = getRouteCustomerOptions
+
+export function getTourStops(id: string): string[] {
+  const tour = delivery_tours.find((t) => t.id === id)
+  if (!tour) return []
+  return checkpoints
+    .filter((cp) => cp.tournee_id === tour.id)
+    .sort((a, b) => a.sequence - b.sequence)
+    .map((cp) => siteName(cp.site_id ?? cp.client_site_id))
+    .filter((name): name is string => Boolean(name))
+}
+
+export function getTourProgress(activity: TourActivity): number {
+  if (activity.checkpoint_count === 0)
+    return activity.tourneeStatus === 'CLOSED' ? 100 : 0
+  return Math.round(
+    (activity.completed_checkpoints / activity.checkpoint_count) * 100,
+  )
+}
+
+export function getTourEta(activity: TourActivity): string {
+  if (!activity.startedAt) return '—'
+  const eta = new Date(new Date(activity.startedAt).getTime() + 4 * 3600_000)
+  return new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(eta)
+}
+
+export function getTourCargo(activity: TourActivity): string {
+  return activity.tourneeType === 'VRAC' ? 'GPL vrac' : 'Bouteilles 50 kg'
+}
+
+export function getTourVolume(activity: TourActivity): string {
+  return `${activity.requested_quantity} ${activity.tourneeType === 'VRAC' ? 't' : 'btl'}`
+}
+
+export function isActiveTourStatus(status: TourneeStatus): boolean {
+  return status === 'INPROGRESS' || status === 'CHECKPOINTACTIVE'
 }
 
 export function buildRouteSummary(
@@ -602,3 +823,84 @@ export function getRouteCustomerOptions(trips: readonly RouteTripView[]) {
     })
   )
 }
+
+export type RouteLpgVariationStageId = 'loading' | 'live' | 'projected'
+
+export type RouteLpgVariationStageTone = 'emerald' | 'sky' | 'amber'
+
+export type RouteLpgVariationStage = {
+  id: RouteLpgVariationStageId
+  label: string
+  quantityKg: number
+  percent: number
+  deltaKg: number
+  deltaPercent: number
+  tone: RouteLpgVariationStageTone
+}
+
+export type RouteLpgVariation = {
+  stages: RouteLpgVariationStage[]
+  deliveredKg: number
+  deliveredPercent: number
+  nextDropKg: number
+  telemetryGapKg: number
+}
+
+export function buildRouteLpgVariation(
+  trip: RouteTripView
+): RouteLpgVariation {
+  const loadingKg = trip.loadedQuantityKg
+  const liveKg = trip.latestTelemetry.estimatedVolumeKg
+  const nextDropKg =
+    trip.status === 'completed' ? 0 : (trip.nextStop.deliveredQuantityKg ?? 0)
+  const projectedKg =
+    trip.status === 'completed' ? liveKg : Math.max(liveKg - nextDropKg, 0)
+
+  return {
+    stages: [
+      {
+        id: 'loading',
+        label: 'Au chargement',
+        quantityKg: loadingKg,
+        percent: 100,
+        deltaKg: 0,
+        deltaPercent: 0,
+        tone: 'emerald',
+      },
+      {
+        id: 'live',
+        label: 'Dernier releve',
+        quantityKg: liveKg,
+        percent: toPercent(liveKg, loadingKg),
+        deltaKg: liveKg - loadingKg,
+        deltaPercent: toPercent(liveKg, loadingKg) - 100,
+        tone: 'sky',
+      },
+      {
+        id: 'projected',
+        label:
+          trip.status === 'completed'
+            ? 'Niveau final'
+            : 'Apres prochaine livraison',
+        quantityKg: projectedKg,
+        percent: toPercent(projectedKg, loadingKg),
+        deltaKg: projectedKg - liveKg,
+        deltaPercent:
+          toPercent(projectedKg, loadingKg) - toPercent(liveKg, loadingKg),
+        tone: 'amber',
+      },
+    ],
+    deliveredKg: trip.deliveredQuantityKg,
+    deliveredPercent: trip.deliveredPercent,
+    nextDropKg,
+    telemetryGapKg: Math.abs(liveKg - trip.remainingQuantityKg),
+  }
+}
+
+function toPercent(quantityKg: number, loadedQuantityKg: number) {
+  if (loadedQuantityKg <= 0) return 0
+
+  return Math.max(Math.round((quantityKg / loadedQuantityKg) * 100), 0)
+}
+
+export const buildTourLpgVariation = buildRouteLpgVariation

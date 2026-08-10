@@ -71,10 +71,14 @@ describe('route-access', () => {
     })
   })
 
-  describe('undeclared auxiliary routes are open', () => {
-    it('/activity/trip-tracking has no nav item and stays open', () => {
-      expect(canAccessPath('TRANSPORTEUR', '/activity/trip-tracking')).toBe(true)
-      expect(canAccessPath('MARKETEUR', '/activity/trip-tracking')).toBe(true)
+  describe('auxiliary routes are gated by their nav declaration', () => {
+    it('/tour-tracking is granted to roles holding tours.read', () => {
+      expect(canAccessPath('TRANSPORTEUR', '/tour-tracking')).toBe(true)
+      expect(canAccessPath('MARKETEUR', '/tour-tracking')).toBe(true)
+    })
+
+    it('undeclared paths remain open by default', () => {
+      expect(canAccessPath('TRANSPORTEUR', '/health')).toBe(true)
     })
   })
 

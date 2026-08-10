@@ -14,14 +14,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { getToursColumns } from './tours-columns'
-import { tourStatusOptions, type TourView } from '../data/tours'
+import { tourStatusOptions, type TourActivity } from '../data/tour-activity'
 
 export function ToursTable({
   rows,
   onOpenDetails,
 }: {
-  rows: TourView[]
-  onOpenDetails: (row: TourView) => void
+  rows: TourActivity[]
+  onOpenDetails: (row: TourActivity) => void
 }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })

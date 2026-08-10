@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { useToursStore } from './tours-store'
 import { curated } from '@lpg/mock-data'
 import type { DeliveryTour } from '@lpg/types'
+import { tourStatusLabels, getTourCargo, getTourVolume } from '@/features/tours/data/tour-activity'
 
 const MARKETEUR_ORG = 'org-0002-sctm-0000-000000000001'
 const TRANSPORTEUR_ORG = 'org-0011-expressgpl--000000000001'
@@ -38,10 +39,13 @@ describe('tours store', () => {
         livreur_user_id: LIVREUR_ID,
       })
 
-      expect(view.status).toBe('DRAFT')
+      expect(view.tourneeStatus).toBe('DRAFT')
       expect(view.execution_mode).toBe('INTERNAL')
-      expect(view.status_label).toBe('Brouillon')
-      expect(view.cargo_label).toBe('GPL vrac')
+      expect(tourStatusLabels[view.tourneeStatus]).toBe('Brouillon')
+      expect(getTourCargo(view)).toBe('GPL vrac')
+      expect(view.reference).toBe('TRP-2401')
+      expect(view.originSite.id).toBeDefined()
+      expect(typeof view.progressPercent).toBe('number')
       expect(useToursStore.getState().tours.length).toBe(countBefore + 1)
       expect(useToursStore.getState().tours.find((t) => t.id === view.id)).toBeDefined()
     })
@@ -55,11 +59,11 @@ describe('tours store', () => {
         transporter_org_id: TRANSPORTEUR_ORG,
       })
 
-      expect(view.status).toBe('DRAFT')
+      expect(view.tourneeStatus).toBe('DRAFT')
       expect(view.execution_mode).toBe('EXTERNAL')
-      expect(view.status_label).toBe('Brouillon')
-      expect(view.cargo_label).toBe('Bouteilles 50 kg')
-      expect(view.quantity_label).toBe('200 btl')
+      expect(tourStatusLabels[view.tourneeStatus]).toBe('Brouillon')
+      expect(getTourCargo(view)).toBe('Bouteilles 50 kg')
+      expect(getTourVolume(view)).toBe('200 btl')
     })
 
     it('throws chk_tournee_internal for an INTERNAL draft without vehicle/driver/livreur', () => {
@@ -102,8 +106,8 @@ describe('tours store', () => {
   describe('performAction', () => {
     it('acknowledges an EXTERNAL PENDINGTRANSPORTERACK tour and stamps the assignment time', () => {
       const view = useToursStore.getState().performAction('tour-005', 'acknowledge')
-      expect(view.status).toBe('ACKNOWLEDGED')
-      expect(view.status_label).toBe('Accusée')
+      expect(view.tourneeStatus).toBe('ACKNOWLEDGED')
+      expect(tourStatusLabels[view.tourneeStatus]).toBe('Accusée')
       const stored = useToursStore.getState().tours.find((t) => t.id === 'tour-005')!
       expect(stored.status).toBe('ACKNOWLEDGED')
       expect(typeof stored.transporter_assigned_at).toBe('string')
@@ -112,8 +116,8 @@ describe('tours store', () => {
 
     it('starts an ACKNOWLEDGED tour and stamps started_at', () => {
       const view = useToursStore.getState().performAction('tour-009', 'start')
-      expect(view.status).toBe('INPROGRESS')
-      expect(view.status_label).toBe('En transit')
+      expect(view.tourneeStatus).toBe('INPROGRESS')
+      expect(tourStatusLabels[view.tourneeStatus]).toBe('En transit')
       const stored = useToursStore.getState().tours.find((t) => t.id === 'tour-009')!
       expect(stored.status).toBe('INPROGRESS')
       expect(typeof stored.started_at).toBe('string')
@@ -186,8 +190,8 @@ describe('tours store', () => {
       }
       inject(bad)
       const view = useToursStore.getState().performAction('synthetic-cancel-ok', 'cancel')
-      expect(view.status).toBe('CANCELLED')
-      expect(view.status_label).toBe('Annulée')
+      expect(view.tourneeStatus).toBe('CANCELLED')
+      expect(tourStatusLabels[view.tourneeStatus]).toBe('Annulée')
     })
   })
 
@@ -203,7 +207,7 @@ describe('tours store', () => {
 
     it('surfaces only PENDINGTRANSPORTERACK tours', () => {
       expect(useToursStore.getState().views('PENDING').length).toBe(1)
-      expect(useToursStore.getState().views('PENDING')[0]!.status).toBe('PENDINGTRANSPORTERACK')
+      expect(useToursStore.getState().views('PENDING')[0]!.tourneeStatus).toBe('PENDINGTRANSPORTERACK')
     })
 
     it('surfaces in-progress tours (INPROGRESS or CHECKPOINTACTIVE)', () => {
@@ -219,7 +223,7 @@ describe('tours store', () => {
     it('returns an enriched view for a known id', () => {
       const view = useToursStore.getState().viewById('tour-001')
       expect(view).toBeDefined()
-      expect(view!.status_label).toBe('Livrée')
+      expect(tourStatusLabels[view!.tourneeStatus]).toBe('Livrée')
       expect(view!.execution_mode).toBe('INTERNAL')
       expect(view!.checkpoint_count).toBeGreaterThanOrEqual(0)
     })
@@ -229,9 +233,9 @@ describe('tours store', () => {
     })
 
     it('reflects subsequent store mutations', () => {
-      expect(useToursStore.getState().viewById('tour-005')!.status).toBe('PENDINGTRANSPORTERACK')
+      expect(useToursStore.getState().viewById('tour-005')!.tourneeStatus).toBe('PENDINGTRANSPORTERACK')
       useToursStore.getState().performAction('tour-005', 'acknowledge')
-      expect(useToursStore.getState().viewById('tour-005')!.status).toBe('ACKNOWLEDGED')
+      expect(useToursStore.getState().viewById('tour-005')!.tourneeStatus).toBe('ACKNOWLEDGED')
     })
   })
 })

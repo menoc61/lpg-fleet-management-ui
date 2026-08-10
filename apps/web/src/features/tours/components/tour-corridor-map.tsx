@@ -19,9 +19,9 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { siteTypeLabels } from '@/features/sites/data/sites'
-import { type RouteTripView } from '../data/routes'
+import { type RouteTripView } from '../data/tour-activity'
 
-type RouteCorridorMapProps = {
+type TourCorridorMapProps = {
   trip: RouteTripView
   formatDateTime: (value: string) => string
 }
@@ -52,10 +52,10 @@ const stopRoleStyles = {
   },
 } as const
 
-export function RouteCorridorMap({
+export function TourCorridorMap({
   trip,
   formatDateTime,
-}: RouteCorridorMapProps) {
+}: TourCorridorMapProps) {
   const { resolvedTheme } = useTheme()
   const mapTheme = resolvedTheme
   const mapContainerRef = useRef<HTMLDivElement | null>(null)

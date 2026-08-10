@@ -20,7 +20,7 @@
  *      reconcile in plan Milestone 0.)
  *   3. Any other path declared by a nav item is allowed only if the role
  *      holds at least one of its required codes.
- *   4. Paths with no nav declaration (e.g. `/activity/trip-tracking`,
+ *   4. Paths with no nav declaration (e.g. `/tour-tracking` before the catalog refresh,
  *      `/dashboard`) are reachable only via app chrome (header, landing) and
  *      are left open — declare a nav item to start gating one.
  */

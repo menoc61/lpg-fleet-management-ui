@@ -12,10 +12,10 @@ import {
 import {
   buildRouteLpgVariation,
   type RouteLpgVariationStage,
-} from '../data/route-lpg-variation'
-import { type RouteTripView } from '../data/routes'
+  type RouteTripView,
+} from '../data/tour-activity'
 
-type RouteLpgVariationPanelProps = {
+type TourLpgVariationPanelProps = {
   trip: RouteTripView
   formatKg: (value: number) => string
 }
@@ -35,10 +35,10 @@ const toneClasses = {
   },
 } as const
 
-export function RouteLpgVariationPanel({
+export function TourLpgVariationPanel({
   trip,
   formatKg,
-}: RouteLpgVariationPanelProps) {
+}: TourLpgVariationPanelProps) {
   const variation = buildRouteLpgVariation(trip)
   const [loadingStage, liveStage, projectedStage] = variation.stages as [RouteLpgVariationStage, RouteLpgVariationStage, RouteLpgVariationStage]
 

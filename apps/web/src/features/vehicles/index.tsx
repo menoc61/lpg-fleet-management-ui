@@ -12,6 +12,7 @@ import {
   getVehiclesView,
   type VehicleView,
 } from './data/vehicles'
+import { activeTourForVehicle, vehicleActiveTourLink } from '@/features/tours/data/active-tour'
 
 export { getVehiclesView }
 export type { VehicleView as Vehicle }
@@ -42,13 +43,25 @@ const vehiclesRoute = getRouteApi('/_authenticated/vehicles/')
 
 export function VehiclesPage() {
   const navigate = vehiclesRoute.useNavigate()
-  const [search, setSearch] = useState('')
+  const { q } = vehiclesRoute.useSearch()
+  const [search, setSearch] = useState(q ?? '')
   const [statusFilter, setStatusFilter] = useState<VehicleStatusFilter>('all')
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleView | null>(null)
 
   const handleViewDetails = useCallback((vehicle: VehicleView) => {
     setDetailsVehicle(vehicle)
   }, [])
+
+  const handleOpenActiveTour = useCallback(
+    (vehicleId: string) => {
+      const link = vehicleActiveTourLink(vehicleId)
+      if (!link) return
+      const tour = activeTourForVehicle(vehicleId)
+      if (!tour) return
+      navigate({ to: '/tours', search: { tour: tour.id } })
+    },
+    [navigate],
+  )
 
   const filteredVehicles = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -226,6 +239,7 @@ export function VehiclesPage() {
           search={{}}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          onOpenActiveTour={handleOpenActiveTour}
         />
       </section>
 

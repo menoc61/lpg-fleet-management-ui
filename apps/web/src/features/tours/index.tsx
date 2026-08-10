@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
-import { useToursStore } from '@/store/tours-store'
-import { TourDetail } from './components/tour-detail'
+import { TourDetailView } from './components/tour-detail-view'
 import { ToursTable } from './components/tours-table'
-import type { TourSlice, TourView } from './data/tours'
+import type { TourActivity, TourSlice } from './data/tour-activity'
+import { getTourActivity } from './data/tour-activity'
 
 const SLICE_TITLES: Record<TourSlice, string> = {
   ALL: 'Tournées de livraison',
@@ -24,9 +24,17 @@ const SLICE_DESCRIPTIONS: Record<TourSlice, string> = {
   HISTORY: 'Tournées livrées ou annulées.',
 }
 
-export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
-  const [detail, setDetail] = useState<TourView | null>(null)
-  const rows = useToursStore((s) => s.views(slice))
+export function ToursPage({
+  slice = 'ALL',
+  initialTourId,
+}: {
+  slice?: TourSlice
+  initialTourId?: string
+}) {
+  const allTours = getTourActivity(slice)
+  const tours: TourActivity[] = allTours
+  const [selectedId, setSelectedId] = useState<string | undefined>(initialTourId)
+  const selectedTrip = tours.find((t) => t.id === selectedId) ?? null
 
   return (
     <PageShell>
@@ -35,9 +43,18 @@ export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
         description={SLICE_DESCRIPTIONS[slice]}
       />
       <SectionCard>
-        <ToursTable rows={rows} onOpenDetails={setDetail} />
+        <ToursTable
+          rows={tours}
+          onOpenDetails={(row) => setSelectedId(row.id)}
+        />
       </SectionCard>
-      <TourDetail tour={detail} onClose={() => setDetail(null)} onAction={setDetail} />
+      {selectedTrip && (
+        <TourDetailView
+          trip={selectedTrip}
+          trips={tours}
+          onSelectTrip={(id) => setSelectedId(id)}
+        />
+      )}
     </PageShell>
   )
 }

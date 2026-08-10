@@ -1,56 +1,14 @@
-import { useMemo } from 'react'
-import { toast } from 'sonner'
 import { Badge, Button, Dialog, DialogContent, DialogHeader, DialogTitle } from '@lpg/ui'
-import { hasPermission, type PermissionCode } from '@lpg/permissions'
 import { cn } from '@/lib/utils'
-import { useRoleStore } from '@/store/role-store'
-import { useToursStore } from '@/store/tours-store'
 import {
-  type TourView,
-  type TourneeStatus,
-  type ExecutionMode,
+  type TourActivity,
   tourStatusLabels,
   executionModeLabels,
   getTourProgress,
   getTourStops,
-} from '../data/tours'
-import {
-  tourActions,
-  TOUR_ACTION_LABELS,
-  type TourAction,
-} from '../data/tour-machine'
-
-const ACTION_PERMISSION: Record<TourAction, PermissionCode> = {
-  'send-to-transporter': 'tours.create',
-  acknowledge: 'tours.assign',
-  start: 'tours.write',
-  close: 'tours.write',
-  cancel: 'tours.write',
-}
-
-const ACTION_VARIANT: Record<TourAction, 'default' | 'outline' | 'destructive'> = {
-  'send-to-transporter': 'default',
-  acknowledge: 'default',
-  start: 'default',
-  close: 'default',
-  cancel: 'outline',
-}
-
-const STATUS_CLASS: Record<TourneeStatus, string> = {
-  DRAFT: 'bg-slate-200 text-slate-800',
-  PLANNED: 'bg-sky-100 text-sky-800',
-  PENDINGTRANSPORTERACK: 'bg-amber-100 text-amber-900',
-  ACKNOWLEDGED: 'bg-violet-100 text-violet-900',
-  INPROGRESS: 'bg-blue-500 text-white',
-  CHECKPOINTACTIVE: 'bg-orange-500 text-white',
-  CLOSED: 'bg-emerald-600 text-white',
-  CANCELLED: 'bg-rose-100 text-rose-900',
-}
-
-const MODE_CLASS: Record<ExecutionMode, string> = {
-  INTERNAL: 'bg-slate-100 text-slate-700',
-  EXTERNAL: 'bg-indigo-100 text-indigo-800',
-}
+  getTourCargo,
+} from '../data/tour-activity'
+import { STATUS_CLASS, MODE_CLASS, TourActions } from './tour-actions'
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -61,7 +19,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-function fmt(quantity: number | null, type: TourView['type']): string {
+function fmt(quantity: number | null, type: TourActivity['tourneeType']): string {
   if (quantity == null) return '—'
   return `${quantity} ${type === 'VRAC' ? 't' : 'btl'}`
 }
@@ -71,30 +29,12 @@ export function TourDetail({
   onClose,
   onAction,
 }: {
-  tour: TourView | null
+  tour: TourActivity | null
   onClose: () => void
-  onAction: (updated: TourView) => void
+  onAction: (updated: TourActivity) => void
 }) {
-  const activeRole = useRoleStore((s) => s.activeRole)
   const progress = tour ? getTourProgress(tour) : 0
   const stops = tour ? getTourStops(tour.id) : []
-
-  const actions = useMemo(() => {
-    if (!tour) return []
-    return tourActions({ status: tour.status, execution_mode: tour.execution_mode })
-      .filter((action) => hasPermission(activeRole, ACTION_PERMISSION[action]))
-  }, [tour, activeRole])
-
-  function handleAction(action: TourAction) {
-    if (!tour) return
-    try {
-      const updated = useToursStore.getState().performAction(tour.id, action)
-      toast.success(`${tour.reference} — ${TOUR_ACTION_LABELS[action]}`)
-      onAction(updated)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Action impossible')
-    }
-  }
 
   const hasSlaFlag = Boolean(tour && (tour.sla_transporter_no_ack || tour.sla_unassigned_too_long))
 
@@ -104,7 +44,7 @@ export function TourDetail({
       <DialogHeader>
         <DialogTitle className='flex items-center justify-between gap-3'>
           <span>{tour?.reference ?? '—'}</span>
-          {tour && <Badge className={STATUS_CLASS[tour.status]}>{tourStatusLabels[tour.status]}</Badge>}
+          {tour && <Badge className={STATUS_CLASS[tour.tourneeStatus]}>{tourStatusLabels[tour.tourneeStatus]}</Badge>}
         </DialogTitle>
       </DialogHeader>
 
@@ -114,7 +54,7 @@ export function TourDetail({
             <Badge className={MODE_CLASS[tour.execution_mode]}>
               {executionModeLabels[tour.execution_mode]}
             </Badge>
-            <span className='text-sm text-muted-foreground'>{tour.cargo_label}</span>
+            <span className='text-sm text-muted-foreground'>{getTourCargo(tour)}</span>
           </div>
 
           {hasSlaFlag && (
@@ -143,9 +83,9 @@ export function TourDetail({
             <Row label='Véhicule' value={tour.vehicle_plate ?? '—'} />
             <Row label='Conducteur' value={tour.driver_name ?? '—'} />
             <Row label='Livreur' value={tour.livreur_name ?? '—'} />
-            <Row label='Quantité demandée' value={fmt(tour.requested_quantity, tour.type)} />
-            <Row label='Quantité chargée' value={fmt(tour.loaded_quantity, tour.type)} />
-            <Row label='Quantité livrée' value={fmt(tour.delivered_quantity, tour.type)} />
+            <Row label='Quantité demandée' value={fmt(tour.requested_quantity, tour.tourneeType)} />
+            <Row label='Quantité chargée' value={fmt(tour.loaded_quantity, tour.tourneeType)} />
+            <Row label='Quantité livrée' value={fmt(tour.delivered_quantity, tour.tourneeType)} />
             <Row label='Point(s) livré(s)' value={`${tour.completed_checkpoints}/${tour.checkpoint_count}`} />
           </div>
 
@@ -175,30 +115,12 @@ export function TourDetail({
             </div>
           )}
 
-          {actions.length > 0 && (
-            <div className='flex flex-wrap justify-end gap-2 border-t pt-3'>
-              {actions.map((action) => (
-                <Button
-                  key={action}
-                  variant={ACTION_VARIANT[action]}
-                  onClick={() => handleAction(action)}
-                >
-                  {TOUR_ACTION_LABELS[action]}
-                </Button>
-              ))}
-              <Button variant='outline' onClick={onClose}>
-                Fermer
-              </Button>
-            </div>
-          )}
-
-          {actions.length === 0 && (
-            <div className='flex justify-end pt-2'>
-              <Button variant='outline' onClick={onClose}>
-                Fermer
-              </Button>
-            </div>
-          )}
+          <TourActions tour={tour} onPerformed={onAction} />
+          <div className='flex justify-end pt-2'>
+            <Button variant='outline' onClick={onClose}>
+              Fermer
+            </Button>
+          </div>
         </div>
       )}
       </DialogContent>

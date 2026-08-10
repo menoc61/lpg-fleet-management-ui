@@ -4,7 +4,7 @@ import {
   type RouteEventSeverity,
   type RouteTripStatus,
   type RouteTripView,
-} from '@/features/routes/data/routes'
+} from '@/features/tours/data/tour-activity'
 import { sites } from '@/features/sites/data/sites'
 import { trucks } from '@/features/trucks/trucks'
 import { quantityInfo } from '@/features/trucks/lib/quantity'

@@ -12,13 +12,16 @@ import {
   vehicleTypeLabels,
   type VehicleView,
 } from '../data/vehicles'
+import { activeTourForVehicle } from '@/features/tours/data/active-tour'
 
 type VehiclesColumnsProps = {
   onViewDetails: (vehicle: VehicleView) => void
+  onOpenActiveTour: (vehicleId: string) => void
 }
 
 export function getVehiclesColumns({
   onViewDetails,
+  onOpenActiveTour,
 }: VehiclesColumnsProps): ColumnDef<VehicleView>[] {
   return [
     {
@@ -204,6 +207,27 @@ export function getVehiclesColumns({
         )
       },
       meta: { label: 'Risque' },
+      enableSorting: false,
+    },
+    {
+      id: 'active-tour',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='En tournée' />
+      ),
+      cell: ({ row }) => {
+        const trip = activeTourForVehicle(row.original.id)
+        if (!trip) return <span className='text-muted-foreground text-xs'>—</span>
+        return (
+          <button
+            type='button'
+            onClick={() => onOpenActiveTour(row.original.id)}
+            className='text-primary underline-offset-4 hover:underline'
+          >
+            {trip.reference}
+          </button>
+        )
+      },
+      meta: { label: 'En tournée', className: 'w-36' },
       enableSorting: false,
     },
   ]

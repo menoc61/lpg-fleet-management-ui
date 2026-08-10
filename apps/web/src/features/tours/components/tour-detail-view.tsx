@@ -34,22 +34,22 @@ import {
   routeSeverityLabels,
   routeStatusLabels,
   type RouteTripView,
-} from '../data/routes'
-import { RouteCorridorMap } from './route-corridor-map'
-import { RouteLpgVariationPanel } from './route-lpg-variation-panel'
-import { RouteTelemetryChart } from './route-telemetry-chart'
+} from '../data/tour-activity'
+import { TourCorridorMap } from './tour-corridor-map'
+import { TourLpgVariationPanel } from './tour-lpg-variation-panel'
+import { TourTelemetryChart } from './tour-telemetry-chart'
 
-type RouteDetailsViewProps = {
+type TourDetailViewProps = {
   trip: RouteTripView | null
   trips: readonly RouteTripView[]
   onSelectTrip: (routeId: string) => void
 }
 
-export function RouteDetailsView({
+export function TourDetailView({
   trip,
   trips,
   onSelectTrip,
-}: RouteDetailsViewProps) {
+}: TourDetailViewProps) {
   if (!trip) {
     return (
       <Card>
@@ -253,11 +253,11 @@ export function RouteDetailsView({
         </CardContent>
       </Card>
 
-      <RouteLpgVariationPanel trip={trip} formatKg={formatKg} />
+      <TourLpgVariationPanel trip={trip} formatKg={formatKg} />
 
       <section className='grid gap-4 2xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]'>
-        <RouteCorridorMap trip={trip} formatDateTime={formatDateTime} />
-        <RouteTelemetryChart
+        <TourCorridorMap trip={trip} formatDateTime={formatDateTime} />
+        <TourTelemetryChart
           trip={trip}
           formatKg={formatKg}
           formatShortTime={formatShortTime}

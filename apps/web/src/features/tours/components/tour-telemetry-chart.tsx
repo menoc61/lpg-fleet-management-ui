@@ -17,19 +17,19 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { type RouteTripView } from '../data/routes'
+import { type RouteTripView } from '../data/tour-activity'
 
-type RouteTelemetryChartProps = {
+type TourTelemetryChartProps = {
   trip: RouteTripView
   formatKg: (value: number) => string
   formatShortTime: (value: string) => string
 }
 
-export function RouteTelemetryChart({
+export function TourTelemetryChart({
   trip,
   formatKg,
   formatShortTime,
-}: RouteTelemetryChartProps) {
+}: TourTelemetryChartProps) {
   const chartData = trip.telemetry.map((point) => ({
     timeLabel: formatShortTime(point.recordedAt),
     lpgLevelPercent: point.lpgLevelPercent,

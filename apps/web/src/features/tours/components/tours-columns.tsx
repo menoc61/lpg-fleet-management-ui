@@ -1,12 +1,14 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Badge, DataTableColumnHeader } from '@lpg/ui'
 import {
-  type TourView,
+  type TourActivity,
   type TourneeStatus,
   type ExecutionMode,
   tourStatusLabels,
   executionModeLabels,
-} from '../data/tours'
+  getTourCargo,
+  getTourVolume,
+} from '../data/tour-activity'
 
 const STATUS_CLASS: Record<TourneeStatus, string> = {
   DRAFT: 'bg-slate-200 text-slate-800',
@@ -27,8 +29,8 @@ const MODE_CLASS: Record<ExecutionMode, string> = {
 export function getToursColumns({
   onOpenDetails,
 }: {
-  onOpenDetails: (row: TourView) => void
-}): ColumnDef<TourView>[] {
+  onOpenDetails: (row: TourActivity) => void
+}): ColumnDef<TourActivity>[] {
   return [
     {
       accessorKey: 'reference',
@@ -62,9 +64,9 @@ export function getToursColumns({
       meta: { label: 'Mode' },
     },
     {
-      accessorKey: 'type',
+      accessorKey: 'tourneeType',
       header: 'Type',
-      cell: ({ row }) => row.original.cargo_label,
+      cell: ({ row }) => getTourCargo(row.original),
       meta: { label: 'Type' },
     },
     {
@@ -80,9 +82,9 @@ export function getToursColumns({
       meta: { label: 'Véhicule' },
     },
     {
-      accessorKey: 'quantity_label',
+      accessorKey: 'requested_quantity',
       header: 'Quantité',
-      cell: ({ row }) => row.original.quantity_label,
+      cell: ({ row }) => getTourVolume(row.original),
       meta: { label: 'Quantité' },
     },
     {
@@ -90,16 +92,16 @@ export function getToursColumns({
       header: 'Livré',
       cell: ({ row }) =>
         row.original.delivered_quantity != null
-          ? `${row.original.delivered_quantity} ${row.original.type === 'VRAC' ? 't' : 'btl'}`
+          ? `${row.original.delivered_quantity} ${row.original.tourneeType === 'VRAC' ? 't' : 'btl'}`
           : '—',
       meta: { label: 'Livré' },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'tourneeStatus',
       header: 'Statut',
       cell: ({ row }) => (
-        <Badge className={STATUS_CLASS[row.original.status]}>
-          {tourStatusLabels[row.original.status]}
+        <Badge className={STATUS_CLASS[row.original.tourneeStatus]}>
+          {tourStatusLabels[row.original.tourneeStatus]}
         </Badge>
       ),
       enableHiding: false,

@@ -35,6 +35,7 @@ type VehiclesTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (vehicle: VehicleView) => void
+  onOpenActiveTour: (vehicleId: string) => void
 }
 
 export function VehiclesTable({
@@ -42,13 +43,14 @@ export function VehiclesTable({
   search,
   navigate,
   onViewDetails,
+  onOpenActiveTour,
 }: VehiclesTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
-    () => getVehiclesColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getVehiclesColumns({ onViewDetails, onOpenActiveTour }),
+    [onViewDetails, onOpenActiveTour]
   )
 
   const tenantOptions = useMemo(() => getTenantOptions(), [])

@@ -15,7 +15,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedAnomaliesRouteImport } from './routes/_authenticated/anomalies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedActivityTripTrackingRouteImport } from './routes/_authenticated/activity/trip-tracking'
+import { Route as AuthenticatedTourTrackingRouteImport } from './routes/_authenticated/tour-tracking'
 import { Route as AuthenticatedAlertRulesIndexRouteImport } from './routes/_authenticated/alert-rules/index'
 import { Route as AuthenticatedAlertsIndexRouteImport } from './routes/_authenticated/alerts/index'
 import { Route as AuthenticatedAnomaliesIndexRouteImport } from './routes/_authenticated/anomalies/index'
@@ -62,7 +62,6 @@ import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedRfidTagsIndexRouteImport } from './routes/_authenticated/rfid-tags/index'
 import { Route as AuthenticatedRiskScoresIndexRouteImport } from './routes/_authenticated/risk-scores/index'
 import { Route as AuthenticatedRisksIndexRouteImport } from './routes/_authenticated/risks/index'
-import { Route as AuthenticatedRoutesIndexRouteImport } from './routes/_authenticated/routes/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSettingsNotificationGroupsRouteImport } from './routes/_authenticated/settings/notification-groups'
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings/profile'
@@ -120,10 +119,10 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedActivityTripTrackingRoute =
-  AuthenticatedActivityTripTrackingRouteImport.update({
-    id: '/activity/trip-tracking',
-    path: '/activity/trip-tracking',
+const AuthenticatedTourTrackingRoute =
+  AuthenticatedTourTrackingRouteImport.update({
+    id: '/tour-tracking',
+    path: '/tour-tracking',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAlertRulesIndexRoute =
@@ -399,12 +398,6 @@ const AuthenticatedRisksIndexRoute = AuthenticatedRisksIndexRouteImport.update({
   path: '/risks/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRoutesIndexRoute =
-  AuthenticatedRoutesIndexRouteImport.update({
-    id: '/routes/',
-    path: '/routes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/settings/',
@@ -570,7 +563,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/anomalies': typeof AuthenticatedAnomaliesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
+  '/tour-tracking': typeof AuthenticatedTourTrackingRoute
   '/anomalies/investigation': typeof AuthenticatedAnomaliesInvestigationRoute
   '/anomalies/technical': typeof AuthenticatedAnomaliesTechnicalRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
@@ -622,7 +615,6 @@ export interface FileRoutesByFullPath {
   '/rfid-tags/': typeof AuthenticatedRfidTagsIndexRoute
   '/risk-scores/': typeof AuthenticatedRiskScoresIndexRoute
   '/risks/': typeof AuthenticatedRisksIndexRoute
-  '/routes/': typeof AuthenticatedRoutesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/site-verifications/': typeof AuthenticatedSiteVerificationsIndexRoute
   '/sites/': typeof AuthenticatedSitesIndexRoute
@@ -649,8 +641,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/terms': typeof TermsRoute
+  '/tour-tracking': typeof AuthenticatedTourTrackingRoute
   '/': typeof AuthenticatedIndexRoute
-  '/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/anomalies/investigation': typeof AuthenticatedAnomaliesInvestigationRoute
   '/anomalies/technical': typeof AuthenticatedAnomaliesTechnicalRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
@@ -702,7 +694,6 @@ export interface FileRoutesByTo {
   '/rfid-tags': typeof AuthenticatedRfidTagsIndexRoute
   '/risk-scores': typeof AuthenticatedRiskScoresIndexRoute
   '/risks': typeof AuthenticatedRisksIndexRoute
-  '/routes': typeof AuthenticatedRoutesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/site-verifications': typeof AuthenticatedSiteVerificationsIndexRoute
   '/sites': typeof AuthenticatedSitesIndexRoute
@@ -733,8 +724,8 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_authenticated/anomalies': typeof AuthenticatedAnomaliesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/tour-tracking': typeof AuthenticatedTourTrackingRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/activity/trip-tracking': typeof AuthenticatedActivityTripTrackingRoute
   '/_authenticated/anomalies/investigation': typeof AuthenticatedAnomaliesInvestigationRoute
   '/_authenticated/anomalies/technical': typeof AuthenticatedAnomaliesTechnicalRoute
   '/_authenticated/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
@@ -786,7 +777,6 @@ export interface FileRoutesById {
   '/_authenticated/rfid-tags/': typeof AuthenticatedRfidTagsIndexRoute
   '/_authenticated/risk-scores/': typeof AuthenticatedRiskScoresIndexRoute
   '/_authenticated/risks/': typeof AuthenticatedRisksIndexRoute
-  '/_authenticated/routes/': typeof AuthenticatedRoutesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/site-verifications/': typeof AuthenticatedSiteVerificationsIndexRoute
   '/_authenticated/sites/': typeof AuthenticatedSitesIndexRoute
@@ -818,7 +808,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/anomalies'
     | '/dashboard'
-    | '/activity/trip-tracking'
+    | '/tour-tracking'
     | '/anomalies/investigation'
     | '/anomalies/technical'
     | '/marketers/$marketerId'
@@ -870,7 +860,6 @@ export interface FileRouteTypes {
     | '/rfid-tags/'
     | '/risk-scores/'
     | '/risks/'
-    | '/routes/'
     | '/settings/'
     | '/site-verifications/'
     | '/sites/'
@@ -897,8 +886,8 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/terms'
+    | '/tour-tracking'
     | '/'
-    | '/activity/trip-tracking'
     | '/anomalies/investigation'
     | '/anomalies/technical'
     | '/marketers/$marketerId'
@@ -950,7 +939,6 @@ export interface FileRouteTypes {
     | '/rfid-tags'
     | '/risk-scores'
     | '/risks'
-    | '/routes'
     | '/settings'
     | '/site-verifications'
     | '/sites'
@@ -980,8 +968,8 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_authenticated/anomalies'
     | '/_authenticated/dashboard'
+    | '/_authenticated/tour-tracking'
     | '/_authenticated/'
-    | '/_authenticated/activity/trip-tracking'
     | '/_authenticated/anomalies/investigation'
     | '/_authenticated/anomalies/technical'
     | '/_authenticated/marketers/$marketerId'
@@ -1033,7 +1021,6 @@ export interface FileRouteTypes {
     | '/_authenticated/rfid-tags/'
     | '/_authenticated/risk-scores/'
     | '/_authenticated/risks/'
-    | '/_authenticated/routes/'
     | '/_authenticated/settings/'
     | '/_authenticated/site-verifications/'
     | '/_authenticated/sites/'
@@ -1108,11 +1095,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/activity/trip-tracking': {
-      id: '/_authenticated/activity/trip-tracking'
-      path: '/activity/trip-tracking'
-      fullPath: '/activity/trip-tracking'
-      preLoaderRoute: typeof AuthenticatedActivityTripTrackingRouteImport
+    '/_authenticated/tour-tracking': {
+      id: '/_authenticated/tour-tracking'
+      path: '/tour-tracking'
+      fullPath: '/tour-tracking'
+      preLoaderRoute: typeof AuthenticatedTourTrackingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/alert-rules/': {
@@ -1437,13 +1424,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRisksIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/routes/': {
-      id: '/_authenticated/routes/'
-      path: '/routes'
-      fullPath: '/routes/'
-      preLoaderRoute: typeof AuthenticatedRoutesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/settings'
@@ -1678,8 +1658,8 @@ const AuthenticatedDashboardRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnomaliesRoute: typeof AuthenticatedAnomaliesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedTourTrackingRoute: typeof AuthenticatedTourTrackingRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedActivityTripTrackingRoute: typeof AuthenticatedActivityTripTrackingRoute
   AuthenticatedMarketersMarketerIdRoute: typeof AuthenticatedMarketersMarketerIdRoute
   AuthenticatedSettingsNotificationGroupsRoute: typeof AuthenticatedSettingsNotificationGroupsRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
@@ -1727,7 +1707,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRfidTagsIndexRoute: typeof AuthenticatedRfidTagsIndexRoute
   AuthenticatedRiskScoresIndexRoute: typeof AuthenticatedRiskScoresIndexRoute
   AuthenticatedRisksIndexRoute: typeof AuthenticatedRisksIndexRoute
-  AuthenticatedRoutesIndexRoute: typeof AuthenticatedRoutesIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedSiteVerificationsIndexRoute: typeof AuthenticatedSiteVerificationsIndexRoute
   AuthenticatedSitesIndexRoute: typeof AuthenticatedSitesIndexRoute
@@ -1753,9 +1732,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnomaliesRoute: AuthenticatedAnomaliesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedTourTrackingRoute: AuthenticatedTourTrackingRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedActivityTripTrackingRoute:
-    AuthenticatedActivityTripTrackingRoute,
   AuthenticatedMarketersMarketerIdRoute: AuthenticatedMarketersMarketerIdRoute,
   AuthenticatedSettingsNotificationGroupsRoute:
     AuthenticatedSettingsNotificationGroupsRoute,
@@ -1809,7 +1787,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRfidTagsIndexRoute: AuthenticatedRfidTagsIndexRoute,
   AuthenticatedRiskScoresIndexRoute: AuthenticatedRiskScoresIndexRoute,
   AuthenticatedRisksIndexRoute: AuthenticatedRisksIndexRoute,
-  AuthenticatedRoutesIndexRoute: AuthenticatedRoutesIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedSiteVerificationsIndexRoute:
     AuthenticatedSiteVerificationsIndexRoute,

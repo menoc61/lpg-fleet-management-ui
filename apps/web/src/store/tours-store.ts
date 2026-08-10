@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { curated } from '@lpg/mock-data'
 import type { DeliveryTour, Checkpoint, ExecutionMode, TourneeType } from '@lpg/types'
-import { toTourViews, type TourView, type TourSlice } from '@/features/tours/data/tours'
+import { toTourActivities, type TourActivity, type TourSlice } from '@/features/tours/data/tour-activity'
 import {
   applyAction,
   tourActions,
@@ -29,10 +29,10 @@ export interface TourDraft {
 interface ToursState {
   tours: DeliveryTour[]
   checkpoints: Checkpoint[]
-  createTour: (draft: TourDraft) => TourView
-  performAction: (id: string, action: TourAction) => TourView
-  views: (slice: TourSlice) => TourView[]
-  viewById: (id: string) => TourView | undefined
+  createTour: (draft: TourDraft) => TourActivity
+  performAction: (id: string, action: TourAction) => TourActivity
+  views: (slice: TourSlice) => TourActivity[]
+  viewById: (id: string) => TourActivity | undefined
 }
 
 export const useToursStore = create<ToursState>()((set, get) => ({
@@ -72,7 +72,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
       throw new Error(validation.errors[0])
     }
     set({ tours: [tour, ...get().tours] })
-    return toTourViews([tour])[0]!
+    return toTourActivities([tour], { checkpoints: get().checkpoints })[0]!
   },
 
   performAction(id: string, action: TourAction) {
@@ -95,7 +95,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
     const next: DeliveryTour = { ...current, ...result }
     tours[index] = next
     set({ tours: [...tours] })
-    return toTourViews([next])[0]!
+    return toTourActivities([next], { checkpoints: get().checkpoints })[0]!
   },
 
   views(slice: TourSlice) {
@@ -119,7 +119,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
                 return true
             }
           })
-    return toTourViews(
+    return toTourActivities(
       [...filtered].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '')),
       { checkpoints: get().checkpoints },
     )
@@ -128,7 +128,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
   viewById(id: string) {
     const index = get().tours.findIndex((t) => t.id === id)
     if (index === -1) return undefined
-    return toTourViews([get().tours[index]!], { checkpoints: get().checkpoints })[0]
+    return toTourActivities([get().tours[index]!], { checkpoints: get().checkpoints })[0]
   },
 }))
 
