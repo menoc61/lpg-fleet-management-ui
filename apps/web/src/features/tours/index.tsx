@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
-import { TourDetailView } from './components/tour-detail-view'
+import { TourActiveHeader } from './components/tour-active-header'
 import { ToursTable } from './components/tours-table'
-import type { TourActivity, TourSlice } from './data/tour-activity'
+import type { TourSlice } from './data/tour-activity'
 import { getTourActivity } from './data/tour-activity'
 
 const SLICE_TITLES: Record<TourSlice, string> = {
@@ -24,17 +25,15 @@ const SLICE_DESCRIPTIONS: Record<TourSlice, string> = {
   HISTORY: 'Tournées livrées ou annulées.',
 }
 
-export function ToursPage({
-  slice = 'ALL',
-  initialTourId,
-}: {
-  slice?: TourSlice
-  initialTourId?: string
-}) {
-  const allTours = getTourActivity(slice)
-  const tours: TourActivity[] = allTours
-  const [selectedId, setSelectedId] = useState<string | undefined>(initialTourId)
-  const selectedTrip = tours.find((t) => t.id === selectedId) ?? null
+export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
+  const navigate = useNavigate()
+  const tours = getTourActivity(slice)
+  const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
+  const selectedTrip = tours.find((t) => t.id === selectedId) ?? tours[0]
+
+  function openDetail(id: string) {
+    navigate({ to: '/tour-tracking/$tourId', params: { tourId: id } })
+  }
 
   return (
     <PageShell>
@@ -42,19 +41,20 @@ export function ToursPage({
         title={SLICE_TITLES[slice]}
         description={SLICE_DESCRIPTIONS[slice]}
       />
-      <SectionCard>
-        <ToursTable
-          rows={tours}
-          onOpenDetails={(row) => setSelectedId(row.id)}
-        />
-      </SectionCard>
       {selectedTrip && (
-        <TourDetailView
+        <TourActiveHeader
           trip={selectedTrip}
           trips={tours}
           onSelectTrip={(id) => setSelectedId(id)}
         />
       )}
+      <SectionCard>
+        <ToursTable
+          rows={tours}
+          selectedTripId={selectedTrip?.id}
+          onOpenDetails={(row) => openDetail(row.id)}
+        />
+      </SectionCard>
     </PageShell>
   )
 }

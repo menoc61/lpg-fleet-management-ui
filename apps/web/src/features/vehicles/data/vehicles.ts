@@ -31,6 +31,7 @@ export interface VehicleView {
   tare_weight?: number | null
   certificate_number?: string
   certificate_expiry_at?: string | null
+  certificate_status: CertificateStatus
   is_active: boolean
   assigned_driver?: string
   status: VehicleStatus
@@ -40,6 +41,45 @@ export interface VehicleView {
   risk_level: RiskLevel
   lat: number
   lng: number
+}
+
+export type CertificateStatus =
+  | 'valid'
+  | 'expiring-soon'
+  | 'expired'
+  | 'missing'
+  | 'not-required'
+
+export const certificateStatusLabels: Record<CertificateStatus, string> = {
+  valid: 'Certificat valide',
+  'expiring-soon': 'Certificat expire bientot',
+  expired: 'Certificat expire',
+  missing: 'Certificat manquant',
+  'not-required': 'Certificat non requis',
+}
+
+export const certificateStatusClasses: Record<CertificateStatus, string> = {
+  valid: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  'expiring-soon': 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  expired: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  missing: 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  'not-required': 'bg-muted text-muted-foreground',
+}
+
+export function certificateStatus(
+  vehicleType: VehicleType,
+  certificateNumber: string | undefined,
+  certificateExpiryAt: string | null | undefined,
+  now: Date = new Date(),
+): CertificateStatus {
+  if (vehicleType !== 'VRAC') return 'not-required'
+  if (!certificateNumber || !certificateExpiryAt) return 'missing'
+  const expiry = new Date(certificateExpiryAt)
+  if (Number.isNaN(expiry.getTime())) return 'missing'
+  const daysUntilExpiry = (expiry.getTime() - now.getTime()) / 86_400_000
+  if (daysUntilExpiry < 0) return 'expired'
+  if (daysUntilExpiry < 30) return 'expiring-soon'
+  return 'valid'
 }
 
 export const vehicleStatusLabels: Record<VehicleStatus, string> = {
@@ -173,6 +213,11 @@ function buildView(vehicle: CuratedVehicle): VehicleView {
     region,
     certificate_number: vehicle.certificate_number,
     certificate_expiry_at: vehicle.certificate_expiry_at,
+    certificate_status: certificateStatus(
+      vehicle.type,
+      vehicle.certificate_number,
+      vehicle.certificate_expiry_at,
+    ),
     max_volume: vehicle.max_volume,
     max_bottle_count: vehicle.max_bottle_count,
     tare_weight: vehicle.tare_weight,

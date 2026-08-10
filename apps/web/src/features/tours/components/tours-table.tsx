@@ -18,15 +18,20 @@ import { tourStatusOptions, type TourActivity } from '../data/tour-activity'
 
 export function ToursTable({
   rows,
+  selectedTripId,
   onOpenDetails,
 }: {
   rows: TourActivity[]
+  selectedTripId?: string | null
   onOpenDetails: (row: TourActivity) => void
 }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
-  const columns = useMemo(() => getToursColumns({ onOpenDetails }), [onOpenDetails])
+  const columns = useMemo(
+    () => getToursColumns({ onOpenDetails, selectedTripId }),
+    [onOpenDetails, selectedTripId],
+  )
 
   const table = useReactTable({
     data: rows,
@@ -46,7 +51,7 @@ export function ToursTable({
         table={table}
         searchPlaceholder='Rechercher une référence, marketeur...'
         searchKey='reference'
-        filters={[{ columnId: 'status', title: 'Statut', options: tourStatusOptions }]}
+        filters={[{ columnId: 'tourneeStatus', title: 'Statut', options: tourStatusOptions }]}
       />
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -64,7 +69,17 @@ export function ToursTable({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  data-state={
+                    row.original.id === selectedTripId ? 'selected' : undefined
+                  }
+                  className={
+                    row.original.id === selectedTripId
+                      ? 'bg-primary/5 hover:bg-primary/10'
+                      : undefined
+                  }
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

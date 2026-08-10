@@ -15,7 +15,6 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedAnomaliesRouteImport } from './routes/_authenticated/anomalies'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedTourTrackingRouteImport } from './routes/_authenticated/tour-tracking'
 import { Route as AuthenticatedAlertRulesIndexRouteImport } from './routes/_authenticated/alert-rules/index'
 import { Route as AuthenticatedAlertsIndexRouteImport } from './routes/_authenticated/alerts/index'
 import { Route as AuthenticatedAnomaliesIndexRouteImport } from './routes/_authenticated/anomalies/index'
@@ -71,6 +70,8 @@ import { Route as AuthenticatedSitesIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSupplyIndexRouteImport } from './routes/_authenticated/supply/index'
 import { Route as AuthenticatedSystemHealthIndexRouteImport } from './routes/_authenticated/system-health/index'
 import { Route as AuthenticatedSystemMetricsIndexRouteImport } from './routes/_authenticated/system-metrics/index'
+import { Route as AuthenticatedTourTrackingIndexRouteImport } from './routes/_authenticated/tour-tracking/index'
+import { Route as AuthenticatedTourTrackingTourIdRouteImport } from './routes/_authenticated/tour-tracking/$tourId'
 import { Route as AuthenticatedToursActiveIndexRouteImport } from './routes/_authenticated/tours-active/index'
 import { Route as AuthenticatedToursExternalIndexRouteImport } from './routes/_authenticated/tours-external/index'
 import { Route as AuthenticatedToursHistoryIndexRouteImport } from './routes/_authenticated/tours-history/index'
@@ -119,12 +120,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTourTrackingRoute =
-  AuthenticatedTourTrackingRouteImport.update({
-    id: '/tour-tracking',
-    path: '/tour-tracking',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAlertRulesIndexRoute =
   AuthenticatedAlertRulesIndexRouteImport.update({
     id: '/alert-rules/',
@@ -451,6 +446,18 @@ const AuthenticatedSystemMetricsIndexRoute =
     path: '/system-metrics/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTourTrackingIndexRoute =
+  AuthenticatedTourTrackingIndexRouteImport.update({
+    id: '/tour-tracking/',
+    path: '/tour-tracking/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTourTrackingTourIdRoute =
+  AuthenticatedTourTrackingTourIdRouteImport.update({
+    id: '/tour-tracking/$tourId',
+    path: '/tour-tracking/$tourId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedToursActiveIndexRoute =
   AuthenticatedToursActiveIndexRouteImport.update({
     id: '/tours-active/',
@@ -563,13 +570,13 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/anomalies': typeof AuthenticatedAnomaliesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/tour-tracking': typeof AuthenticatedTourTrackingRoute
   '/anomalies/investigation': typeof AuthenticatedAnomaliesInvestigationRoute
   '/anomalies/technical': typeof AuthenticatedAnomaliesTechnicalRoute
   '/marketers/$marketerId': typeof AuthenticatedMarketersMarketerIdRoute
   '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/settings/system': typeof AuthenticatedSettingsSystemRoute
+  '/tour-tracking/$tourId': typeof AuthenticatedTourTrackingTourIdRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/alert-rules/': typeof AuthenticatedAlertRulesIndexRoute
@@ -621,6 +628,7 @@ export interface FileRoutesByFullPath {
   '/supply/': typeof AuthenticatedSupplyIndexRoute
   '/system-health/': typeof AuthenticatedSystemHealthIndexRoute
   '/system-metrics/': typeof AuthenticatedSystemMetricsIndexRoute
+  '/tour-tracking/': typeof AuthenticatedTourTrackingIndexRoute
   '/tours-active/': typeof AuthenticatedToursActiveIndexRoute
   '/tours-external/': typeof AuthenticatedToursExternalIndexRoute
   '/tours-history/': typeof AuthenticatedToursHistoryIndexRoute
@@ -641,7 +649,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/terms': typeof TermsRoute
-  '/tour-tracking': typeof AuthenticatedTourTrackingRoute
   '/': typeof AuthenticatedIndexRoute
   '/anomalies/investigation': typeof AuthenticatedAnomaliesInvestigationRoute
   '/anomalies/technical': typeof AuthenticatedAnomaliesTechnicalRoute
@@ -649,6 +656,7 @@ export interface FileRoutesByTo {
   '/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/settings/system': typeof AuthenticatedSettingsSystemRoute
+  '/tour-tracking/$tourId': typeof AuthenticatedTourTrackingTourIdRoute
   '/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/alert-rules': typeof AuthenticatedAlertRulesIndexRoute
@@ -700,6 +708,7 @@ export interface FileRoutesByTo {
   '/supply': typeof AuthenticatedSupplyIndexRoute
   '/system-health': typeof AuthenticatedSystemHealthIndexRoute
   '/system-metrics': typeof AuthenticatedSystemMetricsIndexRoute
+  '/tour-tracking': typeof AuthenticatedTourTrackingIndexRoute
   '/tours-active': typeof AuthenticatedToursActiveIndexRoute
   '/tours-external': typeof AuthenticatedToursExternalIndexRoute
   '/tours-history': typeof AuthenticatedToursHistoryIndexRoute
@@ -724,7 +733,6 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_authenticated/anomalies': typeof AuthenticatedAnomaliesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/_authenticated/tour-tracking': typeof AuthenticatedTourTrackingRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/anomalies/investigation': typeof AuthenticatedAnomaliesInvestigationRoute
   '/_authenticated/anomalies/technical': typeof AuthenticatedAnomaliesTechnicalRoute
@@ -732,6 +740,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/notification-groups': typeof AuthenticatedSettingsNotificationGroupsRoute
   '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
   '/_authenticated/settings/system': typeof AuthenticatedSettingsSystemRoute
+  '/_authenticated/tour-tracking/$tourId': typeof AuthenticatedTourTrackingTourIdRoute
   '/_authenticated/transporters/$transporterId': typeof AuthenticatedTransportersTransporterIdRoute
   '/_authenticated/trucks/$truckId': typeof AuthenticatedTrucksTruckIdRoute
   '/_authenticated/alert-rules/': typeof AuthenticatedAlertRulesIndexRoute
@@ -783,6 +792,7 @@ export interface FileRoutesById {
   '/_authenticated/supply/': typeof AuthenticatedSupplyIndexRoute
   '/_authenticated/system-health/': typeof AuthenticatedSystemHealthIndexRoute
   '/_authenticated/system-metrics/': typeof AuthenticatedSystemMetricsIndexRoute
+  '/_authenticated/tour-tracking/': typeof AuthenticatedTourTrackingIndexRoute
   '/_authenticated/tours-active/': typeof AuthenticatedToursActiveIndexRoute
   '/_authenticated/tours-external/': typeof AuthenticatedToursExternalIndexRoute
   '/_authenticated/tours-history/': typeof AuthenticatedToursHistoryIndexRoute
@@ -808,13 +818,13 @@ export interface FileRouteTypes {
     | '/terms'
     | '/anomalies'
     | '/dashboard'
-    | '/tour-tracking'
     | '/anomalies/investigation'
     | '/anomalies/technical'
     | '/marketers/$marketerId'
     | '/settings/notification-groups'
     | '/settings/profile'
     | '/settings/system'
+    | '/tour-tracking/$tourId'
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
     | '/alert-rules/'
@@ -866,6 +876,7 @@ export interface FileRouteTypes {
     | '/supply/'
     | '/system-health/'
     | '/system-metrics/'
+    | '/tour-tracking/'
     | '/tours-active/'
     | '/tours-external/'
     | '/tours-history/'
@@ -886,7 +897,6 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/terms'
-    | '/tour-tracking'
     | '/'
     | '/anomalies/investigation'
     | '/anomalies/technical'
@@ -894,6 +904,7 @@ export interface FileRouteTypes {
     | '/settings/notification-groups'
     | '/settings/profile'
     | '/settings/system'
+    | '/tour-tracking/$tourId'
     | '/transporters/$transporterId'
     | '/trucks/$truckId'
     | '/alert-rules'
@@ -945,6 +956,7 @@ export interface FileRouteTypes {
     | '/supply'
     | '/system-health'
     | '/system-metrics'
+    | '/tour-tracking'
     | '/tours-active'
     | '/tours-external'
     | '/tours-history'
@@ -968,7 +980,6 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_authenticated/anomalies'
     | '/_authenticated/dashboard'
-    | '/_authenticated/tour-tracking'
     | '/_authenticated/'
     | '/_authenticated/anomalies/investigation'
     | '/_authenticated/anomalies/technical'
@@ -976,6 +987,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notification-groups'
     | '/_authenticated/settings/profile'
     | '/_authenticated/settings/system'
+    | '/_authenticated/tour-tracking/$tourId'
     | '/_authenticated/transporters/$transporterId'
     | '/_authenticated/trucks/$truckId'
     | '/_authenticated/alert-rules/'
@@ -1027,6 +1039,7 @@ export interface FileRouteTypes {
     | '/_authenticated/supply/'
     | '/_authenticated/system-health/'
     | '/_authenticated/system-metrics/'
+    | '/_authenticated/tour-tracking/'
     | '/_authenticated/tours-active/'
     | '/_authenticated/tours-external/'
     | '/_authenticated/tours-history/'
@@ -1093,13 +1106,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tour-tracking': {
-      id: '/_authenticated/tour-tracking'
-      path: '/tour-tracking'
-      fullPath: '/tour-tracking'
-      preLoaderRoute: typeof AuthenticatedTourTrackingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/alert-rules/': {
@@ -1487,6 +1493,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSystemMetricsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tour-tracking/': {
+      id: '/_authenticated/tour-tracking/'
+      path: '/tour-tracking'
+      fullPath: '/tour-tracking/'
+      preLoaderRoute: typeof AuthenticatedTourTrackingIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tour-tracking/$tourId': {
+      id: '/_authenticated/tour-tracking/$tourId'
+      path: '/tour-tracking/$tourId'
+      fullPath: '/tour-tracking/$tourId'
+      preLoaderRoute: typeof AuthenticatedTourTrackingTourIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tours-active/': {
       id: '/_authenticated/tours-active/'
       path: '/tours-active'
@@ -1658,12 +1678,12 @@ const AuthenticatedDashboardRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnomaliesRoute: typeof AuthenticatedAnomaliesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
-  AuthenticatedTourTrackingRoute: typeof AuthenticatedTourTrackingRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedMarketersMarketerIdRoute: typeof AuthenticatedMarketersMarketerIdRoute
   AuthenticatedSettingsNotificationGroupsRoute: typeof AuthenticatedSettingsNotificationGroupsRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
   AuthenticatedSettingsSystemRoute: typeof AuthenticatedSettingsSystemRoute
+  AuthenticatedTourTrackingTourIdRoute: typeof AuthenticatedTourTrackingTourIdRoute
   AuthenticatedTransportersTransporterIdRoute: typeof AuthenticatedTransportersTransporterIdRoute
   AuthenticatedTrucksTruckIdRoute: typeof AuthenticatedTrucksTruckIdRoute
   AuthenticatedAlertRulesIndexRoute: typeof AuthenticatedAlertRulesIndexRoute
@@ -1713,6 +1733,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSupplyIndexRoute: typeof AuthenticatedSupplyIndexRoute
   AuthenticatedSystemHealthIndexRoute: typeof AuthenticatedSystemHealthIndexRoute
   AuthenticatedSystemMetricsIndexRoute: typeof AuthenticatedSystemMetricsIndexRoute
+  AuthenticatedTourTrackingIndexRoute: typeof AuthenticatedTourTrackingIndexRoute
   AuthenticatedToursActiveIndexRoute: typeof AuthenticatedToursActiveIndexRoute
   AuthenticatedToursExternalIndexRoute: typeof AuthenticatedToursExternalIndexRoute
   AuthenticatedToursHistoryIndexRoute: typeof AuthenticatedToursHistoryIndexRoute
@@ -1732,13 +1753,13 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnomaliesRoute: AuthenticatedAnomaliesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
-  AuthenticatedTourTrackingRoute: AuthenticatedTourTrackingRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedMarketersMarketerIdRoute: AuthenticatedMarketersMarketerIdRoute,
   AuthenticatedSettingsNotificationGroupsRoute:
     AuthenticatedSettingsNotificationGroupsRoute,
   AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
   AuthenticatedSettingsSystemRoute: AuthenticatedSettingsSystemRoute,
+  AuthenticatedTourTrackingTourIdRoute: AuthenticatedTourTrackingTourIdRoute,
   AuthenticatedTransportersTransporterIdRoute:
     AuthenticatedTransportersTransporterIdRoute,
   AuthenticatedTrucksTruckIdRoute: AuthenticatedTrucksTruckIdRoute,
@@ -1794,6 +1815,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSupplyIndexRoute: AuthenticatedSupplyIndexRoute,
   AuthenticatedSystemHealthIndexRoute: AuthenticatedSystemHealthIndexRoute,
   AuthenticatedSystemMetricsIndexRoute: AuthenticatedSystemMetricsIndexRoute,
+  AuthenticatedTourTrackingIndexRoute: AuthenticatedTourTrackingIndexRoute,
   AuthenticatedToursActiveIndexRoute: AuthenticatedToursActiveIndexRoute,
   AuthenticatedToursExternalIndexRoute: AuthenticatedToursExternalIndexRoute,
   AuthenticatedToursHistoryIndexRoute: AuthenticatedToursHistoryIndexRoute,

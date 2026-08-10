@@ -17,11 +17,11 @@ describe('active-tour lookup', () => {
     expect(tour!.tourneeStatus).toMatch(/^(INPROGRESS|CHECKPOINTACTIVE)$/)
   })
 
-  it('produces a /tours?tour= link for the running tour', () => {
+  it('produces a /tour-tracking/<id> link for the running tour', () => {
     const vehicleId = curated.delivery_tours.find((t) => t.status === 'CHECKPOINTACTIVE')
       ?.vehicle_id
     if (!vehicleId) return
-    expect(vehicleActiveTourLink(vehicleId)).toMatch(/^\/tours\?tour=/)
+    expect(vehicleActiveTourLink(vehicleId)).toMatch(/^\/tour-tracking\//)
   })
 
   it('returns null for a vehicle with no active tour', () => {

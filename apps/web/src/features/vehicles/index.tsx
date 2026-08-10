@@ -58,7 +58,7 @@ export function VehiclesPage() {
       if (!link) return
       const tour = activeTourForVehicle(vehicleId)
       if (!tour) return
-      navigate({ to: '/tours', search: { tour: tour.id } })
+      navigate({ to: '/tour-tracking/$tourId', params: { tourId: tour.id } })
     },
     [navigate],
   )

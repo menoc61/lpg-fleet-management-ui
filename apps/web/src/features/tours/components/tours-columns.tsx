@@ -28,8 +28,10 @@ const MODE_CLASS: Record<ExecutionMode, string> = {
 
 export function getToursColumns({
   onOpenDetails,
+  selectedTripId,
 }: {
   onOpenDetails: (row: TourActivity) => void
+  selectedTripId?: string | null
 }): ColumnDef<TourActivity>[] {
   return [
     {
@@ -39,7 +41,12 @@ export function getToursColumns({
         <button
           type='button'
           onClick={() => onOpenDetails(row.original)}
-          className='font-medium text-primary underline-offset-4 hover:underline'
+          aria-current={row.original.id === selectedTripId ? 'true' : undefined}
+          className={
+            row.original.id === selectedTripId
+              ? 'font-semibold text-primary underline-offset-4 hover:underline'
+              : 'font-medium text-primary underline-offset-4 hover:underline'
+          }
         >
           {row.original.reference}
         </button>

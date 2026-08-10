@@ -17,6 +17,28 @@ function freshSeed() {
   }
 }
 
+function freshCuratedWithActiveCerts() {
+  const oneYearFromNow = new Date(
+    Date.now() + 365 * 24 * 3600 * 1000,
+  ).toISOString()
+  return {
+    ...curated,
+    vehicles: curated.vehicles.map((v) =>
+      v.type === 'VRAC'
+        ? {
+            ...v,
+            certificate_number: v.certificate_number ?? 'CERT-VRAC-TEST-001',
+            certificate_url:
+              v.certificate_url ?? 'https://certifs.test/cert.pdf',
+            certificate_issued_at:
+              v.certificate_issued_at ?? new Date().toISOString(),
+            certificate_expiry_at: oneYearFromNow,
+          }
+        : v,
+    ),
+  }
+}
+
 function inject(tour: Partial<DeliveryTour> & Pick<DeliveryTour, 'id'>) {
   useToursStore.setState((s) => ({ tours: [...s.tours, { ...tour } as DeliveryTour] }))
 }
@@ -24,6 +46,10 @@ function inject(tour: Partial<DeliveryTour> & Pick<DeliveryTour, 'id'>) {
 describe('tours store', () => {
   beforeEach(() => {
     useToursStore.setState(freshSeed())
+    // Validate against a copy of curated with VRAC certs refreshed to one year
+    // out — the seeded fixture has expired dates (the demo data simulates
+    // renewals due, which would otherwise fail the cert check).
+    Object.assign(curated, freshCuratedWithActiveCerts())
   })
 
   describe('createTour', () => {

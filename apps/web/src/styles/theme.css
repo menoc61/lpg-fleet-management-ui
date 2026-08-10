@@ -72,7 +72,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Outfit', 'sans-serif';
+  --font-sans: 'Inter', 'sans-serif';
+  --font-display: 'Manrope', 'sans-serif';
   --font-mono: 'ui-monospace', 'SF Mono', 'Consolas', 'monospace';
 
   --radius-sm: calc(var(--radius) - 4px);

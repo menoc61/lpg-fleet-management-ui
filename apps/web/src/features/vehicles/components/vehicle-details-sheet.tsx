@@ -152,6 +152,22 @@ export function VehicleDetailsSheet({
               </TabsContent>
 
               <TabsContent value='docs' className='space-y-3'>
+                {vehicle.type === 'VRAC' &&
+                  (vehicle.certificate_status === 'expired' ||
+                    vehicle.certificate_status === 'missing') && (
+                    <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200'>
+                      <p className='font-medium'>
+                        {vehicle.certificate_status === 'expired'
+                          ? 'Certificat de jaugement expiré'
+                          : 'Certificat de jaugement manquant'}
+                      </p>
+                      <p className='mt-1 text-xs'>
+                        Le jaugement ministériel est obligatoire pour les
+                        véhicules VRAC. Cette citerne ne peut pas être affectée
+                        à une tournée tant que le certificat n'est pas renouvelé.
+                      </p>
+                    </div>
+                  )}
                 <Separator />
                 <DetailLine
                   label='Certificat'

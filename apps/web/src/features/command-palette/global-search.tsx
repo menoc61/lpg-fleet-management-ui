@@ -138,7 +138,7 @@ function buildLiveIndex(role: Role): SearchItem[] {
       title: trip.reference,
       subtitle: `${trip.customerName} — ${trip.truck}`,
       value: `${trip.reference} ${trip.customerName} ${trip.id}`,
-      url: `/tours?tour=${trip.id}`,
+      url: `/tour-tracking/${trip.id}`,
       icon: FileText,
     })
   }

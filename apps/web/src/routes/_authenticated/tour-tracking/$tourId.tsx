@@ -1,0 +1,48 @@
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { PageShell } from '@/components/layout/page'
+import { PageHeader } from '@/components/layout/page-header'
+import { SectionCard } from '@/components/layout/page'
+import { getTourActivityById } from '@/features/tours/data/tour-activity'
+import { TourActiveHeader } from '@/features/tours/components/tour-active-header'
+import { TourDetailView } from '@/features/tours/components/tour-detail-view'
+
+function TourTrackingDetailPage() {
+  const { tourId } = Route.useParams()
+  const trip = getTourActivityById(tourId)
+
+  if (!trip) {
+    return (
+      <PageShell>
+        <PageHeader
+          title='Tournée introuvable'
+          description={`Aucune tournée ne correspond à l'identifiant ${tourId}.`}
+        />
+        <SectionCard>
+          <Button asChild variant='outline'>
+            <Link to='/tour-tracking' data-icon='inline-start'>
+              <ArrowLeft />
+              Retour au suivi
+            </Link>
+          </Button>
+        </SectionCard>
+      </PageShell>
+    )
+  }
+
+  return (
+    <PageShell>
+      <PageHeader
+        title='Suivi de la tournée'
+        description={`Lecture temps réel du niveau GPL, du volume estimé, des étapes et des alertes terrain pour la tournée ${trip.reference}.`}
+      />
+      <TourActiveHeader trip={trip} trips={[trip]} onSelectTrip={() => undefined} />
+      <TourDetailView trip={trip} />
+    </PageShell>
+  )
+}
+
+export const Route = createFileRoute('/_authenticated/tour-tracking/$tourId')({
+  component: TourTrackingDetailPage,
+})

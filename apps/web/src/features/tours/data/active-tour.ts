@@ -20,5 +20,5 @@ export function activeTourForVehicle(vehicleId: string): TourActivity | null {
 
 export function vehicleActiveTourLink(vehicleId: string): string | null {
   const tour = activeTourForVehicle(vehicleId)
-  return tour ? `/tours?tour=${tour.id}` : null
+  return tour ? `/tour-tracking/${tour.id}` : null
 }

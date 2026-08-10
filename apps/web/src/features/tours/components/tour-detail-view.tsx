@@ -1,11 +1,9 @@
 import { type ElementType } from 'react'
 import {
   AlertTriangle,
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Clock3,
-  Gauge,
   MapPinned,
   Package,
   Truck,
@@ -13,7 +11,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -21,35 +18,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import {
   routeSeverityClasses,
   routeSeverityLabels,
   routeStatusLabels,
-  type RouteTripView,
+  type TourActivity,
 } from '../data/tour-activity'
 import { TourCorridorMap } from './tour-corridor-map'
 import { TourLpgVariationPanel } from './tour-lpg-variation-panel'
 import { TourTelemetryChart } from './tour-telemetry-chart'
 
 type TourDetailViewProps = {
-  trip: RouteTripView | null
-  trips: readonly RouteTripView[]
-  onSelectTrip: (routeId: string) => void
+  trip: TourActivity | null
 }
 
-export function TourDetailView({
-  trip,
-  trips,
-  onSelectTrip,
-}: TourDetailViewProps) {
+export function TourDetailView({ trip }: TourDetailViewProps) {
   if (!trip) {
     return (
       <Card>
@@ -65,64 +49,8 @@ export function TourDetailView({
     )
   }
 
-  const selectedIndex = trips.findIndex((candidate) => candidate.id === trip.id)
-  const previousTrip = selectedIndex > 0 ? trips[selectedIndex - 1] : null
-  const nextTrip =
-    selectedIndex >= 0 && selectedIndex < trips.length - 1
-      ? trips[selectedIndex + 1]
-      : null
-
   return (
     <div className='space-y-4'>
-      <Card className='border-transparent bg-background/80 shadow-sm'>
-        <CardContent className='flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between'>
-          <div className='space-y-1'>
-            <p className='text-sm font-medium'>Tournée active</p>
-            <p className='text-sm text-muted-foreground'>
-              Change rapidement de mission sans revenir à la liste.
-            </p>
-          </div>
-
-          <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-            <Button
-              type='button'
-              variant='outline'
-              className='h-10'
-              onClick={() => previousTrip && onSelectTrip(previousTrip.id)}
-              disabled={!previousTrip}
-            >
-              <ArrowLeft className='size-4' />
-              Précédente
-            </Button>
-
-            <Select value={trip.id} onValueChange={onSelectTrip}>
-              <SelectTrigger className='h-10 min-w-[260px]'>
-                <SelectValue placeholder='Choisir une tournée' />
-              </SelectTrigger>
-              <SelectContent>
-                {trips.map((candidate) => (
-                  <SelectItem key={candidate.id} value={candidate.id}>
-                    {candidate.reference} - {candidate.originSite.city} /{' '}
-                    {candidate.destinationSite.city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button
-              type='button'
-              variant='outline'
-              className='h-10'
-              onClick={() => nextTrip && onSelectTrip(nextTrip.id)}
-              disabled={!nextTrip}
-            >
-              Suivante
-              <ArrowRight className='size-4' />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card className='overflow-hidden border-transparent shadow-sm'>
         <div className='bg-[linear-gradient(135deg,rgba(15,23,42,1),rgba(15,23,42,0.96),rgba(6,78,59,0.96))] px-6 py-6 text-slate-50'>
           <div className='flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between'>
@@ -140,7 +68,7 @@ export function TourDetailView({
               </div>
 
               <div className='space-y-2'>
-                <h2 className='text-2xl font-semibold tracking-tight'>
+                <h2 className='font-display text-2xl font-semibold tracking-tight'>
                   {trip.originSite.name}
                   <ArrowRight className='mx-2 inline size-5 text-emerald-300' />
                   {trip.destinationSite.name}
@@ -205,10 +133,30 @@ export function TourDetailView({
 
             <div className='grid gap-3 md:grid-cols-3'>
               <DetailSignal
-                icon={Gauge}
-                label='Pression'
-                value={`${trip.latestTelemetry.pressureBar.toFixed(1)} bar`}
-                hint={`-${trip.pressureDeltaBar.toFixed(1)} bar`}
+                icon={AlertTriangle}
+                label='Écart non justifié'
+                value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : '0 kg'}
+                hint={
+                  trip.unaccountedKg > 0
+                    ? 'À expliquer avant clôture'
+                    : 'Bilan de charge cohérent'
+                }
+              />
+              <DetailSignal
+                icon={MapPinned}
+                label='Étapes couvertes'
+                value={`${trip.completed_checkpoints}/${trip.checkpoint_count}`}
+                hint={`${trip.checkpoint_count - trip.completed_checkpoints} restantes`}
+              />
+              <DetailSignal
+                icon={Clock3}
+                label='Dernier ping'
+                value={formatDateTime(trip.lastUpdatedAt)}
+                hint={
+                  trip.onTime
+                    ? 'Tournée dans la fenêtre attendue'
+                    : 'Suivi resserré nécessaire'
+                }
               />
               <DetailSignal
                 icon={Package}
@@ -364,29 +312,28 @@ export function TourDetailView({
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
-            <div className='grid gap-3'>
-              <DetailSignal
-                icon={AlertTriangle}
-                label='Ecart non justifié'
-                value={
-                  trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : '0 kg'
-                }
-                hint={
-                  trip.unaccountedKg > 0
-                    ? 'Doit être expliqué avant clôture'
-                    : 'Bilan de charge cohérent'
-                }
-              />
-              <DetailSignal
-                icon={Clock3}
-                label='Dernier ping'
-                value={formatDateTime(trip.lastUpdatedAt)}
-                hint={
-                  trip.onTime
-                    ? 'Tournée dans la fenêtre attendue'
-                    : 'Suivi resserré nécessaire'
-                }
-              />
+            <div className='rounded-2xl bg-muted/25 px-4 py-4 shadow-xs'>
+              <p className='text-sm font-semibold'>SLA & anomalies</p>
+              {trip.sla_transporter_no_ack && (
+                <p className='mt-2 flex items-center gap-1.5 font-medium text-amber-800 dark:text-amber-200'>
+                  Accusé transporteur absent (SLA &gt; 4 h)
+                  {trip.anomaly_ids.length > 0 && (
+                    <span className='text-xs font-normal text-amber-600'>
+                      {trip.anomaly_ids.join(', ')}
+                    </span>
+                  )}
+                </p>
+              )}
+              {trip.sla_unassigned_too_long && (
+                <p className='mt-1 flex items-center gap-1.5 font-medium text-amber-800 dark:text-amber-200'>
+                  Tournée non assignée trop longtemps (SLA &gt; 12 h)
+                </p>
+              )}
+              {!trip.sla_transporter_no_ack && !trip.sla_unassigned_too_long && (
+                <p className='mt-2 text-sm text-muted-foreground'>
+                  Aucun signalement SLA actif sur cette tournée.
+                </p>
+              )}
             </div>
 
             <Separator />
@@ -493,17 +440,23 @@ function formatKg(value: number) {
 }
 
 function formatShortTime(value: string) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
   return new Intl.DateTimeFormat('fr-FR', {
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(value))
+  }).format(date)
 }
 
 function formatDateTime(value: string) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
   return new Intl.DateTimeFormat('fr-FR', {
     hour: '2-digit',
     minute: '2-digit',
     day: '2-digit',
     month: 'short',
-  }).format(new Date(value))
+  }).format(date)
 }

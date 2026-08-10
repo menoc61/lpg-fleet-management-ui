@@ -1,15 +1,20 @@
-import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
 import { SectionCard } from '@/components/layout/page'
+import { TourActiveHeader } from '../components/tour-active-header'
 import { ToursTable } from '../components/tours-table'
-import { TourDetailView } from '../components/tour-detail-view'
 import { useFollowUp } from './use-follow-up'
 
 export function FollowUpPage() {
   const { tours } = useFollowUp()
-  const [selectedId, setSelectedId] = useState<string | undefined>(tours[0]?.id)
-  const selectedTrip = tours.find((t) => t.id === selectedId) ?? tours[0] ?? null
+  const navigate = useNavigate()
+  const selectedTrip = tours[0]
+  const selectedTripId = selectedTrip?.id
+
+  function openDetail(id: string) {
+    navigate({ to: '/tour-tracking/$tourId', params: { tourId: id } })
+  }
 
   return (
     <PageShell>
@@ -17,16 +22,23 @@ export function FollowUpPage() {
         title='Suivi des tournées'
         description='Tournées sous responsabilité de votre rôle.'
       />
-      <SectionCard>
-        <ToursTable rows={tours} onOpenDetails={(row) => setSelectedId(row.id)} />
-      </SectionCard>
       {selectedTrip && (
-        <TourDetailView
+        <TourActiveHeader
           trip={selectedTrip}
           trips={tours}
-          onSelectTrip={(id) => setSelectedId(id)}
+          onSelectTrip={(id) => navigate({
+            to: '/tour-tracking/$tourId',
+            params: { tourId: id },
+          })}
         />
       )}
+      <SectionCard>
+        <ToursTable
+          rows={tours}
+          selectedTripId={selectedTripId}
+          onOpenDetails={(row) => openDetail(row.id)}
+        />
+      </SectionCard>
     </PageShell>
   )
 }

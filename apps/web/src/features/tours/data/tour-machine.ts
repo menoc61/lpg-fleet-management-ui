@@ -1,4 +1,5 @@
 import type { DeliveryTour, Setting, TourneeStatus, ExecutionMode } from '@lpg/types'
+import { curated } from '@lpg/mock-data'
 
 export type TourAction = 'send-to-transporter' | 'acknowledge' | 'start' | 'close' | 'cancel'
 
@@ -81,10 +82,15 @@ export interface TourValidationResult {
   errors: string[]
 }
 
-export function validateTour(tour: DeliveryTour): TourValidationResult {
+export function validateTour(
+  tour: DeliveryTour,
+  options?: { now?: Date; vehicles?: typeof curated.vehicles },
+): TourValidationResult {
   const errors: string[] = []
   const { execution_mode, vehicle_id, driver_id, livreur_user_id, assigned_by_transporter_user_id,
     transporter_org_id, started_at, closed_at } = tour
+  const now = options?.now ?? new Date()
+  const vehicles = options?.vehicles ?? curated.vehicles
 
   if (
     execution_mode === 'INTERNAL' &&
@@ -107,6 +113,32 @@ export function validateTour(tour: DeliveryTour): TourValidationResult {
 
   if (started_at && closed_at && new Date(started_at) > new Date(closed_at)) {
     errors.push(`chk_tournee_dates: closed_at must not precede started_at`)
+  }
+
+  if (tour.type === 'VRAC' && tour.vehicle_id) {
+    const vehicle = vehicles.find((v) => v.id === tour.vehicle_id)
+    if (!vehicle) {
+      errors.push(`chk_certificat_vrac: VRAC vehicle ${tour.vehicle_id} introuvable`)
+    } else {
+      const expiry = vehicle.certificate_expiry_at
+        ? new Date(vehicle.certificate_expiry_at)
+        : null
+      const expired =
+        !vehicle.certificate_number || !expiry || Number.isNaN(expiry.getTime())
+          ? false
+          : expiry.getTime() < now.getTime()
+      const missing =
+        !vehicle.certificate_number || !vehicle.certificate_expiry_at
+      if (missing) {
+        errors.push(
+          `chk_certificat_vrac: VRAC vehicle ${vehicle.license_plate} requires a certificat de jaugement`,
+        )
+      } else if (expired) {
+        errors.push(
+          `chk_certificat_vrac: certificat de jaugement de ${vehicle.license_plate} expiré le ${vehicle.certificate_expiry_at}`,
+        )
+      }
+    }
   }
 
   return { valid: errors.length === 0, errors }

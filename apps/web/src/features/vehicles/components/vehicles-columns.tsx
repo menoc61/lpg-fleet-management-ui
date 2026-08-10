@@ -10,6 +10,8 @@ import {
   vehicleStatusClasses,
   vehicleStatusLabels,
   vehicleTypeLabels,
+  certificateStatusLabels,
+  certificateStatusClasses,
   type VehicleView,
 } from '../data/vehicles'
 import { activeTourForVehicle } from '@/features/tours/data/active-tour'
@@ -207,6 +209,28 @@ export function getVehiclesColumns({
         )
       },
       meta: { label: 'Risque' },
+      enableSorting: false,
+    },
+    {
+      id: 'certificate',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Certificat de jaugement' />
+      ),
+      cell: ({ row }) => (
+        <div className='flex flex-col gap-1'>
+          <Badge
+            className={cn(certificateStatusClasses[row.original.certificate_status])}
+          >
+            {certificateStatusLabels[row.original.certificate_status]}
+          </Badge>
+          {row.original.type === 'VRAC' && row.original.certificate_number && (
+            <span className='text-[10px] text-muted-foreground'>
+              {row.original.certificate_number}
+            </span>
+          )}
+        </div>
+      ),
+      meta: { label: 'Certificat de jaugement', className: 'w-44' },
       enableSorting: false,
     },
     {

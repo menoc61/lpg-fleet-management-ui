@@ -67,7 +67,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
       created_by: null,
       updated_by: null,
     }
-    const validation = validateTour(tour)
+    const validation = validateTour(tour, { vehicles: curated.vehicles })
     if (!validation.valid) {
       throw new Error(validation.errors[0])
     }
@@ -86,7 +86,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
     if (!allowed.includes(action)) {
       throw new Error(`Transition interdite à l'état ${current.status}`)
     }
-    const validation = validateTour(current)
+    const validation = validateTour(current, { vehicles: curated.vehicles })
     if (!validation.valid && action !== 'cancel') {
       throw new Error(validation.errors[0])
     }
