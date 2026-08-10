@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
+import { useToursStore } from '@/store/tours-store'
 import { TourDetail } from './components/tour-detail'
 import { ToursTable } from './components/tours-table'
-import { getTours, type TourSlice, type TourView } from './data/tours'
+import type { TourSlice, TourView } from './data/tours'
 
 const SLICE_TITLES: Record<TourSlice, string> = {
   ALL: 'Tournées de livraison',
@@ -25,8 +26,7 @@ const SLICE_DESCRIPTIONS: Record<TourSlice, string> = {
 
 export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
   const [detail, setDetail] = useState<TourView | null>(null)
-
-  const rows = useMemo(() => getTours(slice), [slice])
+  const rows = useToursStore((s) => s.views(slice))
 
   return (
     <PageShell>
@@ -37,7 +37,7 @@ export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
       <SectionCard>
         <ToursTable rows={rows} onOpenDetails={setDetail} />
       </SectionCard>
-      <TourDetail tour={detail} onClose={() => setDetail(null)} />
+      <TourDetail tour={detail} onClose={() => setDetail(null)} onAction={setDetail} />
     </PageShell>
   )
 }

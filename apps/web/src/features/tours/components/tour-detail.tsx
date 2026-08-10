@@ -1,5 +1,10 @@
+import { useMemo } from 'react'
+import { toast } from 'sonner'
 import { Badge, Button, Dialog, DialogContent, DialogHeader, DialogTitle } from '@lpg/ui'
+import { hasPermission, type PermissionCode } from '@lpg/permissions'
 import { cn } from '@/lib/utils'
+import { useRoleStore } from '@/store/role-store'
+import { useToursStore } from '@/store/tours-store'
 import {
   type TourView,
   type TourneeStatus,
@@ -9,6 +14,27 @@ import {
   getTourProgress,
   getTourStops,
 } from '../data/tours'
+import {
+  tourActions,
+  TOUR_ACTION_LABELS,
+  type TourAction,
+} from '../data/tour-machine'
+
+const ACTION_PERMISSION: Record<TourAction, PermissionCode> = {
+  'send-to-transporter': 'tours.create',
+  acknowledge: 'tours.assign',
+  start: 'tours.write',
+  close: 'tours.write',
+  cancel: 'tours.write',
+}
+
+const ACTION_VARIANT: Record<TourAction, 'default' | 'outline' | 'destructive'> = {
+  'send-to-transporter': 'default',
+  acknowledge: 'default',
+  start: 'default',
+  close: 'default',
+  cancel: 'outline',
+}
 
 const STATUS_CLASS: Record<TourneeStatus, string> = {
   DRAFT: 'bg-slate-200 text-slate-800',
@@ -43,12 +69,34 @@ function fmt(quantity: number | null, type: TourView['type']): string {
 export function TourDetail({
   tour,
   onClose,
+  onAction,
 }: {
   tour: TourView | null
   onClose: () => void
+  onAction: (updated: TourView) => void
 }) {
+  const activeRole = useRoleStore((s) => s.activeRole)
   const progress = tour ? getTourProgress(tour) : 0
   const stops = tour ? getTourStops(tour.id) : []
+
+  const actions = useMemo(() => {
+    if (!tour) return []
+    return tourActions({ status: tour.status, execution_mode: tour.execution_mode })
+      .filter((action) => hasPermission(activeRole, ACTION_PERMISSION[action]))
+  }, [tour, activeRole])
+
+  function handleAction(action: TourAction) {
+    if (!tour) return
+    try {
+      const updated = useToursStore.getState().performAction(tour.id, action)
+      toast.success(`${tour.reference} — ${TOUR_ACTION_LABELS[action]}`)
+      onAction(updated)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Action impossible')
+    }
+  }
+
+  const hasSlaFlag = Boolean(tour && (tour.sla_transporter_no_ack || tour.sla_unassigned_too_long))
 
   return (
     <Dialog open={tour !== null} onOpenChange={(o) => { if (!o) onClose() }}>
@@ -68,6 +116,26 @@ export function TourDetail({
             </Badge>
             <span className='text-sm text-muted-foreground'>{tour.cargo_label}</span>
           </div>
+
+          {hasSlaFlag && (
+            <div className='space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950'>
+              {tour.sla_transporter_no_ack && (
+                <p className='flex items-center gap-1.5 font-medium text-amber-800 dark:text-amber-200'>
+                  Accusé transporteur absent (SLA &gt; 4 h)
+                  {tour.anomaly_ids.length > 0 && (
+                    <span className='text-xs font-normal text-amber-600'>
+                      {tour.anomaly_ids.join(', ')}
+                    </span>
+                  )}
+                </p>
+              )}
+              {tour.sla_unassigned_too_long && (
+                <p className='flex items-center gap-1.5 font-medium text-amber-800 dark:text-amber-200'>
+                  Tournée non assignée trop longtemps (SLA &gt; 12 h)
+                </p>
+              )}
+            </div>
+          )}
 
           <div className='space-y-1'>
             <Row label='Marketeur' value={tour.marketeur_name} />
@@ -107,11 +175,30 @@ export function TourDetail({
             </div>
           )}
 
-          <div className='flex justify-end pt-2'>
-            <Button variant='outline' onClick={onClose}>
-              Fermer
-            </Button>
-          </div>
+          {actions.length > 0 && (
+            <div className='flex flex-wrap justify-end gap-2 border-t pt-3'>
+              {actions.map((action) => (
+                <Button
+                  key={action}
+                  variant={ACTION_VARIANT[action]}
+                  onClick={() => handleAction(action)}
+                >
+                  {TOUR_ACTION_LABELS[action]}
+                </Button>
+              ))}
+              <Button variant='outline' onClick={onClose}>
+                Fermer
+              </Button>
+            </div>
+          )}
+
+          {actions.length === 0 && (
+            <div className='flex justify-end pt-2'>
+              <Button variant='outline' onClick={onClose}>
+                Fermer
+              </Button>
+            </div>
+          )}
         </div>
       )}
       </DialogContent>

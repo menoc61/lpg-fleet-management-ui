@@ -6,6 +6,7 @@ import {
   validateTour,
   resolveSlaThresholds,
   tourSlaFlags,
+  applyAction,
   TOUR_ACTION_LABELS,
 } from './tour-machine'
 import type { DeliveryTour, Setting } from '@lpg/types'
@@ -193,8 +194,8 @@ describe('tour-machine validation', () => {
 
 describe('tour-machine SLA', () => {
   const settings: Setting[] = [
-    { id: 's1', setting_key: 'tournee.transporter_ack_timeout_hours', setting_value: '4', value_type: 'INTEGER', category: 'TOURNEE', description: '', is_encrypted: false },
-    { id: 's2', setting_key: 'tournee.unassigned_alert_hours', setting_value: '12', value_type: 'INTEGER', category: 'TOURNEE', description: '', is_encrypted: false },
+    { id: 's1', setting_key: 'tournee.transporter_ack_timeout_hours', setting_value: '4', value_type: 'INTEGER', category: 'TOURNEE', description: '', is_encrypted: false, requires_restart: false },
+    { id: 's2', setting_key: 'tournee.unassigned_alert_hours', setting_value: '12', value_type: 'INTEGER', category: 'TOURNEE', description: '', is_encrypted: false, requires_restart: false },
   ]
 
   it('resolveSlaThresholds reads by key from settings', () => {
@@ -245,5 +246,116 @@ describe('tour-machine SLA', () => {
     })
     const now = new Date('2026-01-02T02:00:00.000Z')
     expect(tourSlaFlags(tour, THRESHOLDS, now).unassignedTooLong).toBe(false)
+  })
+})
+
+describe('tour-machine SLA disabled-by-zero', () => {
+  const disabled = { transporterAckTimeoutHours: 0, unassignedAlertHours: 0 }
+
+  it('never flags transporterNoAck when the ack timeout is 0', () => {
+    const old = '2025-01-01T00:00:00.000Z'
+    const tour = baseExternal({
+      status: 'PENDINGTRANSPORTERACK',
+      created_at: old,
+      transporter_assigned_at: old,
+    })
+    const now = new Date('2026-12-31T00:00:00.000Z')
+    expect(tourSlaFlags(tour, disabled, now).transporterNoAck).toBe(false)
+  })
+
+  it('never flags unassignedTooLong when the unassigned threshold is 0', () => {
+    const old = '2025-01-01T00:00:00.000Z'
+    const tour = baseExternal({
+      execution_mode: 'EXTERNAL',
+      status: 'PLANNED',
+      transporter_org_id: null,
+      created_at: old,
+    })
+    const now = new Date('2026-12-31T00:00:00.000Z')
+    expect(tourSlaFlags(tour, disabled, now).unassignedTooLong).toBe(false)
+  })
+})
+
+describe('tour-machine mode isolation', () => {
+  it('rejects EXTERNAL-only transitions on the INTERNAL chain', () => {
+    // DRAFT on INTERNAL may only go to PLANNED, never to PENDINGTRANSPORTERACK.
+    expect(canTransition('DRAFT', 'PENDINGTRANSPORTERACK', 'INTERNAL')).toBe(false)
+    expect(canTransition('DRAFT', 'ACKNOWLEDGED', 'INTERNAL')).toBe(false)
+  })
+
+  it('rejects INTERNAL-only transitions on the EXTERNAL chain', () => {
+    // DRAFT on EXTERNAL may only go to PENDINGTRANSPORTERACK, never to PLANNED.
+    expect(canTransition('DRAFT', 'PLANNED', 'EXTERNAL')).toBe(false)
+    // PLANNED is not on the EXTERNAL chain at all.
+    expect(canTransition('PLANNED', 'INPROGRESS', 'EXTERNAL')).toBe(false)
+  })
+})
+
+describe('tour-machine applyAction', () => {
+  const now = new Date('2026-03-01T08:00:00.000Z')
+
+  it('start stamps started_at when absent', () => {
+    const tour = baseExternal({ status: 'ACKNOWLEDGED', started_at: null })
+    const next = applyAction(tour, 'start', now)
+    expect(next.status).toBe('INPROGRESS')
+    expect(next.started_at).toBe(now.toISOString())
+  })
+
+  it('start preserves an existing started_at (idempotent)', () => {
+    const original = '2026-02-28T10:00:00.000Z'
+    const tour = baseExternal({ status: 'ACKNOWLEDGED', started_at: original })
+    const next = applyAction(tour, 'start', now)
+    expect(next.started_at).toBe(original)
+  })
+
+  it('close stamps closed_at and backfills started_at when missing', () => {
+    const tour = baseExternal({ status: 'CHECKPOINTACTIVE', started_at: null, closed_at: null })
+    const next = applyAction(tour, 'close', now)
+    expect(next.status).toBe('CLOSED')
+    expect(next.closed_at).toBe(now.toISOString())
+    expect(next.started_at).toBe(now.toISOString())
+  })
+
+  it('close preserves an existing started_at', () => {
+    const original = '2026-02-28T10:00:00.000Z'
+    const tour = baseExternal({ status: 'CHECKPOINTACTIVE', started_at: original, closed_at: null })
+    const next = applyAction(tour, 'close', now)
+    expect(next.started_at).toBe(original)
+    expect(next.closed_at).toBe(now.toISOString())
+  })
+
+  it('acknowledge stamps transporter_assigned_at when absent', () => {
+    const tour = baseExternal({ status: 'PENDINGTRANSPORTERACK', transporter_assigned_at: null })
+    const next = applyAction(tour, 'acknowledge', now)
+    expect(next.status).toBe('ACKNOWLEDGED')
+    expect(next.transporter_assigned_at).toBe(now.toISOString())
+  })
+
+  it('acknowledge preserves an existing transporter_assigned_at (idempotent)', () => {
+    const original = '2026-02-27T09:00:00.000Z'
+    const tour = baseExternal({ status: 'PENDINGTRANSPORTERACK', transporter_assigned_at: original })
+    const next = applyAction(tour, 'acknowledge', now)
+    expect(next.transporter_assigned_at).toBe(original)
+  })
+
+  it('send-to-transporter returns a status-only patch (timestamps untouched for the store to merge)', () => {
+    const tour = baseExternal({ status: 'DRAFT', started_at: null, closed_at: null })
+    const send = applyAction(tour, 'send-to-transporter', now)
+    expect(send.status).toBe('PENDINGTRANSPORTERACK')
+    // applyAction is a patch-producer: it only emits the fields a given action
+    // touches. start/close/acknowledge carry their timestamp; status-only
+    // actions leave timestamps undefined so the store merges `{...tour, ...patch}`.
+    expect(send.started_at).toBeUndefined()
+    expect(send.closed_at).toBeUndefined()
+    expect(send.transporter_assigned_at).toBeUndefined()
+  })
+
+  it('cancel returns a status-only patch', () => {
+    const tour = baseExternal({ status: 'ACKNOWLEDGED' })
+    const cancel = applyAction(tour, 'cancel', now)
+    expect(cancel.status).toBe('CANCELLED')
+    expect(cancel.started_at).toBeUndefined()
+    expect(cancel.closed_at).toBeUndefined()
+    expect(cancel.transporter_assigned_at).toBeUndefined()
   })
 })

@@ -98,12 +98,38 @@ function siteName(id: string | null | undefined): string | null {
   return [...sites, ...client_sites].find((s) => s.id === id)?.name ?? id
 }
 
-function buildTourView(tour: DeliveryTour, index: number): TourView {
-  const checkpoints = curated.checkpoints
+export interface TourEnrichOptions {
+  checkpoints?: typeof curated.checkpoints
+  anomalies?: Anomaly[]
+  settings?: Setting[]
+  now?: Date
+}
+
+export function buildTourView(
+  tour: DeliveryTour,
+  index: number,
+  opts: TourEnrichOptions = {},
+): TourView {
+  const checkpoints = (opts.checkpoints ?? curated.checkpoints)
     .filter((cp) => cp.tournee_id === tour.id)
     .sort((a, b) => a.sequence - b.sequence)
   const completed = checkpoints.filter((cp) => cp.status === 'COMPLETED').length
   const type = tour.type === 'VRAC' ? 'TM' : 'btl'
+
+  const sla = tourSlaFlags(
+    tour,
+    resolveSlaThresholds(opts.settings ?? curated.settings),
+    opts.now,
+  )
+  const slaAnomalyTypes = ['TRANSPORTERNOACK', 'TOURNEEUNASSIGNEDTOOLONG'] as const
+  const anomaly_ids = (opts.anomalies ?? curated.anomalies)
+    .filter(
+      (a) =>
+        a.entity_type === 'TOURNEE' &&
+        a.entity_id === tour.id &&
+        (slaAnomalyTypes as readonly string[]).includes(a.type),
+    )
+    .map((a) => a.id)
 
   return {
     id: tour.id,
@@ -125,9 +151,20 @@ function buildTourView(tour: DeliveryTour, index: number): TourView {
     created_at: tour.created_at ?? '',
     started_at: tour.started_at ?? null,
     closed_at: tour.closed_at ?? null,
+    transport_assigned_at: tour.transporter_assigned_at ?? null,
     cargo_label: tour.type === 'VRAC' ? 'GPL vrac' : 'Bouteilles 50 kg',
     quantity_label: `${tour.requested_quantity} ${type}`,
+    sla_transporter_no_ack: sla.transporterNoAck,
+    sla_unassigned_too_long: sla.unassignedTooLong,
+    anomaly_ids,
   }
+}
+
+export function toTourViews(
+  tours: DeliveryTour[],
+  opts: TourEnrichOptions = {},
+): TourView[] {
+  return tours.map((tour, i) => buildTourView(tour, i, opts))
 }
 
 function slicePredicate(slice: TourSlice): (t: DeliveryTour) => boolean {
@@ -151,7 +188,7 @@ export function getTours(slice: TourSlice = 'ALL'): TourView[] {
   return curated.delivery_tours
     .filter(slicePredicate(slice))
     .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
-    .map(buildTourView)
+    .map((tour, i) => buildTourView(tour, i))
 }
 
 export function getTourById(id: string): TourView | undefined {

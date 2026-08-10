@@ -9,6 +9,10 @@ import { Input } from '@/components/ui/input'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { sites, client_sites, vehicles, organizations } from '@lpg/mock-data'
+import {
+  usePickupsStore,
+  pickupStatusLabels,
+} from '@/store/pickups-store'
 
 interface DraftRequest {
   source_id: string
@@ -72,9 +76,19 @@ export function SupplyRequestPage() {
 
   function handleSubmit() {
     if (!canSubmit) return
-    const reference = `PU-${2000 + Math.floor(Math.random() * 9000)}`
-    setSubmitted(reference)
-    toast.success(`${reference} enregistrée (statut brouillon)`)
+    try {
+      const created = usePickupsStore.getState().createPickup({
+        marketeur_org_id: draft.marketeur_org_id,
+        source_site_id: draft.source_id,
+        destination_site_id: draft.destination_id,
+        requested_quantity: draft.quantity_kg,
+      })
+      const reference = `PU-${created.id.slice(-4).toUpperCase()}`
+      setSubmitted(reference)
+      toast.success(`${reference} enregistrée (${pickupStatusLabels[created.status]})`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Requête impossible')
+    }
   }
 
   function handleAddAnother() {
