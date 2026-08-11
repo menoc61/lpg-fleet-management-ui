@@ -28,7 +28,6 @@ import {
 import {
   Activity,
   AlertTriangle,
-  Bell,
   Building2,
   Camera,
   ClipboardList,
@@ -39,7 +38,6 @@ import {
   Gauge,
   Globe,
   HeartPulse,
-  History,
   KeyRound,
   LayoutDashboard,
   Link2,
@@ -56,7 +54,6 @@ import {
   ScanLine,
   ScrollText,
   Search,
-  Send,
   ServerCog,
   Settings,
   ShieldCheck,
@@ -219,8 +216,15 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
 
   /* ----------- Vehicles, certificates, devices (unified GPS/PDA/RFIDREADER) ----------- */
   {
+    id: 'trucks',
+    label: 'Véhicules (Parc national)',
+    icon: Truck,
+    path: 'trucks',
+    requires: ['trucks.read'],
+  },
+  {
     id: 'vehicles',
-    label: 'Véhicules',
+    label: 'Ma flotte véhicules',
     icon: Truck,
     path: 'vehicles',
     requires: ['trucks.read'],
@@ -298,41 +302,6 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     requires: ['tours.read'],
   },
   {
-    id: 'tours-internal',
-    label: 'Tournées internes',
-    icon: Route,
-    path: 'tours-internal',
-    requires: ['tours.read'],
-  },
-  {
-    id: 'tours-external',
-    label: 'Tournées externalisées',
-    icon: Send,
-    path: 'tours-external',
-    requires: ['tours.read'],
-  },
-  {
-    id: 'tours-pending',
-    label: 'Tournées en attente d\'accusé',
-    icon: Bell,
-    path: 'tours-pending',
-    requires: ['tours.read'],
-  },
-  {
-    id: 'tours-active',
-    label: 'Tournées actives',
-    icon: Route,
-    path: 'tours-active',
-    requires: ['tours.read'],
-  },
-  {
-    id: 'tours-history',
-    label: 'Historique tournées',
-    icon: History,
-    path: 'tours-history',
-    requires: ['tours.read'],
-  },
-  {
     id: 'tour-tracking',
     label: 'Suivi des tournées',
     icon: MapIcon,
@@ -387,13 +356,6 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
   },
 
   /* ----------- Risk + anomalies management ----------- */
-  {
-    id: 'risks',
-    label: 'Scores de risque',
-    icon: FileWarning,
-    path: 'risks',
-    requires: ['risks.read'],
-  },
   {
     id: 'risk-scores',
     label: 'Scores de risque',
@@ -718,7 +680,7 @@ export const WEB_ROLES = ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTEGRATEUR', 'A
 const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   SUPERADMIN: {
     groups: [
-      { title: 'Pilotage national', items: ['overview', 'map', 'finance', 'risks'] },
+      { title: 'Pilotage national', items: ['overview', 'map', 'finance', 'risk-scores'] },
       {
         title: 'Entités',
           items: [
@@ -729,9 +691,9 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
           'sites',
           'client-sites',
           'zones',
-          'users',
-          'vehicles',
-          'certificates',
+           'users',
+           'trucks',
+           'certificates',
           'devices',
         ],
       },
@@ -815,14 +777,14 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   MARKETEUR: {
     groups: [
-      { title: 'Ma flotte', items: ['overview', 'vehicles', 'drivers', 'devices'] },
+       { title: 'Ma flotte', items: ['overview', 'vehicles', 'drivers', 'devices'] },
       {
         title: 'Flux 1 — Approvisionnement',
         items: ['pickups', 'pickup-tracking'],
       },
       {
         title: 'Flux 2 — Livraison',
-        items: ['tours-internal', 'tours-external', 'tour-tracking', 'transporter-contracts', 'clients'],
+         items: ['tours', 'tour-tracking', 'transporter-contracts', 'clients'],
       },
       {
         title: 'Déclarations & Performance',
@@ -834,9 +796,9 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
     groups: [
       {
         title: 'Opérations',
-        items: ['overview', 'tours-pending', 'tours-active', 'tours-history'],
+         items: ['overview', 'tours', 'tour-tracking'],
       },
-      { title: 'Ma flotte', items: ['vehicles', 'drivers', 'livreurs'] },
+       { title: 'Ma flotte', items: ['vehicles', 'drivers', 'livreurs'] },
       { title: 'Contrats & Clients', items: ['contracts', 'performance'] },
     ],
   },

@@ -73,11 +73,6 @@ import { Route as AuthenticatedSystemHealthIndexRouteImport } from './routes/_au
 import { Route as AuthenticatedSystemMetricsIndexRouteImport } from './routes/_authenticated/system-metrics/index'
 import { Route as AuthenticatedTourTrackingIndexRouteImport } from './routes/_authenticated/tour-tracking/index'
 import { Route as AuthenticatedTourTrackingTourIdRouteImport } from './routes/_authenticated/tour-tracking/$tourId'
-import { Route as AuthenticatedToursActiveIndexRouteImport } from './routes/_authenticated/tours-active/index'
-import { Route as AuthenticatedToursExternalIndexRouteImport } from './routes/_authenticated/tours-external/index'
-import { Route as AuthenticatedToursHistoryIndexRouteImport } from './routes/_authenticated/tours-history/index'
-import { Route as AuthenticatedToursInternalIndexRouteImport } from './routes/_authenticated/tours-internal/index'
-import { Route as AuthenticatedToursPendingIndexRouteImport } from './routes/_authenticated/tours-pending/index'
 import { Route as AuthenticatedToursIndexRouteImport } from './routes/_authenticated/tours/index'
 import { Route as AuthenticatedTransporterContractsIndexRouteImport } from './routes/_authenticated/transporter-contracts/index'
 import { Route as AuthenticatedTransportersIndexRouteImport } from './routes/_authenticated/transporters/index'
@@ -464,36 +459,6 @@ const AuthenticatedTourTrackingTourIdRoute =
     path: '/tour-tracking/$tourId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedToursActiveIndexRoute =
-  AuthenticatedToursActiveIndexRouteImport.update({
-    id: '/tours-active/',
-    path: '/tours-active/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedToursExternalIndexRoute =
-  AuthenticatedToursExternalIndexRouteImport.update({
-    id: '/tours-external/',
-    path: '/tours-external/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedToursHistoryIndexRoute =
-  AuthenticatedToursHistoryIndexRouteImport.update({
-    id: '/tours-history/',
-    path: '/tours-history/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedToursInternalIndexRoute =
-  AuthenticatedToursInternalIndexRouteImport.update({
-    id: '/tours-internal/',
-    path: '/tours-internal/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedToursPendingIndexRoute =
-  AuthenticatedToursPendingIndexRouteImport.update({
-    id: '/tours-pending/',
-    path: '/tours-pending/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedToursIndexRoute = AuthenticatedToursIndexRouteImport.update({
   id: '/tours/',
   path: '/tours/',
@@ -636,11 +601,6 @@ export interface FileRoutesByFullPath {
   '/system-health/': typeof AuthenticatedSystemHealthIndexRoute
   '/system-metrics/': typeof AuthenticatedSystemMetricsIndexRoute
   '/tour-tracking/': typeof AuthenticatedTourTrackingIndexRoute
-  '/tours-active/': typeof AuthenticatedToursActiveIndexRoute
-  '/tours-external/': typeof AuthenticatedToursExternalIndexRoute
-  '/tours-history/': typeof AuthenticatedToursHistoryIndexRoute
-  '/tours-internal/': typeof AuthenticatedToursInternalIndexRoute
-  '/tours-pending/': typeof AuthenticatedToursPendingIndexRoute
   '/tours/': typeof AuthenticatedToursIndexRoute
   '/transporter-contracts/': typeof AuthenticatedTransporterContractsIndexRoute
   '/transporters/': typeof AuthenticatedTransportersIndexRoute
@@ -717,11 +677,6 @@ export interface FileRoutesByTo {
   '/system-health': typeof AuthenticatedSystemHealthIndexRoute
   '/system-metrics': typeof AuthenticatedSystemMetricsIndexRoute
   '/tour-tracking': typeof AuthenticatedTourTrackingIndexRoute
-  '/tours-active': typeof AuthenticatedToursActiveIndexRoute
-  '/tours-external': typeof AuthenticatedToursExternalIndexRoute
-  '/tours-history': typeof AuthenticatedToursHistoryIndexRoute
-  '/tours-internal': typeof AuthenticatedToursInternalIndexRoute
-  '/tours-pending': typeof AuthenticatedToursPendingIndexRoute
   '/tours': typeof AuthenticatedToursIndexRoute
   '/transporter-contracts': typeof AuthenticatedTransporterContractsIndexRoute
   '/transporters': typeof AuthenticatedTransportersIndexRoute
@@ -802,11 +757,6 @@ export interface FileRoutesById {
   '/_authenticated/system-health/': typeof AuthenticatedSystemHealthIndexRoute
   '/_authenticated/system-metrics/': typeof AuthenticatedSystemMetricsIndexRoute
   '/_authenticated/tour-tracking/': typeof AuthenticatedTourTrackingIndexRoute
-  '/_authenticated/tours-active/': typeof AuthenticatedToursActiveIndexRoute
-  '/_authenticated/tours-external/': typeof AuthenticatedToursExternalIndexRoute
-  '/_authenticated/tours-history/': typeof AuthenticatedToursHistoryIndexRoute
-  '/_authenticated/tours-internal/': typeof AuthenticatedToursInternalIndexRoute
-  '/_authenticated/tours-pending/': typeof AuthenticatedToursPendingIndexRoute
   '/_authenticated/tours/': typeof AuthenticatedToursIndexRoute
   '/_authenticated/transporter-contracts/': typeof AuthenticatedTransporterContractsIndexRoute
   '/_authenticated/transporters/': typeof AuthenticatedTransportersIndexRoute
@@ -887,11 +837,6 @@ export interface FileRouteTypes {
     | '/system-health/'
     | '/system-metrics/'
     | '/tour-tracking/'
-    | '/tours-active/'
-    | '/tours-external/'
-    | '/tours-history/'
-    | '/tours-internal/'
-    | '/tours-pending/'
     | '/tours/'
     | '/transporter-contracts/'
     | '/transporters/'
@@ -968,11 +913,6 @@ export interface FileRouteTypes {
     | '/system-health'
     | '/system-metrics'
     | '/tour-tracking'
-    | '/tours-active'
-    | '/tours-external'
-    | '/tours-history'
-    | '/tours-internal'
-    | '/tours-pending'
     | '/tours'
     | '/transporter-contracts'
     | '/transporters'
@@ -1052,11 +992,6 @@ export interface FileRouteTypes {
     | '/_authenticated/system-health/'
     | '/_authenticated/system-metrics/'
     | '/_authenticated/tour-tracking/'
-    | '/_authenticated/tours-active/'
-    | '/_authenticated/tours-external/'
-    | '/_authenticated/tours-history/'
-    | '/_authenticated/tours-internal/'
-    | '/_authenticated/tours-pending/'
     | '/_authenticated/tours/'
     | '/_authenticated/transporter-contracts/'
     | '/_authenticated/transporters/'
@@ -1526,41 +1461,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTourTrackingTourIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/tours-active/': {
-      id: '/_authenticated/tours-active/'
-      path: '/tours-active'
-      fullPath: '/tours-active/'
-      preLoaderRoute: typeof AuthenticatedToursActiveIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tours-external/': {
-      id: '/_authenticated/tours-external/'
-      path: '/tours-external'
-      fullPath: '/tours-external/'
-      preLoaderRoute: typeof AuthenticatedToursExternalIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tours-history/': {
-      id: '/_authenticated/tours-history/'
-      path: '/tours-history'
-      fullPath: '/tours-history/'
-      preLoaderRoute: typeof AuthenticatedToursHistoryIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tours-internal/': {
-      id: '/_authenticated/tours-internal/'
-      path: '/tours-internal'
-      fullPath: '/tours-internal/'
-      preLoaderRoute: typeof AuthenticatedToursInternalIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tours-pending/': {
-      id: '/_authenticated/tours-pending/'
-      path: '/tours-pending'
-      fullPath: '/tours-pending/'
-      preLoaderRoute: typeof AuthenticatedToursPendingIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/tours/': {
       id: '/_authenticated/tours/'
       path: '/tours'
@@ -1754,11 +1654,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSystemHealthIndexRoute: typeof AuthenticatedSystemHealthIndexRoute
   AuthenticatedSystemMetricsIndexRoute: typeof AuthenticatedSystemMetricsIndexRoute
   AuthenticatedTourTrackingIndexRoute: typeof AuthenticatedTourTrackingIndexRoute
-  AuthenticatedToursActiveIndexRoute: typeof AuthenticatedToursActiveIndexRoute
-  AuthenticatedToursExternalIndexRoute: typeof AuthenticatedToursExternalIndexRoute
-  AuthenticatedToursHistoryIndexRoute: typeof AuthenticatedToursHistoryIndexRoute
-  AuthenticatedToursInternalIndexRoute: typeof AuthenticatedToursInternalIndexRoute
-  AuthenticatedToursPendingIndexRoute: typeof AuthenticatedToursPendingIndexRoute
   AuthenticatedToursIndexRoute: typeof AuthenticatedToursIndexRoute
   AuthenticatedTransporterContractsIndexRoute: typeof AuthenticatedTransporterContractsIndexRoute
   AuthenticatedTransportersIndexRoute: typeof AuthenticatedTransportersIndexRoute
@@ -1837,11 +1732,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSystemHealthIndexRoute: AuthenticatedSystemHealthIndexRoute,
   AuthenticatedSystemMetricsIndexRoute: AuthenticatedSystemMetricsIndexRoute,
   AuthenticatedTourTrackingIndexRoute: AuthenticatedTourTrackingIndexRoute,
-  AuthenticatedToursActiveIndexRoute: AuthenticatedToursActiveIndexRoute,
-  AuthenticatedToursExternalIndexRoute: AuthenticatedToursExternalIndexRoute,
-  AuthenticatedToursHistoryIndexRoute: AuthenticatedToursHistoryIndexRoute,
-  AuthenticatedToursInternalIndexRoute: AuthenticatedToursInternalIndexRoute,
-  AuthenticatedToursPendingIndexRoute: AuthenticatedToursPendingIndexRoute,
   AuthenticatedToursIndexRoute: AuthenticatedToursIndexRoute,
   AuthenticatedTransporterContractsIndexRoute:
     AuthenticatedTransporterContractsIndexRoute,

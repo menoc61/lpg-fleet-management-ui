@@ -1,10 +1,12 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge, DataTableColumnHeader } from '@lpg/ui'
+import { Badge } from '@lpg/ui'
+import { DataTableColumnHeader } from '@/components/data-table'
 import {
   type DeclarationView,
   type DeclarationStatus,
   declarationStatusLabels,
 } from '../data/declarations'
+import { DeclarationRowActions } from './declaration-row-actions'
 
 const STATUS_CLASS: Record<DeclarationStatus, string> = {
   DRAFT: 'bg-slate-200 text-slate-800',
@@ -17,10 +19,10 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
   return [
     {
       accessorKey: 'reference',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Référence' />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Reference' />,
       cell: ({ row }) => <span className='font-medium text-primary'>{row.original.reference}</span>,
       enableHiding: false,
-      meta: { label: 'Référence' },
+      meta: { label: 'Reference' },
     },
     {
       accessorKey: 'marketeur_name',
@@ -30,15 +32,15 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
     },
     {
       accessorKey: 'period',
-      header: 'Période',
+      header: 'Periode',
       cell: ({ row }) => row.original.period,
-      meta: { label: 'Période' },
+      meta: { label: 'Periode' },
     },
     {
       accessorKey: 'volume_label',
-      header: 'Volume déclaré',
+      header: 'Volume declare',
       cell: ({ row }) => row.original.volume_label,
-      meta: { label: 'Volume déclaré' },
+      meta: { label: 'Volume declare' },
     },
     {
       accessorKey: 'status',
@@ -50,6 +52,12 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => <DeclarationRowActions row={row.original} />,
+      enableSorting: false,
+      enableHiding: false,
     },
   ]
 }

@@ -4,10 +4,15 @@ import { PageHeader } from '@/components/layout/page-header'
 import { SectionCard } from '@/components/layout/page'
 import { TourActiveHeader } from '../components/tour-active-header'
 import { ToursTable } from '../components/tours-table'
-import { useFollowUp } from './use-follow-up'
+import { getTourActivity, type TourActivity } from '../data/tour-activity'
+
+function isActive(tour: TourActivity): boolean {
+  return tour.tourneeStatus === 'INPROGRESS' || tour.tourneeStatus === 'CHECKPOINTACTIVE'
+}
 
 export function FollowUpPage() {
-  const { tours } = useFollowUp()
+  const allTours = getTourActivity('ALL')
+  const tours = allTours.filter(isActive)
   const navigate = useNavigate()
   const selectedTrip = tours[0]
   const selectedTripId = selectedTrip?.id
@@ -20,7 +25,7 @@ export function FollowUpPage() {
     <PageShell>
       <PageHeader
         title='Suivi des tournées'
-        description='Tournées sous responsabilité de votre rôle.'
+        description='Tournées en cours de livraison.'
       />
       {selectedTrip && (
         <TourActiveHeader

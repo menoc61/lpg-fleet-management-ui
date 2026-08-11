@@ -5,6 +5,7 @@ import {
   type RedressementStatus,
   redressementStatusLabels,
 } from '../data/redressements'
+import { RedressementRowActions } from './redressement-row-actions'
 
 const STATUS_CLASS: Record<RedressementStatus, string> = {
   ISSUED: 'bg-amber-100 text-amber-900',
@@ -16,16 +17,16 @@ export function getRedressementColumns(): ColumnDef<RedressementView>[] {
   return [
     {
       accessorKey: 'reference',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Référence' />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Reference' />,
       cell: ({ row }) => <span className='font-medium text-primary'>{row.original.reference}</span>,
       enableHiding: false,
-      meta: { label: 'Référence' },
+      meta: { label: 'Reference' },
     },
     {
       accessorKey: 'reconciliation_reference',
-      header: 'Réconciliation',
+      header: 'Reconciliation',
       cell: ({ row }) => row.original.reconciliation_reference,
-      meta: { label: 'Réconciliation' },
+      meta: { label: 'Reconciliation' },
     },
     {
       accessorKey: 'marketeur_name',
@@ -41,9 +42,9 @@ export function getRedressementColumns(): ColumnDef<RedressementView>[] {
     },
     {
       accessorKey: 'due_date',
-      header: 'Échéance',
+      header: 'Echeance',
       cell: ({ row }) => row.original.due_date ?? '—',
-      meta: { label: 'Échéance' },
+      meta: { label: 'Echeance' },
     },
     {
       accessorKey: 'status',
@@ -55,6 +56,12 @@ export function getRedressementColumns(): ColumnDef<RedressementView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => <RedressementRowActions row={row.original} />,
+      enableSorting: false,
+      enableHiding: false,
     },
   ]
 }

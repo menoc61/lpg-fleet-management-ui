@@ -1,211 +1,211 @@
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
-import { Plus, Send } from 'lucide-react'
-import { Badge, Button, Label } from '@lpg/ui'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+import { getRouteApi } from '@tanstack/react-router'
+import { CalendarDays, Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { PageHeader } from '@/components/layout/page-header'
-import { PageShell, SectionCard } from '@/components/layout/page'
-import { sites, client_sites, vehicles, organizations } from '@lpg/mock-data'
+import { SupplyTable } from './components/supply-table'
 import {
-  usePickupsStore,
-  pickupStatusLabels,
-} from '@/store/pickups-store'
+  supplyView,
+  type SupplyRequest,
+} from './data/supply'
 
-interface DraftRequest {
-  source_id: string
-  destination_id: string
-  quantity_kg: number
-  marketeur_org_id: string
-}
+type SupplyFilter = 'all' | SupplyRequest['status']
 
-interface Recommendation {
-  vehicle: (typeof vehicles)[number]
-  trips: number
-  utilLabel: string
-}
+type SupplyFilterDef = { label: string; value: SupplyFilter; count: number }
 
-function recTrips(capacityKg: number, quantityKg: number): number {
-  if (capacityKg <= 0) return 1
-  return Math.max(1, Math.ceil(quantityKg / capacityKg))
-}
-
-function capacityKg(vehicle: (typeof vehicles)[number]): number {
-  if (vehicle.max_volume) return vehicle.max_volume
-  if (vehicle.max_bottle_count) return vehicle.max_bottle_count * 50
-  return 20000
-}
+const supplyRoute = getRouteApi('/_authenticated/supply/')
 
 export function SupplyRequestPage() {
-  const [draft, setDraft] = useState<DraftRequest>({
-    source_id: '',
-    destination_id: '',
-    quantity_kg: 18000,
-    marketeur_org_id: '',
-  })
-  const [submitted, setSubmitted] = useState<string | null>(null)
+  const navigate = supplyRoute.useNavigate()
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<SupplyFilter>('all')
 
-  const marketeurs = useMemo(
-    () => organizations.filter((o) => o.type === 'MARKETEUR'),
-    [],
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    let items: SupplyRequest[] = [...supplyView]
+    if (query) {
+      items = items.filter((item) => {
+        const haystack = [
+          item.id,
+          item.marketeurOrgId,
+          item.sourceSiteName,
+          item.destSiteName,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        return haystack.includes(query)
+      })
+    }
+    if (statusFilter !== 'all') {
+      items = items.filter((item) => item.status === statusFilter)
+    }
+    return items
+  }, [search, statusFilter])
+
+  const filterDefs: SupplyFilterDef[] = useMemo(() => {
+    const counts: Partial<Record<SupplyRequest['status'], number>> = {}
+    for (const item of supplyView) {
+      counts[item.status] = (counts[item.status] ?? 0) + 1
+    }
+    return [
+      { label: 'Tous', value: 'all', count: supplyView.length },
+      { label: 'Brouillon', value: 'DRAFT', count: counts.DRAFT ?? 0 },
+      { label: 'Validée', value: 'VALIDATED', count: counts.VALIDATED ?? 0 },
+      { label: 'En cours', value: 'INPROGRESS', count: counts.INPROGRESS ?? 0 },
+      { label: 'Terminée', value: 'COMPLETED', count: counts.COMPLETED ?? 0 },
+      { label: 'Annulée', value: 'CANCELLED', count: counts.CANCELLED ?? 0 },
+    ]
+  }, [])
+
+  const dateText = useMemo(
+    () =>
+      new Intl.DateTimeFormat('fr-FR', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date()),
+    []
   )
 
-  const allSites = useMemo(() => [...sites, ...client_sites], [])
-
-  const recommendations = useMemo<Recommendation[]>(() => {
-    if (draft.quantity_kg <= 0) return []
-    return vehicles
-      .filter((v) => v.is_active !== false)
-      .map((vehicle) => {
-        const cap = capacityKg(vehicle)
-        const trips = recTrips(cap, draft.quantity_kg)
-        return { vehicle, trips, utilLabel: `${cap.toLocaleString('fr-FR')} kg` }
-      })
-      .sort((a, b) => a.trips - b.trips)
-      .slice(0, 3)
-  }, [draft.quantity_kg])
-
-  const sourceName = allSites.find((s) => s.id === draft.source_id)?.name ?? '—'
-  const destinationName = allSites.find((s) => s.id === draft.destination_id)?.name ?? '—'
-  const marketerName = marketeurs.find((o) => o.id === draft.marketeur_org_id)?.name ?? '—'
-
-  const canSubmit =
-    draft.source_id && draft.destination_id && draft.quantity_kg > 0 && draft.marketeur_org_id
-
-  function handleSubmit() {
-    if (!canSubmit) return
-    try {
-      const created = usePickupsStore.getState().createPickup({
-        marketeur_org_id: draft.marketeur_org_id,
-        source_site_id: draft.source_id,
-        destination_site_id: draft.destination_id,
-        requested_quantity: draft.quantity_kg,
-      })
-      const reference = `PU-${created.id.slice(-4).toUpperCase()}`
-      setSubmitted(reference)
-      toast.success(`${reference} enregistrée (${pickupStatusLabels[created.status]})`)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Requête impossible')
-    }
-  }
-
-  function handleAddAnother() {
-    setSubmitted(null)
-    setDraft({ source_id: '', destination_id: '', quantity_kg: 18000, marketeur_org_id: '' })
-  }
-
   return (
-    <PageShell>
-      <PageHeader
-        title="Requête d'enlèvement"
-        description="Créer une nouvelle requête d'approvisionnement (Flux 1) : source, destination, quantité et recommandation véhicules."
-      />
+    <main
+      id='main-content'
+      className='flex-1 space-y-4 bg-gradient-to-b from-slate-50 via-white to-slate-100 p-4 sm:p-6 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900'
+    >
+      <section className='rounded-2xl border-transparent bg-background/88 p-3 shadow-sm backdrop-blur-sm sm:p-4'>
+        <div className='flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between'>
+          <div className='flex flex-wrap items-center gap-2'>
+            <TopStat
+              label='Total demandes'
+              value={`${supplyView.length}`}
+            />
+            <TopStat
+              label='En cours'
+              value={`${supplyView.filter((r) => r.status === 'INPROGRESS').length}`}
+            />
+            <TopStat
+              label='Complétées'
+              value={`${supplyView.filter((r) => r.status === 'COMPLETED').length}`}
+            />
+          </div>
 
-      {submitted ? (
-        <SectionCard title='Requête créée'>
-          <div className='space-y-3'>
-            <div className='rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950'>
-              <p className='text-sm font-semibold text-emerald-800 dark:text-emerald-200'>
-                Référence {submitted} enregistrée en brouillon.
-              </p>
-              <p className='mt-1 text-sm text-emerald-700 dark:text-emerald-300'>
-                {marketerName} · {sourceName} → {destinationName} · {draft.quantity_kg.toLocaleString('fr-FR')} kg
-              </p>
-            </div>
-            <div className='flex gap-2'>
-              <Button onClick={handleAddAnother} className='gap-2'>
-                <Plus className='size-4' /> Nouvelle requête
-              </Button>
-              <Button asChild variant='outline'>
-                <a href='/pickups'>Voir les requêtes</a>
-              </Button>
+          <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+            <div className='relative w-full sm:w-[310px]'>
+              <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder='Rechercher une demande...'
+                className='h-9 ps-9'
+              />
             </div>
           </div>
-        </SectionCard>
-      ) : (
-        <div className='grid gap-4 lg:grid-cols-[1fr_360px]'>
-          <SectionCard title='Détails de la requête'>
-            <div className='space-y-5'>
-              <div className='space-y-2'>
-                <Label>Marketeur</Label>
-                <Select value={draft.marketeur_org_id} onValueChange={(v) => setDraft((d) => ({ ...d, marketeur_org_id: v }))}>
-                  <SelectTrigger><SelectValue placeholder='Sélectionner un marketeur' /></SelectTrigger>
-                  <SelectContent>
-                    {marketeurs.map((o) => (
-                      <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className='grid gap-4 sm:grid-cols-2'>
-                <div className='space-y-2'>
-                  <Label>Site source</Label>
-                  <Select value={draft.source_id} onValueChange={(v) => setDraft((d) => ({ ...d, source_id: v }))}>
-                    <SelectTrigger><SelectValue placeholder='Point de départ' /></SelectTrigger>
-                    <SelectContent>
-                      {allSites.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className='space-y-2'>
-                  <Label>Site destination</Label>
-                  <Select value={draft.destination_id} onValueChange={(v) => setDraft((d) => ({ ...d, destination_id: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Point d'arrivée" /></SelectTrigger>
-                    <SelectContent>
-                      {allSites.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className='space-y-2'>
-                <Label>Quantité demandée (kg)</Label>
-                <Input
-                  type='number'
-                  min={1}
-                  step={1000}
-                  value={draft.quantity_kg}
-                  onChange={(e) => setDraft((d) => ({ ...d, quantity_kg: Number(e.target.value) }))}
-                />
-                <p className='text-xs text-muted-foreground'>
-                  {(draft.quantity_kg / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} tonnes métriques (TM)
-                </p>
-              </div>
-
-              <div className='flex justify-end'>
-                <Button onClick={handleSubmit} disabled={!canSubmit} className='gap-2'>
-                  <Send className='size-4' /> Créer la requête
-                </Button>
-              </div>
-            </div>
-          </SectionCard>
-
-          <SectionCard title='Recommandation véhicules' description='Meilleure utilisation de la flotte selon la capacité.'>
-            {recommendations.length === 0 ? (
-              <p className='text-sm text-muted-foreground'>Renseignez une quantité pour voir les recommandations.</p>
-            ) : (
-              <div className='space-y-3'>
-                {recommendations.map(({ vehicle, trips, utilLabel }) => (
-                  <div key={vehicle.id} className='rounded-lg border p-3 text-sm'>
-                    <div className='flex items-center justify-between gap-2'>
-                      <span className='font-medium'>{vehicle.license_plate}</span>
-                      <Badge variant='secondary'>{trips} aller(s)</Badge>
-                    </div>
-                    <p className='mt-1 text-xs text-muted-foreground'>Capacité {utilLabel}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
         </div>
+
+        <div className='mt-4 flex flex-col gap-1'>
+          <h1 className='text-[30px] leading-none font-semibold tracking-tight sm:text-3xl'>
+            Demandes de ramassage
+          </h1>
+          <p className='inline-flex items-center gap-2 text-xs text-muted-foreground sm:text-sm'>
+            <CalendarDays className='size-4' />
+            {dateText}
+          </p>
+        </div>
+      </section>
+
+      <section className='rounded-2xl border-transparent bg-background/88 p-4 shadow-sm backdrop-blur-sm'>
+        <div className='flex flex-wrap gap-2.5'>
+          {filterDefs.map((filter) => (
+            <FilterChip
+              key={filter.value}
+              label={filter.label}
+              count={filter.count}
+              active={statusFilter === filter.value}
+              onClick={() => setStatusFilter(filter.value)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
+        <div className='flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between'>
+          <div>
+            <h2 className='text-xl font-semibold tracking-tight'>Liste des demandes</h2>
+            <p className='text-sm text-muted-foreground'>
+              Consultez les demandes de ramassage de LPG, leur statut et les sites concernés.
+            </p>
+          </div>
+          <Badge
+            variant='outline'
+            className='border-transparent bg-muted/35 text-foreground'
+          >
+            {filtered.length} / {supplyView.length} demandes
+          </Badge>
+        </div>
+        <SupplyTable
+          data={filtered}
+          search={{}}
+          navigate={navigate}
+        />
+      </section>
+    </main>
+  )
+}
+
+function TopStat({
+  label,
+  value,
+}: {
+  label: string
+  value: string | number
+}) {
+  return (
+    <div className='inline-flex items-center gap-1.5 rounded-full border-transparent bg-background/90 px-2.5 py-1 text-xs shadow-xs'>
+      <span className='text-muted-foreground'>{label}</span>
+      <span className='font-semibold'>{value}</span>
+    </div>
+  )
+}
+
+function FilterChip({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string
+  count: number
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <Button
+      type='button'
+      variant={active ? 'default' : 'outline'}
+      size='sm'
+      className={cn(
+        'h-10 rounded-full px-4 text-sm shadow-xs',
+        active
+          ? 'border-transparent shadow-sm'
+          : 'border-transparent bg-background/85 hover:bg-muted/35'
       )}
-    </PageShell>
+      onClick={onClick}
+    >
+      <span>{label}</span>
+      <Badge
+        className={cn(
+          'ms-2 rounded-full px-1.5 py-0 text-[10px]',
+          active
+            ? 'bg-primary-foreground/20 text-primary-foreground'
+            : 'bg-muted text-muted-foreground'
+        )}
+      >
+        {count}
+      </Badge>
+    </Button>
   )
 }

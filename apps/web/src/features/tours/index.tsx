@@ -4,29 +4,20 @@ import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { TourActiveHeader } from './components/tour-active-header'
 import { ToursTable } from './components/tours-table'
-import type { TourSlice } from './data/tour-activity'
-import { getTourActivity } from './data/tour-activity'
+import { getTourActivity, type TourSlice } from './data/tour-activity'
 
-const SLICE_TITLES: Record<TourSlice, string> = {
-  ALL: 'Tournées de livraison',
-  INTERNAL: 'Tournées internes',
-  EXTERNAL: 'Tournées externalisées',
-  PENDING: 'Tournées en attente d\'accusé',
-  ACTIVE: 'Tournées actives',
-  HISTORY: 'Historique tournées',
-}
+const SLICES: { value: TourSlice; label: string }[] = [
+  { value: 'ALL', label: 'Toutes' },
+  { value: 'INTERNAL', label: 'Internes' },
+  { value: 'EXTERNAL', label: 'Externalisees' },
+  { value: 'PENDING', label: 'En attente' },
+  { value: 'ACTIVE', label: 'Actives' },
+  { value: 'HISTORY', label: 'Historique' },
+]
 
-const SLICE_DESCRIPTIONS: Record<TourSlice, string> = {
-  ALL: 'Flux 2 — livraisons créées par les marketeurs et exécutées en interne ou par un transporteur.',
-  INTERNAL: 'Tournées exécutées par les propres moyens du marketeur (véhicule + conducteur + livreur).',
-  EXTERNAL: 'Tournées externalisées — en attente d\'accusé ou accusées par un transporteur.',
-  PENDING: 'Tournées envoyées au transporteur et en attente d\'accusé de réception.',
-  ACTIVE: 'Tournées en transit ou en cours de livraison sur le terrain.',
-  HISTORY: 'Tournées livrées ou annulées.',
-}
-
-export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
+export function ToursPage() {
   const navigate = useNavigate()
+  const [slice, setSlice] = useState<TourSlice>('ALL')
   const tours = getTourActivity(slice)
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
   const selectedTrip = tours.find((t) => t.id === selectedId) ?? tours[0]
@@ -38,8 +29,8 @@ export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
   return (
     <PageShell>
       <PageHeader
-        title={SLICE_TITLES[slice]}
-        description={SLICE_DESCRIPTIONS[slice]}
+        title='Tournées de livraison'
+        description='Flux 2 — livraisons creees par les marketeurs et executees en interne ou par un transporteur.'
       />
       {selectedTrip && (
         <TourActiveHeader
@@ -49,6 +40,22 @@ export function ToursPage({ slice = 'ALL' }: { slice?: TourSlice }) {
         />
       )}
       <SectionCard>
+        <div className='mb-4 flex flex-wrap gap-2'>
+          {SLICES.map((s) => (
+            <button
+              key={s.value}
+              type='button'
+              onClick={() => { setSlice(s.value); setSelectedId(undefined) }}
+              className={
+                slice === s.value
+                  ? 'rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground'
+                  : 'rounded-full border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted'
+              }
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
         <ToursTable
           rows={tours}
           selectedTripId={selectedTrip?.id}

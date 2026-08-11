@@ -26,6 +26,8 @@ const MODE_CLASS: Record<ExecutionMode, string> = {
   EXTERNAL: 'bg-indigo-100 text-indigo-800',
 }
 
+const DASH = '\u2014'
+
 export function getToursColumns({
   onOpenDetails,
   selectedTripId,
@@ -36,7 +38,7 @@ export function getToursColumns({
   return [
     {
       accessorKey: 'reference',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Référence' />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Reference' />,
       cell: ({ row }) => (
         <button
           type='button'
@@ -52,13 +54,15 @@ export function getToursColumns({
         </button>
       ),
       enableHiding: false,
-      meta: { label: 'Référence' },
+      enableGrouping: false,
+      meta: { label: 'Reference' },
     },
     {
       accessorKey: 'marketeur_name',
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
+      enableGrouping: false,
     },
     {
       accessorKey: 'execution_mode',
@@ -75,33 +79,38 @@ export function getToursColumns({
       header: 'Type',
       cell: ({ row }) => getTourCargo(row.original),
       meta: { label: 'Type' },
+      enableGrouping: false,
     },
     {
       accessorKey: 'transporter_name',
       header: 'Transporteur',
-      cell: ({ row }) => row.original.transporter_name ?? '—',
+      cell: ({ row }) => row.original.transporter_name ?? DASH,
       meta: { label: 'Transporteur' },
+      enableGrouping: false,
     },
     {
       accessorKey: 'vehicle_plate',
-      header: 'Véhicule',
-      cell: ({ row }) => row.original.vehicle_plate ?? '—',
-      meta: { label: 'Véhicule' },
+      header: 'Vehicule',
+      cell: ({ row }) => row.original.vehicle_plate ?? DASH,
+      meta: { label: 'Vehicule' },
+      enableGrouping: false,
     },
     {
       accessorKey: 'requested_quantity',
-      header: 'Quantité',
+      header: 'Quantite',
       cell: ({ row }) => getTourVolume(row.original),
-      meta: { label: 'Quantité' },
+      meta: { label: 'Quantite' },
+      enableGrouping: false,
     },
     {
       accessorKey: 'delivered_quantity',
-      header: 'Livré',
+      header: 'Livre',
       cell: ({ row }) =>
         row.original.delivered_quantity != null
           ? `${row.original.delivered_quantity} ${row.original.tourneeType === 'VRAC' ? 't' : 'btl'}`
-          : '—',
-      meta: { label: 'Livré' },
+          : DASH,
+      meta: { label: 'Livre' },
+      enableGrouping: false,
     },
     {
       accessorKey: 'tourneeStatus',

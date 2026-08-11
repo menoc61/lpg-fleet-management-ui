@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button } from '@lpg/ui'
 import { hasPermission } from '@lpg/permissions'
 import { useRoleStore } from '@/store/role-store'
 import { useComplianceStore } from '@/store/compliance-store'
@@ -22,7 +22,7 @@ export function DeclarationRowActions({ row }: { row: DeclarationView }) {
   function handleSubmit() {
     try {
       submitDeclaration(row.id)
-      toast.success(`${row.reference} ï¿½ Declaration soumise`)
+      toast.success(`${row.reference} — Declaration soumise`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action impossible')
     }

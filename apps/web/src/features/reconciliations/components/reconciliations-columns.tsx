@@ -5,6 +5,7 @@ import {
   type ReconciliationStatus,
   reconciliationStatusLabels,
 } from '../data/reconciliations'
+import { ReconciliationRowActions } from './reconciliation-row-actions'
 
 const STATUS_CLASS: Record<ReconciliationStatus, string> = {
   PENDING: 'bg-amber-100 text-amber-900',
@@ -16,16 +17,16 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
   return [
     {
       accessorKey: 'reference',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Référence' />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Reference' />,
       cell: ({ row }) => <span className='font-medium text-primary'>{row.original.reference}</span>,
       enableHiding: false,
-      meta: { label: 'Référence' },
+      meta: { label: 'Reference' },
     },
     {
       accessorKey: 'declaration_reference',
-      header: 'Déclaration',
+      header: 'Declaration',
       cell: ({ row }) => row.original.declaration_reference,
-      meta: { label: 'Déclaration' },
+      meta: { label: 'Declaration' },
     },
     {
       accessorKey: 'marketeur_name',
@@ -35,9 +36,9 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
     },
     {
       accessorKey: 'declared_volume',
-      header: 'Déclaré (TM)',
+      header: 'Declare (TM)',
       cell: ({ row }) => (row.original.declared_volume / 1000).toLocaleString('fr-FR'),
-      meta: { label: 'Déclaré (TM)' },
+      meta: { label: 'Declare (TM)' },
     },
     {
       accessorKey: 'tracked_volume',
@@ -47,7 +48,7 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
     },
     {
       accessorKey: 'gap_percentage',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Écart %' />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Ecart %' />,
       cell: ({ row }) => {
         const gap = row.original.gap_percentage
         const flagged = gap > 2.5
@@ -57,7 +58,7 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
           </Badge>
         )
       },
-      meta: { label: 'Écart %' },
+      meta: { label: 'Ecart %' },
     },
     {
       accessorKey: 'subsidy_impact',
@@ -75,6 +76,12 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => <ReconciliationRowActions row={row.original} />,
+      enableSorting: false,
+      enableHiding: false,
     },
   ]
 }
