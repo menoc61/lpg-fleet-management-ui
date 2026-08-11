@@ -1,19 +1,3 @@
-# Task 4 Brief — Create `features/map/data/client-sites.ts`
-
-**Files:**
-- Create: `apps/web/src/features/map/data/client-sites.ts`
-
-**Interfaces:**
-- Produces: `ClientSiteView` type and `clientSites: readonly ClientSiteView[]` exported as the single source of client-site data for the map.
-- Consumes: `ClientSite` from `@lpg/types`, `curated.client_sites` + `organizations` from `@lpg/mock-data`.
-
-This is a **non-test** data-view task (view builders are not pure logic with business rules — they're simple transforms; the TDD cycle applies to `lib/` per AGENTS.md §3). It is verified via typecheck only.
-
-## Step 1: Create the file
-
-Read the first `client_sites` entry in `packages/mock-data/src/seed/curated/03_sites_and_client_sites.json` to confirm the exact field set available: `id`, `client_org_id`, `region`, `name`, `address`, `geo_point` ([lng, lat]), `is_active`, `current_marketeur_org_id`. Read `packages/mock-data/src/seed/curated/01_organizations.json` to confirm `organizations` export name and `name`/`id`/`type` fields. (The `features/sites/data/sites.ts` file already does the equivalent transform for `sites` — mirror its `REGION_LABELS` + `cityFromAddress` style.)
-
-```ts
 import { curated, organizations } from '@lpg/mock-data'
 import type { ClientSite } from '@lpg/types'
 
@@ -82,16 +66,3 @@ export const clientSites: readonly ClientSiteView[] = curated.client_sites.map(
     }
   },
 )
-```
-
-## Step 2: Run typecheck
-
-```bash
-cd apps/web
-npm run typecheck -- --noEmit features/map/data/client-sites.ts 2>&1 | head -5 || true
-npm run typecheck
-```
-
-(Use the project-level `npm run typecheck` if the per-file invocation isn't supported by the project's tsconfig setup.) Expected: PASS, 0 errors.
-
-## Step 3: No commit. Continue to Task 5 (geo-anomalies).

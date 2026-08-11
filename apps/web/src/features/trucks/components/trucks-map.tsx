@@ -9,8 +9,6 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js'
 import MapView from '@arcgis/core/views/MapView.js'
 import type { ClickEvent } from '@arcgis/core/views/input/types.js'
 import { AlertTriangle, Wifi } from 'lucide-react'
-import lpgSphereIconUrl from '@/assets/lpg-sphere.png'
-import lpgCenterSvgRaw from '@/assets/lpg.svg?raw'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -19,6 +17,16 @@ import {
   type Site,
   type SiteType,
 } from '@/features/sites/data/sites'
+import { siteMarkerTokens } from '@/features/sites/utils/site-graphics'
+import {
+  getArcgisBasemap,
+  getArcgisViewTheme,
+  getMarkerOutlineColor,
+  getSiteOutlineColor,
+  getSiteIconUrl,
+} from '@/features/map/utils/map-theme'
+import type { MapTheme } from '@/features/map/utils/map-theme'
+import { LegendSiteIcon } from '@/features/map/utils/legend'
 import {
   getTruckTelemetry,
   statusLabels,
@@ -42,8 +50,6 @@ type TrucksMapProps = {
   onSelectTruck: (truck: Truck) => void
 }
 
-type MapTheme = 'light' | 'dark'
-
 type HitTestResults = Awaited<ReturnType<MapView['hitTest']>>['results']
 
 const statusColors: Record<TruckStatus, [number, number, number, number]> = {
@@ -55,71 +61,6 @@ const statusColors: Record<TruckStatus, [number, number, number, number]> = {
   CHECKPOINTACTIVE: [168, 85, 247, 0.95],
   CLOSED: [100, 116, 139, 0.9],
   CANCELLED: [239, 68, 68, 0.95],
-}
-
-const siteMarkerTokens: Record<
-  SiteType,
-  {
-    color: [number, number, number, number]
-    haloColor: [number, number, number, number]
-    iconKind: 'sphere' | 'lpg' | 'marker'
-    style: 'circle' | 'diamond' | 'square' | 'triangle' | 'x'
-    size: number
-    haloSize?: number
-    iconWidth?: number
-    iconHeight?: number
-    swatch: string
-  }
-> = {
-  depot: {
-    color: [22, 163, 74, 0.95],
-    haloColor: [22, 163, 74, 0.22],
-    iconKind: 'sphere',
-    style: 'circle',
-    size: 26,
-    haloSize: 32,
-    iconWidth: 26,
-    iconHeight: 26,
-    swatch: 'rgba(22, 163, 74, 0.95)',
-  },
-  scdp: {
-    color: [59, 130, 246, 0.95],
-    haloColor: [59, 130, 246, 0.2],
-    iconKind: 'sphere',
-    style: 'diamond',
-    size: 24,
-    haloSize: 30,
-    iconWidth: 24,
-    iconHeight: 24,
-    swatch: 'rgba(59, 130, 246, 0.95)',
-  },
-  'filling-center': {
-    color: [245, 158, 11, 0.95],
-    haloColor: [245, 158, 11, 0.2],
-    iconKind: 'lpg',
-    style: 'square',
-    size: 20,
-    haloSize: 30,
-    iconWidth: 20,
-    iconHeight: 20,
-    swatch: 'rgba(245, 158, 11, 0.95)',
-  },
-  marketer: {
-    color: [168, 85, 247, 0.95],
-    haloColor: [168, 85, 247, 0.95],
-    iconKind: 'marker',
-    style: 'triangle',
-    size: 12,
-    swatch: 'rgba(168, 85, 247, 0.95)',
-  },
-  'delivery-point': {
-    color: [236, 72, 153, 0.95],
-    haloColor: [236, 72, 153, 0.95],
-    iconKind: 'marker',
-    style: 'x',
-    size: 12,
-    swatch: 'rgba(236, 72, 153, 0.95)',
-  },
 }
 
 export function TrucksMap({
@@ -489,14 +430,6 @@ function createSiteGraphics(site: Site, mapTheme: MapTheme) {
   ]
 }
 
-function getSiteIconUrl(siteType: SiteType, mapTheme: MapTheme) {
-  if (siteType === 'filling-center') {
-    return getLpgMarkerIcon(mapTheme)
-  }
-
-  return lpgSphereIconUrl
-}
-
 function findGraphicHit(results: HitTestResults, kind: 'truck' | 'site') {
   return results.find((result) => {
     const graphic = (result as { graphic?: Graphic }).graphic
@@ -597,91 +530,4 @@ function createRouteGraphic(truck: Truck, _mapTheme: MapTheme) {
       truckId: truck.id,
     },
   })
-}
-
-function getArcgisBasemap(mapTheme: MapTheme) {
-  return mapTheme === 'dark'
-    ? 'dark-gray-vector'
-    : 'streets-navigation-vector'
-}
-
-function getArcgisViewTheme(mapTheme: MapTheme) {
-  return mapTheme === 'dark'
-    ? {
-        accentColor: '#86efac',
-        textColor: '#f8fafc',
-      }
-    : {
-        accentColor: '#16a34a',
-        textColor: '#0f172a',
-      }
-}
-
-function getMarkerOutlineColor(
-  mapTheme: MapTheme,
-  isSelected: boolean
-): [number, number, number, number] {
-  if (mapTheme === 'dark') {
-    return isSelected ? [248, 250, 252, 1] : [226, 232, 240, 0.86]
-  }
-
-  return isSelected ? [255, 255, 255, 1] : [15, 23, 42, 0.28]
-}
-
-function getSiteOutlineColor(mapTheme: MapTheme): [
-  number,
-  number,
-  number,
-  number,
-] {
-  return mapTheme === 'dark'
-    ? [226, 232, 240, 0.84]
-    : [15, 23, 42, 0.28]
-}
-
-function getLpgMarkerIcon(mapTheme: MapTheme) {
-  const fillColor = mapTheme === 'dark' ? '#f8fafc' : '#0f172a'
-
-  return svgToDataUri(lpgCenterSvgRaw.replace(/#000000/g, fillColor))
-}
-
-function svgToDataUri(svg: string) {
-  const normalizedSvg = svg.replace(/\s+/g, ' ').trim()
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(normalizedSvg)}`
-}
-
-function LegendSiteIcon({
-  type,
-  mapTheme,
-}: {
-  type: SiteType
-  mapTheme: MapTheme
-}) {
-  const marker = siteMarkerTokens[type]
-
-  if (marker.iconKind === 'marker') {
-    return (
-      <span
-        className='block size-2.5 rounded-full'
-        style={{ backgroundColor: marker.swatch }}
-      />
-    )
-  }
-
-  return (
-    <span
-      className='flex size-6 items-center justify-center rounded-full'
-      style={{ backgroundColor: rgbaFromTuple(marker.haloColor) }}
-    >
-      <img
-        src={getSiteIconUrl(type, mapTheme)}
-        alt=''
-        className='max-h-4 max-w-4 object-contain'
-      />
-    </span>
-  )
-}
-
-function rgbaFromTuple(value: [number, number, number, number]) {
-  return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`
 }

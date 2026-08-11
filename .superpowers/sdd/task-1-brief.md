@@ -1,221 +1,59 @@
-# Task 1: Re-source `trucks.ts` to schema-backed view types
+# Task 1 Brief — Add `national-map.read` permission code (SUPERADMIN-only)
 
 **Files:**
-- Modify: `apps/web/src/features/trucks/trucks.ts`
+- Modify: `packages/permissions/src/index.ts:175-200`
+- Modify: `packages/permissions/src/index.test.ts:22-25` and `packages/permissions/src/index.test.ts:50-60` (category-counts assertion)
 
 **Interfaces:**
-- Produces:
-  - `export type TruckStatus = TourneeStatus` (re-exported from `@lpg/types`)
-  - `export interface Truck { id; license_plate; type; tournee_status; max_volume?; max_bottle_count?; certificate_number?; certificate_expiry_at?; org_id; tenant_name; region; assigned_driver?; requested_quantity; loaded_quantity?; delivered_quantity?; risk_level: RiskLevel; current_location?; lat; lng }`
-  - `export interface TruckTelemetry { loaded_quantity?; expected_arrival?; actual_arrival? }` (no `speed` — live GPS has no SQL/TODO source; user decided to drop it)
-  - `getTrucks(): Truck[]`, `getTruckById(id): Truck | undefined`, `getTruckTelemetry(truckId): TruckTelemetry`
-- Consumes: `@lpg/types` (`Vehicle`, `Organization`, `Driver`, `DeliveryTour`, `TourneeStatus`, `VehicleType`, `Region`, `RiskLevel`), `@lpg/mock-data` (`curated`, `organizations`, `drivers`, `delivery_tours`, `checkpoints`, `risk_scores`).
-- `Truck.risk_level` is derived from `risk_scores` rows (`entity_type: 'VEHICLE'`, matched by `entity_id` = vehicle id); defaults to `'FAIBLE'` when no row exists.
+- Consumes: existing `PERMISSION_CATALOG` shape — every code MUST match `^[a-z-]+\.[a-z]+$` (one dot, `resource.action`).
+- Produces: new permission code `national-map.read` (category `'reporting'`). Resource = `national-map`, action = `read`.
 
----
+**Why this code name:** `map.national.read` was the original idea but it has two dots and violates the catalog's enforced regex (one dot, `resource.action`). `national-map.read` keeps the intent (SUPERADMIN-only national map) and satisfies the schema.
 
-## Step 1: Confirm current build breakage
+## Step 1: Add the entry to `PERMISSION_CATALOG`
 
-Run: `pnpm build`
-Expected: FAILS with type errors at `truck-details-sheet.tsx` (references `truck.tank_capacity_liters` and `telemetry.pressureBar`, neither in the current interfaces) and dashboard (`truck.tenantName`, `truck.status` lowercase comparison). Record the error list; these are fixed across tasks.
-
-## Step 2: Replace the type + data module
-
-Replace the entire contents of `apps/web/src/features/trucks/trucks.ts` with:
+In `packages/permissions/src/index.ts`, inside the `// ---- reporting & system (20) ----` block, append after line 195:
 
 ```ts
-import {
-  curated,
-  organizations,
-  drivers,
-  delivery_tours,
-  checkpoints,
-  risk_scores,
-} from '@lpg/mock-data'
-import type {
-  Vehicle as CuratedVehicle,
-  Organization as CuratedOrganization,
-  Driver as CuratedDriver,
-  DeliveryTour,
-  VehicleType,
-  TourneeStatus,
-  Region,
-  RiskLevel,
-} from '@lpg/types'
-
-export type TruckStatus = TourneeStatus
-
-export interface Truck {
-  id: string
-  license_plate: string
-  type: VehicleType
-  tournee_status: TourneeStatus
-  max_volume?: number | null
-  max_bottle_count?: number | null
-  certificate_number?: string
-  certificate_expiry_at?: string | null
-  org_id: string
-  tenant_name: string
-  region: Region
-  assigned_driver?: string
-  requested_quantity: number
-  loaded_quantity?: number | null
-  delivered_quantity?: number | null
-  risk_level: RiskLevel
-  current_location?: string
-  lat: number
-  lng: number
-}
-
-export interface TruckTelemetry {
-  loaded_quantity?: number
-  expected_arrival?: string
-  actual_arrival?: string
-}
-
-export const statusLabels: Record<TruckStatus, string> = {
-  DRAFT: 'Brouillon',
-  PLANNED: 'Planifiée',
-  PENDINGTRANSPORTERACK: 'Attente transporteur',
-  ACKNOWLEDGED: 'Confirmée',
-  INPROGRESS: 'En cours',
-  CHECKPOINTACTIVE: 'Étape atteinte',
-  CLOSED: 'Clôturée',
-  CANCELLED: 'Annulée',
-}
-
-export const statusClasses: Record<TruckStatus, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  PLANNED: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  PENDINGTRANSPORTERACK: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  ACKNOWLEDGED: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  INPROGRESS: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  CHECKPOINTACTIVE: 'bg-violet-500/10 text-violet-700 dark:text-violet-300',
-  CLOSED: 'bg-muted text-muted-foreground',
-  CANCELLED: 'bg-red-500/10 text-red-700 dark:text-red-300',
-}
-
-export const riskLabels: Record<RiskLevel, string> = {
-  FAIBLE: 'Faible',
-  MODERE: 'Modéré',
-  ELEVE: 'Élevé',
-  CRITIQUE: 'Critique',
-  CRITIQUEEXTREME: 'Critique extrême',
-}
-
-export const riskClasses: Record<RiskLevel, string> = {
-  FAIBLE: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  MODERE: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  ELEVE: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
-  CRITIQUE: 'bg-red-500/10 text-red-700 dark:text-red-300',
-  CRITIQUEEXTREME: 'bg-red-600/10 text-red-700 dark:text-red-400',
-}
-
-const REGIONS: readonly Region[] = [
-  'CENTRE', 'LITTORAL', 'NORD', 'EXTREMENORD', 'OUEST',
-  'SUDOUEST', 'EST', 'ADAMAOUA',
-]
-const TOUR_STATUSES: readonly TourneeStatus[] = [
-  'PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE', 'PLANNED',
-  'INPROGRESS', 'CLOSED', 'PENDINGTRANSPORTERACK', 'PLANNED',
-]
-
-function seededIndex(key: string, modulus: number): number {
-  let h = 0
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
-  return h % modulus
-}
-
-function driverName(driver: CuratedDriver | undefined): string | undefined {
-  return driver ? `${driver.first_name} ${driver.last_name}` : undefined
-}
-
-function riskLevelFor(vehicleId: string, fallback: RiskLevel): RiskLevel {
-  const row = risk_scores.find(
-    (r) => r.entity_type === 'VEHICLE' && r.entity_id === vehicleId,
-  )
-  return row?.level ?? fallback
-}
-
-export function getTrucks(): Truck[] {
-  const vehicles = curated.vehicles as CuratedVehicle[]
-  const activeOrgs = organizations.filter((o) => o.is_active)
-  const toursByVehicle = new Map<string, DeliveryTour>()
-  for (const tour of delivery_tours) {
-    if (tour.vehicle_id && !toursByVehicle.has(tour.vehicle_id)) {
-      toursByVehicle.set(tour.vehicle_id, tour)
-    }
-  }
-
-  return vehicles.map((v, idx): Truck => {
-    const org: CuratedOrganization | undefined = activeOrgs[idx % Math.max(activeOrgs.length, 1)]
-    const driver = drivers[Math.min(idx, drivers.length - 1)]
-    const tour = toursByVehicle.get(v.id)
-    const seedIdx = seededIndex(v.license_plate, TOUR_STATUSES.length)
-    const region: Region = REGIONS[idx % REGIONS.length] ?? 'CENTRE'
-    return {
-      id: v.id,
-      license_plate: v.license_plate,
-      type: v.type,
-      tournee_status: tour?.status ?? TOUR_STATUSES[seedIdx] ?? 'PLANNED',
-      max_volume: v.max_volume,
-      max_bottle_count: v.max_bottle_count,
-      certificate_number: v.certificate_number,
-      certificate_expiry_at: v.certificate_expiry_at,
-      org_id: v.org_id,
-      tenant_name: org?.name ?? '—',
-      region,
-      assigned_driver: driverName(driver),
-      requested_quantity: tour?.requested_quantity ?? 0,
-      loaded_quantity: tour?.loaded_quantity ?? null,
-      delivered_quantity: tour?.delivered_quantity ?? null,
-      risk_level: riskLevelFor(v.id, 'FAIBLE'),
-      current_location: '—',
-      lat: 3.4 + ((seededIndex(v.id, 100) * 0.27) % 1.0),
-      lng: 10.8 + ((seededIndex(v.id, 100) * 0.41) % 1.4),
-    }
-  })
-}
-
-export const trucks: readonly Truck[] = getTrucks()
-
-export function getTruckById(id: string): Truck | undefined {
-  return trucks.find((t) => t.id === id)
-}
-
-export function getTruckTelemetry(truckId: string): TruckTelemetry {
-  const truck = getTruckById(truckId) ?? trucks[0]
-  const tour = delivery_tours.find(
-    (t) => t.id === truckId || (t.vehicle_id && t.vehicle_id.toString() === truckId),
-  )
-  const checkpoint = tour ? checkpoints.find((c) => c.tournee_id === tour.id) : undefined
-  return {
-    loaded_quantity: truck?.loaded_quantity ?? tour?.loaded_quantity ?? undefined,
-    expected_arrival: checkpoint?.expected_arrival ?? undefined,
-    actual_arrival: checkpoint?.actual_arrival ?? undefined,
-  }
-}
-
-export interface SelectOption<T extends string = string> {
-  label: string
-  value: T
-}
-
-export const truckTenantOptions: readonly SelectOption[] = (() => {
-  const set = new Set<string>()
-  for (const t of trucks) if (t.tenant_name) set.add(t.tenant_name)
-  return Array.from(set, (tenant_name) => ({ label: tenant_name, value: tenant_name }))
-})()
+  { code: 'national-map.read', category: 'reporting', label: 'Voir la carte nationale (SUPERADMIN)' },
 ```
 
-## Step 3: Build and record remaining consumer errors
+Update the section comment from `(20)` to `(21)`.
 
-Run: `pnpm --filter @lpg/ui run build` then `pnpm build`
-Expected: package builds pass; the web app now lists type errors ONLY in the places still referencing old `Truck`/`TruckTelemetry` fields. Save this list — Tasks 2–4 fix them one by one.
+## Step 2: Update the catalog count test
 
-## Step 4: Commit
+In `packages/permissions/src/index.test.ts`, find the assertion:
+
+```ts
+  it('defines exactly 140 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(140)
+```
+
+and change to:
+
+```ts
+  it('defines exactly 141 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(141)
+```
+
+Then find the category-counts assertion (currently asserts `reporting: 20`) and bump `reporting` to `21`. The exact line varies — look for the literal `reporting: 20` and change it to `reporting: 21`. (The implementer report at `task-1-report.md` notes line 50.)
+
+## Step 3: Run tests
 
 ```bash
-git add apps/web/src/features/trucks/trucks.ts
-git commit -m "refactor(trucks): re-source Truck/TruckTelemetry to schema-backed view types"
+cd packages/permissions
+npm test
 ```
+
+Expected: PASS — 17/17 (or whatever the current count is).
+
+## Step 4: Run typecheck
+
+```bash
+cd apps/web
+npm run typecheck
+```
+
+Expected: PASS.
+
+## Step 5: No commit yet (per global constraint). Continue to Task 2.

@@ -172,7 +172,7 @@ export const PERMISSION_CATALOG = [
   { code: 'incidents.manage', category: 'risk', label: 'Gérer les incidents' },
   { code: 'fraud.read', category: 'risk', label: 'Voir le suivi fraude' },
   { code: 'fraud.manage', category: 'risk', label: 'Gérer le suivi fraude' },
-  // ---- reporting & system (20) ----------------------------------------------------
+  // ---- reporting & system (21) ----------------------------------------------------
   { code: 'reports.read', category: 'reporting', label: 'Voir les rapports' },
   { code: 'reports.generate', category: 'reporting', label: 'Générer des rapports' },
   { code: 'reports.export', category: 'reporting', label: 'Exporter des rapports' },
@@ -193,6 +193,7 @@ export const PERMISSION_CATALOG = [
   { code: 'system-health.read', category: 'reporting', label: 'Voir la santé du système' },
   { code: 'integrations.read', category: 'reporting', label: 'Voir les intégrations' },
   { code: 'integrations.write', category: 'reporting', label: 'Modifier les intégrations' },
+  { code: 'national-map.read', category: 'reporting', label: 'Voir la carte nationale (SUPERADMIN)' },
 ] as const satisfies readonly {
   code: string
   category: PermissionCategory

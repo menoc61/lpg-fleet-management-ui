@@ -42,6 +42,7 @@ import { Route as AuthenticatedIntegrationsIndexRouteImport } from './routes/_au
 import { Route as AuthenticatedLivreursIndexRouteImport } from './routes/_authenticated/livreurs/index'
 import { Route as AuthenticatedLogsIndexRouteImport } from './routes/_authenticated/logs/index'
 import { Route as AuthenticatedMaintenanceIndexRouteImport } from './routes/_authenticated/maintenance/index'
+import { Route as AuthenticatedMapIndexRouteImport } from './routes/_authenticated/map/index'
 import { Route as AuthenticatedMarketersIndexRouteImport } from './routes/_authenticated/marketers/index'
 import { Route as AuthenticatedMarketersMarketerIdRouteImport } from './routes/_authenticated/marketers/$marketerId'
 import { Route as AuthenticatedNotificationGroupsIndexRouteImport } from './routes/_authenticated/notification-groups/index'
@@ -280,6 +281,11 @@ const AuthenticatedMaintenanceIndexRoute =
     path: '/maintenance/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMapIndexRoute = AuthenticatedMapIndexRouteImport.update({
+  id: '/map/',
+  path: '/map/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMarketersIndexRoute =
   AuthenticatedMarketersIndexRouteImport.update({
     id: '/marketers/',
@@ -604,6 +610,7 @@ export interface FileRoutesByFullPath {
   '/livreurs/': typeof AuthenticatedLivreursIndexRoute
   '/logs/': typeof AuthenticatedLogsIndexRoute
   '/maintenance/': typeof AuthenticatedMaintenanceIndexRoute
+  '/map/': typeof AuthenticatedMapIndexRoute
   '/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/notification-groups/': typeof AuthenticatedNotificationGroupsIndexRoute
   '/notification-rules/': typeof AuthenticatedNotificationRulesIndexRoute
@@ -684,6 +691,7 @@ export interface FileRoutesByTo {
   '/livreurs': typeof AuthenticatedLivreursIndexRoute
   '/logs': typeof AuthenticatedLogsIndexRoute
   '/maintenance': typeof AuthenticatedMaintenanceIndexRoute
+  '/map': typeof AuthenticatedMapIndexRoute
   '/marketers': typeof AuthenticatedMarketersIndexRoute
   '/notification-groups': typeof AuthenticatedNotificationGroupsIndexRoute
   '/notification-rules': typeof AuthenticatedNotificationRulesIndexRoute
@@ -768,6 +776,7 @@ export interface FileRoutesById {
   '/_authenticated/livreurs/': typeof AuthenticatedLivreursIndexRoute
   '/_authenticated/logs/': typeof AuthenticatedLogsIndexRoute
   '/_authenticated/maintenance/': typeof AuthenticatedMaintenanceIndexRoute
+  '/_authenticated/map/': typeof AuthenticatedMapIndexRoute
   '/_authenticated/marketers/': typeof AuthenticatedMarketersIndexRoute
   '/_authenticated/notification-groups/': typeof AuthenticatedNotificationGroupsIndexRoute
   '/_authenticated/notification-rules/': typeof AuthenticatedNotificationRulesIndexRoute
@@ -852,6 +861,7 @@ export interface FileRouteTypes {
     | '/livreurs/'
     | '/logs/'
     | '/maintenance/'
+    | '/map/'
     | '/marketers/'
     | '/notification-groups/'
     | '/notification-rules/'
@@ -932,6 +942,7 @@ export interface FileRouteTypes {
     | '/livreurs'
     | '/logs'
     | '/maintenance'
+    | '/map'
     | '/marketers'
     | '/notification-groups'
     | '/notification-rules'
@@ -1015,6 +1026,7 @@ export interface FileRouteTypes {
     | '/_authenticated/livreurs/'
     | '/_authenticated/logs/'
     | '/_authenticated/maintenance/'
+    | '/_authenticated/map/'
     | '/_authenticated/marketers/'
     | '/_authenticated/notification-groups/'
     | '/_authenticated/notification-rules/'
@@ -1295,6 +1307,13 @@ declare module '@tanstack/react-router' {
       path: '/maintenance'
       fullPath: '/maintenance/'
       preLoaderRoute: typeof AuthenticatedMaintenanceIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/map/': {
+      id: '/_authenticated/map/'
+      path: '/map'
+      fullPath: '/map/'
+      preLoaderRoute: typeof AuthenticatedMapIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/marketers/': {
@@ -1709,6 +1728,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLivreursIndexRoute: typeof AuthenticatedLivreursIndexRoute
   AuthenticatedLogsIndexRoute: typeof AuthenticatedLogsIndexRoute
   AuthenticatedMaintenanceIndexRoute: typeof AuthenticatedMaintenanceIndexRoute
+  AuthenticatedMapIndexRoute: typeof AuthenticatedMapIndexRoute
   AuthenticatedMarketersIndexRoute: typeof AuthenticatedMarketersIndexRoute
   AuthenticatedNotificationGroupsIndexRoute: typeof AuthenticatedNotificationGroupsIndexRoute
   AuthenticatedNotificationRulesIndexRoute: typeof AuthenticatedNotificationRulesIndexRoute
@@ -1787,6 +1807,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLivreursIndexRoute: AuthenticatedLivreursIndexRoute,
   AuthenticatedLogsIndexRoute: AuthenticatedLogsIndexRoute,
   AuthenticatedMaintenanceIndexRoute: AuthenticatedMaintenanceIndexRoute,
+  AuthenticatedMapIndexRoute: AuthenticatedMapIndexRoute,
   AuthenticatedMarketersIndexRoute: AuthenticatedMarketersIndexRoute,
   AuthenticatedNotificationGroupsIndexRoute:
     AuthenticatedNotificationGroupsIndexRoute,

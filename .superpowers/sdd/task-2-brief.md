@@ -1,110 +1,284 @@
-# Task 2: Update trucks feature components (columns, page, details, sheet)
+# Task 2 Brief — Extract shared map helpers from /trucks into features/map/utils/
 
 **Files:**
-- Modify: `apps/web/src/features/trucks/components/trucks-columns.tsx`
+- Create: `apps/web/src/features/map/utils/map-theme.ts`
+- Create: `apps/web/src/features/map/utils/legend.tsx`
+- Create: `apps/web/src/features/map/utils/format.ts`
+- Create: `apps/web/src/features/map/utils/format.test.ts`
+- Create: `apps/web/src/features/map/utils/map-theme.test.ts`
 - Modify: `apps/web/src/features/trucks/components/trucks-map.tsx`
-- Modify: `apps/web/src/features/trucks/index.tsx`
-- Modify: `apps/web/src/features/trucks/truck-details.tsx`
-- Modify: `apps/web/src/features/trucks/truck-details-sheet.tsx` (top-level; exports `TruckDetailsBody`, imported by `truck-details.tsx`)
-- Modify: `apps/web/src/features/trucks/components/truck-details-sheet.tsx` (exports `TruckDetailsSheet`, imported by `index.tsx`)
 
-**Interfaces:**
-- Consumes: `getTruckTelemetry`, `type Truck`, `statusLabels`, `statusClasses`, `riskLabels`, `riskClasses` from `./trucks` (new shapes from Task 1).
-- Notes: `getTruckTelemetry(...).lpg_level_percent` is gone; LPG level is now type-dependent from `truck.max_volume` (VRAC, TM) or `truck.max_bottle_count` (BOUTEILLES50KG). `truck.make_model`, `truck.contract_tier`, `truck.driver_phone`, `truck.fleet_manager`, `truck.operating_region`, `truck.status` no longer exist.
+**Interfaces (all from `apps/web/src/features/map/utils/`):**
+- `getArcgisBasemap(theme)`, `getArcgisViewTheme(theme)`, `getMarkerOutlineColor(theme, isSelected)`, `getSiteOutlineColor(theme)`, `getLpgMarkerIcon(theme)`, `getSiteIconUrl(type, theme)`, `svgToDataUri(svg)`, `rgbaFromTuple(t)` — exported from `map-theme.ts`.
+- `formatTm(tm)`, `formatBtl(btl)`, `formatPercent(pct)` — exported from `format.ts`.
+- `<LegendSiteIcon type, mapTheme />` — exported from `legend.tsx`.
 
-## Step 1: Screenshot the pre-edit build errors
+## Step 1: Create `apps/web/src/features/map/utils/map-theme.ts`
 
-Run: `pnpm build`
-Expected: FAILS at the truck components. This is the task's fail signal — you fix exactly these.
-
-## Step 2: Fix `components/trucks-columns.tsx`
-
-Find every use of `getTruckTelemetry(...)` and LPG/ETA/status logic and replace with schema-backed equivalents. Replace the LPG accessor (currently `accessorFn: (truck) => getTruckTelemetry(truck.id).lpg_level_percent`) with a shared quantity helper.
-
-Add a small local helper in the columns file:
+The complete file content:
 
 ```ts
-function quantityInfo(truck: Truck): { amount: string; percent: number } {
-  const telemetry = getTruckTelemetry(truck.id)
-  const max = truck.type === 'VRAC' ? truck.max_volume : truck.max_bottle_count
-  const loaded = telemetry.loaded_quantity ?? truck.loaded_quantity ?? 0
-  const percent = max && max > 0 ? Math.round((loaded / max) * 100) : 0
-  const unit = truck.type === 'VRAC' ? ' TM' : ' bouteilles'
-  return { amount: `${Math.round(loaded)}/${max ?? '—'}${unit}`, percent }
+import lpgCenterSvgRaw from '@/assets/lpg.svg?raw'
+import lpgSphereIconUrl from '@/assets/lpg-sphere.png'
+
+export type MapTheme = 'light' | 'dark'
+
+export function getArcgisBasemap(mapTheme: MapTheme): string {
+  return mapTheme === 'dark' ? 'dark-gray-vector' : 'streets-navigation-vector'
+}
+
+export function getArcgisViewTheme(
+  mapTheme: MapTheme,
+): { accentColor: string; textColor: string } {
+  return mapTheme === 'dark'
+    ? { accentColor: '#86efac', textColor: '#f8fafc' }
+    : { accentColor: '#16a34a', textColor: '#0f172a' }
+}
+
+export function getMarkerOutlineColor(
+  mapTheme: MapTheme,
+  isSelected: boolean,
+): [number, number, number, number] {
+  if (mapTheme === 'dark') {
+    return isSelected ? [248, 250, 252, 1] : [226, 232, 240, 0.86]
+  }
+  return isSelected ? [255, 255, 255, 1] : [15, 23, 42, 0.28]
+}
+
+export function getSiteOutlineColor(mapTheme: MapTheme): [number, number, number, number] {
+  return mapTheme === 'dark' ? [226, 232, 240, 0.84] : [15, 23, 42, 0.28]
+}
+
+export function svgToDataUri(svg: string): string {
+  const normalizedSvg = svg.replace(/\s+/g, ' ').trim()
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(normalizedSvg)}`
+}
+
+export function rgbaFromTuple(value: [number, number, number, number]): string {
+  return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`
+}
+
+export function getLpgMarkerIcon(mapTheme: MapTheme): string {
+  const fillColor = mapTheme === 'dark' ? '#f8fafc' : '#0f172a'
+  return svgToDataUri(lpgCenterSvgRaw.replace(/#000000/g, fillColor))
+}
+
+export function getSiteIconUrl(
+  siteType: 'depot' | 'scdp' | 'filling-center' | 'marketer' | 'delivery-point',
+  mapTheme: MapTheme,
+): string {
+  if (siteType === 'filling-center') return getLpgMarkerIcon(mapTheme)
+  return lpgSphereIconUrl
 }
 ```
 
-Tip: the same helper is also needed in `components/trucks-map.tsx`. **Put it in a shared file** like `apps/web/src/features/trucks/lib/quantity.ts` and import from both locations. Do not duplicate the logic.
+## Step 2: Create `apps/web/src/features/map/utils/legend.tsx`
 
-Then update the telemetry column:
-```ts
-accessorFn: (truck) => quantityInfo(truck).percent,
-```
-and the cell body (replacing the `{telemetry.lpg_level_percent}% • ETA {telemetry.eta_text}` line):
-```ts
-const info = quantityInfo(row.original)
-// ...
-style={{ width: `${info.percent}%` }}
-// ...
-{info.percent}% • {info.amount}
-```
-Remove every reference to `eta_text`, `lpg_level_percent`, and `getTruckTelemetry(...).lpg_level_percent` in this file.
+```tsx
+import type { SiteType } from '@/features/sites/data/sites'
+import { siteMarkerTokens } from '@/features/sites/utils/site-graphics'
+import {
+  getSiteIconUrl,
+  rgbaFromTuple,
+} from './map-theme'
+import type { MapTheme } from './map-theme'
 
-## Step 3: Fix `components/trucks-map.tsx`
-
-Replace telemetry parsing in the popup builder (currently reads `telemetry.lpg_level_percent`, `telemetry.eta_text`, `telemetry.pressureBar`):
-
-```ts
-const info = quantityInfo(truck) // import from lib/quantity.ts
-// ${popupLine('Niveau GPL', info.amount)}
-// ${popupLine('ETA', telemetry.expected_arrival ? new Date(telemetry.expected_arrival).toLocaleTimeString() : '—')}
-```
-Remove the `Pression` line. Replace `truck.latitude`/`truck.longitude` uses with `truck.lat`/`truck.lng`. Remove any `make_model` usage (derive `${truck.type} · ${truck.license_plate}`).
-
-## Step 4: Fix `index.tsx`
-
-The average-LPG reducer currently does `getTruckTelemetry(truck.id).lpg_level_percent`. Replace with a percent derived from total capacity:
-
-```ts
-const avgLpg = useMemo(() => {
-  const list = visible.length > 0 ? visible : trucks
-  if (list.length === 0) return 0
-  const { sum, count } = list.reduce(
-    (acc, truck) => {
-      const telemetry = getTruckTelemetry(truck.id)
-      const max = truck.type === 'VRAC' ? truck.max_volume : truck.max_bottle_count
-      if (!max || max <= 0) return acc
-      const pct = Math.round(((telemetry.loaded_quantity ?? 0) / max) * 100)
-      return { sum: acc.sum + pct, count: acc.count + 1 }
-    },
-    { sum: 0, count: 0 },
+export function LegendSiteIcon({
+  type,
+  mapTheme,
+}: {
+  type: SiteType
+  mapTheme: MapTheme
+}) {
+  const marker = siteMarkerTokens[type]
+  if (marker.iconKind === 'marker') {
+    return (
+      <span
+        className='block size-2.5 rounded-full'
+        style={{ backgroundColor: marker.swatch }}
+      />
+    )
+  }
+  return (
+    <span
+      className='flex size-6 items-center justify-center rounded-full'
+      style={{ backgroundColor: rgbaFromTuple(marker.haloColor) }}
+    >
+      <img
+        src={getSiteIconUrl(type, mapTheme)}
+        alt=''
+        className='max-h-4 max-w-4 object-contain'
+      />
+    </span>
   )
-  return count === 0 ? 0 : Math.round(sum / count)
-}, [visible])
+}
 ```
 
-## Step 5: Fix `truck-details.tsx` + BOTH sheet files
+`siteMarkerTokens` is the canonical version from `features/sites/utils/site-graphics` (single source of truth — the duplicate in `trucks-map.tsx` is dead code per AGENTS.md §3).
 
-The page title uses `truck.make_model` and `truck.plate_number` — replace with `${truck.type} · ${truck.license_plate}` and update the description to `truck.id — truck.tenant_name`.
+## Step 3: Create `apps/web/src/features/map/utils/format.ts`
 
-**Apply the SAME edits to both sheets** (`truck-details-sheet.tsx` top-level AND `components/truck-details-sheet.tsx`), since they are both live (top-level exports `TruckDetailsBody` used by `truck-details.tsx`; `components/` exports `TruckDetailsSheet` used by `index.tsx`): remove all uses of `make_model`, `plate_number` (`→ license_plate`), `driver_phone`, `fleet_manager`, `operating_region` (`→ region`), `contract_tier`, `tank_capacity_liters`, and `telemetry.pressureBar` / `telemetry.temperature_celsius` / `telemetry.route_progress` / `telemetry.distance_km` / `telemetry.speed_kmh`. Keep ETA/loaded lines, re-labeled per unit:
+```ts
+const tmFmt = new Intl.NumberFormat('fr-FR', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
 
-- Speed MetricCard: **remove** (no SQL/TODO source — user decision).
-- LPG MetricCard: `type === 'VRAC'` → `${Math.round(loaded)}/${max_volume} TM` else `${loaded}/${max_bottle_count} bouteilles`; `detail` shows remaining percent.
-- ETA MetricCard: `${telemetry.expected_arrival ? new Date(telemetry.expected_arrival).toLocaleTimeString() : '—'}`.
+const btlFmt = new Intl.NumberFormat('fr-FR', {
+  maximumFractionDigits: 0,
+})
 
-The `components/truck-details-sheet.tsx` version also renders a `<MiniSignal>` grid with `MapPin`/`Thermometer` in the maintenance tab — remove that block (temperature/distance have no schema source).
+/** Format a VRAC volume in TM (tonnes métriques). VRAC is never displayed in kg. */
+export function formatTm(value: number): string {
+  if (!Number.isFinite(value)) return '—'
+  return `${tmFmt.format(value)} TM`
+}
 
-## Step 6: Build + lint
+/** Format a bottle count in `btl` (individual 50 kg bottles). */
+export function formatBtl(value: number): string {
+  if (!Number.isFinite(value)) return '—'
+  return `${btlFmt.format(value)} btl`
+}
 
-Run: `pnpm build`
-Expected: exit 0.
-Run: `pnpm lint`
-Expected: exit 0 (may keep existing warnings).
+export function formatPercent(value: number): string {
+  if (!Number.isFinite(value)) return '—'
+  return `${Math.round(value)} %`
+}
+```
 
-## Step 7: Commit
+## Step 4: Create `apps/web/src/features/map/utils/format.test.ts`
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { formatTm, formatBtl, formatPercent } from './format'
+
+describe('formatTm', () => {
+  it('formats a VRAC volume in TM with French separators', () => {
+    expect(formatTm(1234.5)).toBe('1 234,5 TM')
+  })
+  it('returns the em-dash for non-finite values', () => {
+    expect(formatTm(Number.NaN)).toBe('—')
+    expect(formatTm(Infinity)).toBe('—')
+  })
+  it('never uses kg for VRAC quantities', () => {
+    for (const sample of [0, 0.1, 1, 12.34, 1000, 99_999.999]) {
+      expect(formatTm(sample)).not.toMatch(/kg/i)
+    }
+  })
+})
+
+describe('formatBtl', () => {
+  it('formats a bottle count as integer with btl suffix', () => {
+    expect(formatBtl(42)).toBe('42 btl')
+  })
+})
+
+describe('formatPercent', () => {
+  it('rounds to integer', () => {
+    expect(formatPercent(73.4)).toBe('73 %')
+  })
+})
+```
+
+## Step 5: Create `apps/web/src/features/map/utils/map-theme.test.ts`
+
+```ts
+import { describe, it, expect } from 'vitest'
+import {
+  getArcgisBasemap,
+  getArcgisViewTheme,
+  getMarkerOutlineColor,
+  getSiteOutlineColor,
+  rgbaFromTuple,
+} from './map-theme'
+
+describe('map-theme', () => {
+  it('returns dark basemap for dark theme', () => {
+    expect(getArcgisBasemap('dark')).toBe('dark-gray-vector')
+  })
+  it('returns streets-navigation-vector for light theme', () => {
+    expect(getArcgisBasemap('light')).toBe('streets-navigation-vector')
+  })
+  it('outline colors are 4-tuples', () => {
+    expect(getMarkerOutlineColor('light', true)).toHaveLength(4)
+    expect(getSiteOutlineColor('dark')).toHaveLength(4)
+  })
+  it('rgbaFromTuple renders RGBA', () => {
+    expect(rgbaFromTuple([10, 20, 30, 0.5])).toBe('rgba(10, 20, 30, 0.5)')
+  })
+  it('view theme exposes accent + text', () => {
+    expect(getArcgisViewTheme('dark').accentColor).toBeTruthy()
+    expect(getArcgisViewTheme('light').textColor).toBeTruthy()
+  })
+})
+```
+
+## Step 6: Refactor `apps/web/src/features/trucks/components/trucks-map.tsx` to import the shared helpers
+
+Read `apps/web/src/features/trucks/components/trucks-map.tsx` first (read lines 1-130 and lines 600-687 to see the inline `siteMarkerTokens` block, the `MapTheme` type alias, the seven helper functions, and the `LegendSiteIcon` component).
+
+Then:
+
+a. Replace the inline `siteMarkerTokens` block (currently at lines 60-123, type `MapTheme` declared at line 45) with a re-export of the canonical version and a type alias re-export:
+
+In the existing `type MapTheme = 'light' | 'dark'` line (currently line 45 in `trucks-map.tsx`), change to:
+
+```ts
+import { siteMarkerTokens, type MapTheme } from '@/features/map/utils/map-theme'
+```
+
+Then delete the entire inline `const siteMarkerTokens: Record<...>` block (lines 60-123) and remove the local `type MapTheme = ...` since it now comes from the import.
+
+b. At the top of the file (after the existing imports, near the React/ArcGIS imports), add:
+
+```ts
+import {
+  getArcgisBasemap,
+  getArcgisViewTheme,
+  getMarkerOutlineColor,
+  getSiteOutlineColor,
+  getLpgMarkerIcon,
+  getSiteIconUrl,
+  svgToDataUri,
+  rgbaFromTuple,
+} from '@/features/map/utils/map-theme'
+import { LegendSiteIcon } from '@/features/map/utils/legend'
+```
+
+Note: `svgToDataUri` and `rgbaFromTuple` are imported for tree-shake parity but may not be called directly in `trucks-map.tsx` after the refactor. If they become unused after deletion, omit them from the import list (ESLint will flag unused imports).
+
+c. **Delete** the inline helper functions at the bottom of the file (approximately lines 602-687):
+
+- `function getArcgisBasemap(...)`
+- `function getArcgisViewTheme(...)`
+- `function getMarkerOutlineColor(...)`
+- `function getSiteOutlineColor(...)`
+- `function getLpgMarkerIcon(...)`
+- `function svgToDataUri(...)`
+- `function rgbaFromTuple(...)`
+- `function LegendSiteIcon(...)`
+
+The call sites in `createTruckGraphic`, `createSiteGraphics`, the JSX rendering the legend, etc., already use the exact same function names — keep them as-is.
+
+d. Keep the existing `import lpgSphereIconUrl from '@/assets/lpg-sphere.png'` line in `trucks-map.tsx` (it's used by the original code path before this refactor; check whether any call site in `trucks-map.tsx` still uses `lpgSphereIconUrl` directly after deletion — if not, remove the import too).
+
+## Step 7: Run tests
 
 ```bash
-git add apps/web/src/features/trucks
-git commit -m "refactor(trucks): update components to schema-backed Truck/TruckTelemetry"
+cd apps/web
+npm test -- features/trucks features/map
 ```
+
+Expected: PASS. The `/trucks` behavior must be unchanged; the new `features/map` tests must pass.
+
+## Step 8: Run typecheck + lint
+
+```bash
+cd apps/web
+npm run typecheck
+npm run lint
+```
+
+Expected: PASS.
+
+## Step 9: No commit yet. Continue to Task 3.

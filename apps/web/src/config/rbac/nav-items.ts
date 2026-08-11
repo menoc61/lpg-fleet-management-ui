@@ -131,7 +131,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     label: 'Carte interactive',
     icon: MapIcon,
     path: 'map',
-    requires: ['sites.read', 'tours.read'],
+    requires: ['national-map.read'],
   },
 
   /* ----------- Entities: organizations, transporters, marketeurs, depots ----------- */
