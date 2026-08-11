@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { DepotView } from '../data/depots'
 import { depotStatusLabel } from '../data/depots'
 
@@ -65,47 +65,54 @@ export function DepotDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Warehouse className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={depot.id} />
-                  <DetailLine label='Nom' value={depot.name} />
-                  <DetailLine label='Type' value='Dépôt' />
-                  <DetailLine label='Région' value={depot.region} />
-                  <DetailLine label='Ville' value={depot.city ?? '—'} />
-                  <DetailLine label='Sites' value={`${depot.sites}`} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <MapPin className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Statut' value={depotStatusLabel(depot.status)} />
-                  <DetailLine label='Créé le' value={depot.created_at} />
-                  <DetailLine label='Mis à jour' value={depot.updated_at} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Warehouse,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Warehouse className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={depot.id} />
+                      <DetailLine label='Nom' value={depot.name} />
+                      <DetailLine label='Type' value='Dépôt' />
+                      <DetailLine label='Région' value={depot.region} />
+                      <DetailLine label='Ville' value={depot.city ?? '—'} />
+                      <DetailLine label='Sites' value={`${depot.sites}`} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: MapPin,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <MapPin className='size-4 text-primary' />
+                        Détails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='Statut' value={depotStatusLabel(depot.status)} />
+                      <DetailLine label='Créé le' value={depot.created_at} />
+                      <DetailLine label='Mis à jour' value={depot.updated_at} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

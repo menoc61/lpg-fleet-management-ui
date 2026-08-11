@@ -1,5 +1,6 @@
 import { Cpu } from 'lucide-react'
-import { Badge, Card, CardContent, CardHeader, CardTitle, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { Badge, Card, CardContent, CardHeader, CardTitle, Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { FirmwareView } from '../data/firmware'
 import { firmwareStatusLabel, getFirmwareDevices } from '../data/firmware'
 
@@ -41,38 +42,42 @@ export function FirmwareDetailsSheet({
             <MetricCard label='État' value={firmwareStatusLabel(firmware.status)} detail='Rollout status' />
           </div>
 
-          <Tabs defaultValue='devices'>
-            <TabsList className='grid w-full grid-cols-1'>
-              <TabsTrigger value='devices'>Appareils</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='devices' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Cpu className='size-4 text-primary' />
-                    Appareils sur cette version
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {devices.length ? (
-                    <ul className='space-y-2'>
-                      {devices.map((serial) => (
-                        <li key={serial} className='flex items-center justify-between rounded-md border p-2 text-sm'>
-                          <span className='font-mono text-xs'>{serial}</span>
-                          <Badge variant='outline'>{firmware.trim}</Badge>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className='py-4 text-center text-sm text-muted-foreground'>
-                      Aucun appareil.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='devices'
+            tabs={[
+              {
+                value: 'devices',
+                label: 'Appareils',
+                icon: Cpu,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Cpu className='size-4 text-primary' />
+                        Appareils sur cette version
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {devices.length ? (
+                        <ul className='space-y-2'>
+                          {devices.map((serial) => (
+                            <li key={serial} className='flex items-center justify-between rounded-md border p-2 text-sm'>
+                              <span className='font-mono text-xs'>{serial}</span>
+                              <Badge variant='outline'>{firmware.trim}</Badge>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className='py-4 text-center text-sm text-muted-foreground'>
+                          Aucun appareil.
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

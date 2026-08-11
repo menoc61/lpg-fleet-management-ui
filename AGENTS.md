@@ -49,6 +49,8 @@ Rules:
 - Tests live next to the pure logic they cover (`lib/*.test.ts`).
 - Icons/components come from the local `components/ui` tree / `@lpg/ui` — do not fork import
   paths across a feature (pick one convention per feature and keep it consistent).
+- VRAC (GPL vrac) → TM (tonnes métriques). Never kg, never bare t.
+- Bouteilles 50 kg → btl (count of individual bottles).
 
 ## 5. Routing & navigation
 

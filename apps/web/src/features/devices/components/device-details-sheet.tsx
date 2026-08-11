@@ -2,7 +2,7 @@ import { Battery, Cpu, MapPin, Radio, Signal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EntityDetailTabs } from '@/components/entity-table'
 import {
   Sheet,
   SheetContent,
@@ -81,91 +81,110 @@ export function DeviceDetailsSheet({
               />
             </div>
 
-            <Tabs defaultValue='details'>
-              <TabsList className='grid w-full grid-cols-3'>
-                <TabsTrigger value='details'>Détails</TabsTrigger>
-                <TabsTrigger value='affectation'>Affectation</TabsTrigger>
-                <TabsTrigger value='telecom'>Télécom</TabsTrigger>
-              </TabsList>
+            <EntityDetailTabs
+              defaultValue='details'
+              tabs={[
+                {
+                  value: 'details',
+                  label: 'Détails',
+                  content: (
+                    <div className='space-y-3'>
+                      <Card className='border-transparent bg-muted/20 shadow-xs'>
+                        <CardHeader className='pb-2'>
+                          <CardTitle className='flex items-center gap-2 text-sm'>
+                            <MapPin className='size-4 text-primary' />
+                            Position connue
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className='space-y-3'>
+                          {device.position ? (
+                            <>
+                              <DetailLine
+                                label='Latitude'
+                                value={device.position[0].toFixed(5)}
+                              />
+                              <DetailLine
+                                label='Longitude'
+                                value={device.position[1].toFixed(5)}
+                              />
+                            </>
+                          ) : (
+                            <DetailLine label='Position' value='Non connue' />
+                          )}
+                          <DetailLine
+                            label='Modèle'
+                            value={device.model ?? '—'}
+                          />
+                        </CardContent>
+                      </Card>
 
-              <TabsContent value='details' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <MapPin className='size-4 text-primary' />
-                      Position connue
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    {device.position ? (
-                      <>
-                        <DetailLine
-                          label='Latitude'
-                          value={device.position[0].toFixed(5)}
-                        />
-                        <DetailLine
-                          label='Longitude'
-                          value={device.position[1].toFixed(5)}
-                        />
-                      </>
-                    ) : (
-                      <DetailLine label='Position' value='Non connue' />
-                    )}
-                    <DetailLine
-                      label='Modèle'
-                      value={device.model ?? '—'}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <Cpu className='size-4 text-primary' />
-                      Configuration
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <ConfigList config={device.config} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value='affectation' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardContent className='space-y-3 pt-4'>
-                    <DetailLine
-                      label='Organisation'
-                      value={device.orgName}
-                    />
-                    <DetailLine
-                      label='Véhicule'
-                      value={device.vehiclePlate ?? '—'}
-                    />
-                    <DetailLine label='Chauffeur' value={device.driverName ?? '—'} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value='telecom' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <Signal className='size-4 text-primary' />
-                      Télécom
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine label='IMEI' value={device.imei ?? '—'} />
-                    <DetailLine label='Opérateur' value={device.operator ?? '—'} />
-                    <DetailLine
-                      label='SIM'
-                      value={device.simNumber ?? '—'}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                      <Card className='border-transparent bg-muted/20 shadow-xs'>
+                        <CardHeader className='pb-2'>
+                          <CardTitle className='flex items-center gap-2 text-sm'>
+                            <Cpu className='size-4 text-primary' />
+                            Configuration
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className='space-y-3'>
+                          <ConfigList config={device.config} />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ),
+                },
+                {
+                  value: 'affectation',
+                  label: 'Affectation',
+                  content: (
+                    <div className='space-y-3'>
+                      <Card className='border-transparent bg-muted/20 shadow-xs'>
+                        <CardContent className='space-y-3 pt-4'>
+                          <DetailLine
+                            label='Organisation'
+                            value={device.orgName}
+                          />
+                          <DetailLine
+                            label='Véhicule'
+                            value={device.vehiclePlate ?? '—'}
+                          />
+                          <DetailLine
+                            label='Chauffeur'
+                            value={device.driverName ?? '—'}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ),
+                },
+                {
+                  value: 'telecom',
+                  label: 'Télécom',
+                  content: (
+                    <div className='space-y-3'>
+                      <Card className='border-transparent bg-muted/20 shadow-xs'>
+                        <CardHeader className='pb-2'>
+                          <CardTitle className='flex items-center gap-2 text-sm'>
+                            <Signal className='size-4 text-primary' />
+                            Télécom
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className='space-y-3'>
+                          <DetailLine label='IMEI' value={device.imei ?? '—'} />
+                          <DetailLine
+                            label='Opérateur'
+                            value={device.operator ?? '—'}
+                          />
+                          <DetailLine
+                            label='SIM'
+                            value={device.simNumber ?? '—'}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ),
+                },
+              ]}
+            />
           </div>
         </SheetContent>
       ) : null}

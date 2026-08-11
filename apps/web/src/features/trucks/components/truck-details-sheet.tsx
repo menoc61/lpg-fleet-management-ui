@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EntityDetailTabs } from '@/components/entity-table'
 import {
   getTruckTelemetry,
   riskClasses,
@@ -72,66 +72,77 @@ export function TruckDetailsBody({
         />
       </div>
 
-      <Tabs defaultValue='resume'>
-        <TabsList className='grid w-full grid-cols-2'>
-          <TabsTrigger value='resume'>Resume</TabsTrigger>
-          <TabsTrigger value='docs'>Documents</TabsTrigger>
-        </TabsList>
+      <EntityDetailTabs
+        defaultValue='resume'
+        tabs={[
+          {
+            value: 'resume',
+            label: 'Résumé',
+            icon: UserRound,
+            content: (
+            <div className='space-y-3'>
+              <Card className='border-transparent bg-muted/20 shadow-xs'>
+                <CardHeader className='pb-2'>
+                  <CardTitle className='flex items-center gap-2 text-sm'>
+                    Mission courante
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className='space-y-3'>
+                  <DetailLine label='Entreprise' value={truck.tenant_name} />
+                  <DetailLine label='Region' value={truck.region} />
+                  <DetailLine
+                    label='Position'
+                    value={truck.current_location ?? '—'}
+                  />
+                  <DetailLine label='Chauffeur' value={truck.assigned_driver ?? '—'} />
+                  <DetailLine
+                    label='Type'
+                    value={truck.type === 'VRAC' ? 'Vrac (TM)' : 'Bouteilles 50kg'}
+                  />
+                </CardContent>
+              </Card>
 
-        <TabsContent value='resume' className='space-y-3'>
-          <Card className='border-transparent bg-muted/20 shadow-xs'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='flex items-center gap-2 text-sm'>
-                Mission courante
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3'>
-              <DetailLine label='Entreprise' value={truck.tenant_name} />
-              <DetailLine label='Region' value={truck.region} />
+              <Card className='border-transparent bg-muted/20 shadow-xs'>
+                <CardHeader className='pb-2'>
+                  <CardTitle className='flex items-center gap-2 text-sm'>
+                    <UserRound className='size-4 text-primary' />
+                    Equipe
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className='space-y-3'>
+                  <DetailLine
+                    label='Chauffeur'
+                    value={truck.assigned_driver ?? '—'}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+            ),
+          },
+          {
+            value: 'docs',
+            label: 'Documents',
+            icon: Wrench,
+            content: (
+            <div className='space-y-3'>
+              <Separator />
               <DetailLine
-                label='Position'
-                value={truck.current_location ?? '—'}
+                label='Certificat'
+                value={truck.certificate_number ?? '—'}
               />
-              <DetailLine label='Chauffeur' value={truck.assigned_driver ?? '—'} />
               <DetailLine
-                label='Type'
-                value={truck.type === 'VRAC' ? 'Vrac (TM)' : 'Bouteilles 50kg'}
+                label='Validite'
+                value={
+                  truck.certificate_expiry_at
+                    ? new Date(truck.certificate_expiry_at).toLocaleDateString('fr-FR')
+                    : '—'
+                }
               />
-            </CardContent>
-          </Card>
-
-          <Card className='border-transparent bg-muted/20 shadow-xs'>
-            <CardHeader className='pb-2'>
-              <CardTitle className='flex items-center gap-2 text-sm'>
-                <UserRound className='size-4 text-primary' />
-                Equipe
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-3'>
-              <DetailLine
-                label='Chauffeur'
-                value={truck.assigned_driver ?? '—'}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value='docs' className='space-y-3'>
-          <Separator />
-          <DetailLine
-            label='Certificat'
-            value={truck.certificate_number ?? '—'}
-          />
-          <DetailLine
-            label='Validite'
-            value={
-              truck.certificate_expiry_at
-                ? new Date(truck.certificate_expiry_at).toLocaleDateString('fr-FR')
-                : '—'
-            }
-          />
-        </TabsContent>
-      </Tabs>
+            </div>
+            ),
+          },
+        ]}
+      />
 
       <Card className='border-transparent bg-muted/20 shadow-xs'>
         <CardHeader className='pb-2'>

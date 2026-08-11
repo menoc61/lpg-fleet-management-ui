@@ -91,18 +91,18 @@ function buildLiveIndex(role: Role): SearchItem[] {
     const data = getSidebarData(role)
     for (const group of data.navGroups) {
       for (const item of group.items) {
-        if ('url' in item && typeof (item as { url: string }).url === 'string') {
-          const leaf = item as { title: string; url: string }
+         if ('url' in item && typeof (item as { url: string }).url === 'string') {
+          const leaf = item as { title: string; url: string; icon?: React.ElementType }
           items.push({
             category: group.title,
             title: leaf.title,
             subtitle: '',
             value: `${leaf.title} ${group.title}`,
             url: leaf.url,
-            icon: Home,
+            icon: leaf.icon ?? Home,
           })
         } else if ('items' in item) {
-          for (const child of (item as { items: Array<{ title: string; url: string }> }).items) {
+          for (const child of (item as { items: Array<{ title: string; url: string; icon?: React.ElementType }> }).items) {
             if ('url' in child && typeof child.url === 'string') {
               items.push({
                 category: group.title,
@@ -110,7 +110,7 @@ function buildLiveIndex(role: Role): SearchItem[] {
                 subtitle: '',
                 value: `${child.title} ${group.title}`,
                 url: child.url,
-                icon: Home,
+                icon: child.icon ?? Home,
               })
             }
           }
@@ -194,24 +194,23 @@ export function GlobalSearch() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return []
+    if (!q) return items
     return items.filter((item) => item.value.toLowerCase().includes(q)).slice(0, 50)
   }, [items, query])
 
+  // Re-read recent entries whenever the dialog open state toggles
   const recent = useMemo(() => readRecent(), [open, query])
 
   const grouped = useMemo(() => {
     const map = new Map<string, SearchItem[]>()
-    const source = query.trim().length === 0 && recent.length > 0
-      ? recent.map((r) => ({ category: r.category, title: r.title, subtitle: '', value: r.title, url: r.url, icon: r.icon }))
-      : filtered
+    const source = filtered
     for (const item of source) {
       const group = map.get(item.category) ?? []
       group.push(item)
       map.set(item.category, group)
     }
     return Array.from(map.entries())
-  }, [filtered, query, recent])
+  }, [filtered])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -243,29 +242,27 @@ export function GlobalSearch() {
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
+      <CommandList className='max-h-96'>
         <CommandEmpty>Aucun resultat.</CommandEmpty>
 
         {query.trim().length === 0 && recent.length > 0 && (
-          <>
-            <CommandGroup heading="Recents">
-              {recent.map((entry, idx) => (
-                <CommandItem
-                  key={`${entry.url}-${idx}`}
-                  value={`${entry.title} ${entry.category} recent`}
-                  onSelect={() => {
-                    setQuery(entry.term)
-                    navigate({ to: entry.url })
-                    close()
-                  }}
-                >
-                  <Clock className="size-4 shrink-0 opacity-50 mr-2" />
-                  {entry.title}
-                  <span className="ml-auto text-xs text-muted-foreground">{entry.category}</span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </>
+          <CommandGroup heading="Recents">
+            {recent.map((entry, idx) => (
+              <CommandItem
+                key={`${entry.url}-${idx}`}
+                value={`${entry.title} ${entry.category} recent`}
+                onSelect={() => {
+                  setQuery(entry.term)
+                  navigate({ to: entry.url })
+                  close()
+                }}
+              >
+                <Clock className="size-4 shrink-0 opacity-50 mr-2" />
+                {entry.title}
+                <span className="ml-auto text-xs text-muted-foreground">{entry.category}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
         )}
 
         {grouped.map(([category, groupItems]) => (

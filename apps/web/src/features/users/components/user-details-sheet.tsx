@@ -1,4 +1,4 @@
-import { ShieldCheck, Users } from 'lucide-react'
+import { ShieldCheck, UserRound, Users } from 'lucide-react'
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import {
   Sheet,
@@ -7,12 +7,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { UserView } from '../data/users'
-import {
-  mfaStatusLabel,
-  userStatusLabel,
-} from '../data/users'
+import { mfaStatusLabel, userStatusLabel } from '../data/users'
 
 type UserDetailsSheetProps = {
   user: UserView | null
@@ -68,48 +65,61 @@ export function UserDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Users className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={user.id} />
-                  <DetailLine label='Nom' value={user.fullName} />
-                  <DetailLine label='E-mail' value={user.email} />
-                  <DetailLine label='Organisation' value={user.orgName} />
-                  <DetailLine label='Rôle' value={user.roleLabel} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <ShieldCheck className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Statut' value={userStatusLabel(user.status)} />
-                  <DetailLine label='MFA' value={mfaStatusLabel(user.mfaStatus)} />
-                  <DetailLine label='Dernière connexion' value={user.lastLogin} />
-                  <DetailLine label='Créé le' value={user.created_at} />
-                  <DetailLine label='Mis à jour' value={user.updated_at} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Users,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Users className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={user.id} />
+                      <DetailLine label='Nom' value={user.fullName} />
+                      <DetailLine label='E-mail' value={user.email} />
+                      <DetailLine label='Organisation' value={user.orgName} />
+                      <DetailLine label='Rôle' value={user.roleLabel} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: ShieldCheck,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <ShieldCheck className='size-4 text-primary' />
+                        Détails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine
+                        label='Statut'
+                        value={userStatusLabel(user.status)}
+                      />
+                      <DetailLine
+                        label='MFA'
+                        value={mfaStatusLabel(user.mfaStatus)}
+                      />
+                      <DetailLine label='Dernière connexion' value={user.lastLogin} />
+                      <DetailLine label='Créé le' value={user.created_at} />
+                      <DetailLine label='Mis à jour' value={user.updated_at} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>
@@ -126,10 +136,13 @@ function MetricCard({
   detail: string
 }) {
   return (
-    <div className='surface-sunken p-3'>
-      <p className='text-xs text-muted-foreground'>{label}</p>
-      <p className='mt-1 text-lg leading-none font-semibold'>{value}</p>
-      <p className='mt-1 text-xs text-muted-foreground'>{detail}</p>
+    <div className='surface-sunken flex items-start gap-2 p-3'>
+      <UserRound className='mt-1 size-4 text-primary' />
+      <div>
+        <p className='text-xs text-muted-foreground'>{label}</p>
+        <p className='mt-1 text-lg leading-none font-semibold'>{value}</p>
+        <p className='mt-1 text-xs text-muted-foreground'>{detail}</p>
+      </div>
     </div>
   )
 }

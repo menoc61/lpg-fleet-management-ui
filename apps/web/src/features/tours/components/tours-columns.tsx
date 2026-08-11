@@ -107,7 +107,7 @@ export function getToursColumns({
       header: 'Livre',
       cell: ({ row }) =>
         row.original.delivered_quantity != null
-          ? `${row.original.delivered_quantity} ${row.original.tourneeType === 'VRAC' ? 't' : 'btl'}`
+          ? `${row.original.delivered_quantity} ${row.original.tourneeType === 'VRAC' ? 'TM' : 'btl'}`
           : DASH,
       meta: { label: 'Livre' },
       enableGrouping: false,

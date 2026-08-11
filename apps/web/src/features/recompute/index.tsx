@@ -137,7 +137,7 @@ export function RecomputePage() {
           <div>
             <h2 className='text-xl font-semibold tracking-tight'>Scores de risque</h2>
             <p className='text-sm text-muted-foreground'>
-              Historique des calculs de score de risque par entit� et p�riode.
+              Historique des calculs de score de risque par entité et période.
             </p>
           </div>
           <Badge

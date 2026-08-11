@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { DeviceAssignmentView } from '../data/device-assignments'
 import { deviceStatusLabel, deviceTypeLabel } from '../data/device-assignments'
 
@@ -65,58 +65,65 @@ export function DeviceAssignmentDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <RadioTower className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={assignment.id} />
-                  <DetailLine label='N° série' value={assignment.serialNumber} />
-                  <DetailLine label='Type' value={deviceTypeLabel(assignment.deviceType)} />
-                  <DetailLine label='Organisation' value={assignment.orgName} />
-                  <DetailLine label='Firmware' value={assignment.firmwareVersion} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Battery className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine
-                    label='Assignation'
-                    value={assignment.assignedType === 'USER' ? 'Utilisateur' : 'Véhicule'}
-                  />
-                  <DetailLine label='Bénéficiaire' value={assignment.assigneeName} />
-                  <DetailLine label='ID bénéficiaire' value={assignment.assigneeId} />
-                  <DetailLine
-                    label='Batterie'
-                    value={assignment.batteryLevel !== null ? `${assignment.batteryLevel}%` : '—'}
-                  />
-                  <DetailLine
-                    label='Batterie critique'
-                    value={assignment.batteryCritical ? 'Oui' : 'Non'}
-                  />
-                  <DetailLine label='Dernière sync' value={assignment.lastSync ?? '—'} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: RadioTower,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <RadioTower className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={assignment.id} />
+                      <DetailLine label='N° série' value={assignment.serialNumber} />
+                      <DetailLine label='Type' value={deviceTypeLabel(assignment.deviceType)} />
+                      <DetailLine label='Organisation' value={assignment.orgName} />
+                      <DetailLine label='Firmware' value={assignment.firmwareVersion} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: Battery,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Battery className='size-4 text-primary' />
+                        Détails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine
+                        label='Assignation'
+                        value={assignment.assignedType === 'USER' ? 'Utilisateur' : 'Véhicule'}
+                      />
+                      <DetailLine label='Bénéficiaire' value={assignment.assigneeName} />
+                      <DetailLine label='ID bénéficiaire' value={assignment.assigneeId} />
+                      <DetailLine
+                        label='Batterie'
+                        value={assignment.batteryLevel !== null ? `${assignment.batteryLevel}%` : '—'}
+                      />
+                      <DetailLine
+                        label='Batterie critique'
+                        value={assignment.batteryCritical ? 'Oui' : 'Non'}
+                      />
+                      <DetailLine label='Dernière sync' value={assignment.lastSync ?? '—'} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

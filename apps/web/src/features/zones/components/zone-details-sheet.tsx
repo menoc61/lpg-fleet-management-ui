@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { ZoneView } from '../data/zones'
 
 type ZoneDetailsSheetProps = {
@@ -46,47 +46,53 @@ export function ZoneDetailsSheet({
             <MetricCard label='Région' value={zone.region} detail='Zone géographique' />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <MapPinned className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={zone.id} />
-                  <DetailLine label='Nom' value={zone.name} />
-                  <DetailLine label='Code' value={zone.code} />
-                  <DetailLine label='Région' value={zone.region} />
-                  <DetailLine label='Sites' value={`${zone.siteCount}`} />
-                  <DetailLine label='Sites clients' value={`${zone.clientSiteCount}`} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <MapPinned className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Statut' value='Lecture seule' />
-                  <DetailLine label='Périmètre' value='Entrée intégralité du territoire' />
-                  <DetailLine label='Édition' value='Reportée (polygones non édités)' />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+<EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                content: (
+                <Card>
+                  <CardHeader className='pb-2'>
+                    <CardTitle className='flex items-center gap-2 text-sm'>
+                      <MapPinned className='size-4 text-primary' />
+                      Informations générales
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-3'>
+                    <DetailLine label='ID' value={zone.id} />
+                    <DetailLine label='Nom' value={zone.name} />
+                    <DetailLine label='Code' value={zone.code} />
+                    <DetailLine label='Région' value={zone.region} />
+                    <DetailLine label='Sites' value={`${zone.siteCount}`} />
+                    <DetailLine label='Sites clients' value={`${zone.clientSiteCount}`} />
+                  </CardContent>
+                </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: MapPinned,
+                content: (
+                <Card>
+                  <CardHeader className='pb-2'>
+                    <CardTitle className='flex items-center gap-2 text-sm'>
+                      <MapPinned className='size-4 text-primary' />
+                      Détails
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-3'>
+                    <DetailLine label='Statut' value='Lecture seule' />
+                    <DetailLine label='Périmètre' value='Entrée intégralité du territoire' />
+                    <DetailLine label='Édition' value='Reportée (polygones non édités)' />
+                  </CardContent>
+                </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

@@ -807,7 +807,7 @@ function ReserveSummaryCard({
           variant='outline'
           className='border-transparent bg-muted/40 text-foreground'
         >
-          {formatTons(totalReserveKg)}
+          {formatKg(totalReserveKg)}
         </Badge>
       </CardHeader>
       <CardContent className='space-y-6'>
@@ -848,7 +848,7 @@ function ReserveSummaryCard({
             <p className='text-xs tracking-[0.18em] text-muted-foreground uppercase'>
               Réserve utile
             </p>
-            <p className='text-3xl font-semibold'>{formatTons(totalReserveKg)}</p>
+            <p className='text-3xl font-semibold'>{formatKg(totalReserveKg)}</p>
           </div>
         </div>
 
@@ -1077,24 +1077,30 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   )
 }
 
-function formatKg(value: number) {
-  return `${new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  }).format(value)} kg`
-}
-
-function formatTons(value: number) {
+function formatTm(value: number) {
   return `${new Intl.NumberFormat('fr-FR', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
-  }).format(value / 1000)} t`
+  }).format(value)} TM`
+}
+
+/** Legacy wrapper — kg inputs convert to TM for display. */
+function formatKg(value: number) {
+  return formatTm(value / 1000)
+}
+
+function formatBtl(value: number) {
+  return `${new Intl.NumberFormat('fr-FR', {
+    maximumFractionDigits: 0,
+  }).format(value)} btl`
 }
 
 function formatMetricValue(
   value: number,
-  unit: 'kg' | 'count' | 'percent' | 'days'
+  unit: 'TM' | 'btl' | 'count' | 'percent' | 'days'
 ) {
-  if (unit === 'kg') return formatKg(value)
+  if (unit === 'TM') return formatTm(value)
+  if (unit === 'btl') return formatBtl(value)
   if (unit === 'percent') return `${value}%`
   if (unit === 'days') return `${value.toFixed(1)} jours`
   return new Intl.NumberFormat('fr-FR', {

@@ -24,7 +24,7 @@ export function DeclarationActions({ declaration }: { declaration: DeclarationVi
   function handleSubmit() {
     try {
       submitDeclaration(declaration.id)
-      toast.success(`${declaration.reference} — Declaration soumise`)
+      toast.success(`${declaration.reference} â€” Declaration soumise`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action impossible')
     }

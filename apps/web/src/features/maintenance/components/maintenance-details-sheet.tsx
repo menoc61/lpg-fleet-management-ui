@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { MaintenanceView } from '../data/maintenance'
 import {
   itemTypeLabel,
@@ -68,49 +68,56 @@ export function MaintenanceDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Wrench className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={item.id} />
-                  <DetailLine label='Appareil' value={item.itemName} />
-                  <DetailLine label='Type' value={itemTypeLabel(item.itemType)} />
-                  <DetailLine label='Organisation' value={item.orgName} />
-                  <DetailLine label='Motif' value={item.reason} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Wrench className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine
-                    label='Batterie'
-                    value={item.balLevel !== undefined ? `${item.balLevel}%` : '—'}
-                  />
-                  <DetailLine label='Dernière synchro' value={item.lastSync ?? '—'} />
-                  <DetailLine label='Mis à jour' value={item.updatedAt} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Wrench,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Wrench className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={item.id} />
+                      <DetailLine label='Appareil' value={item.itemName} />
+                      <DetailLine label='Type' value={itemTypeLabel(item.itemType)} />
+                      <DetailLine label='Organisation' value={item.orgName} />
+                      <DetailLine label='Motif' value={item.reason} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: Wrench,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Wrench className='size-4 text-primary' />
+                        Détails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine
+                        label='Batterie'
+                        value={item.balLevel !== undefined ? `${item.balLevel}%` : '—'}
+                      />
+                      <DetailLine label='Dernière synchro' value={item.lastSync ?? '—'} />
+                      <DetailLine label='Mis à jour' value={item.updatedAt} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

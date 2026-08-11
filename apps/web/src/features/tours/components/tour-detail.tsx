@@ -21,7 +21,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 
 function fmt(quantity: number | null, type: TourActivity['tourneeType']): string {
   if (quantity == null) return '—'
-  return `${quantity} ${type === 'VRAC' ? 't' : 'btl'}`
+  return `${quantity} ${type === 'VRAC' ? 'TM' : 'btl'}`
 }
 
 export function TourDetail({

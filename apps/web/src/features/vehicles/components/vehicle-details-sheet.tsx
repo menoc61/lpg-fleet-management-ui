@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EntityDetailTabs } from '@/components/entity-table'
 import {
   tenantLabel,
   vehicleRiskClasses,
@@ -66,7 +66,7 @@ export function VehicleDetailsSheet({
               />
               <MetricCard
                 label='Tare'
-                value={vehicle.tare_weight ? `${vehicle.tare_weight} kg` : '—'}
+                 value={vehicle.tare_weight ? `${vehicle.tare_weight} t` : '—'}
                 detail='Poids a vide'
               />
               <MetricCard
@@ -82,109 +82,120 @@ export function VehicleDetailsSheet({
               />
             </div>
 
-            <Tabs defaultValue='resume'>
-              <TabsList className='grid w-full grid-cols-2'>
-                <TabsTrigger value='resume'>Resume</TabsTrigger>
-                <TabsTrigger value='docs'>Documents</TabsTrigger>
-              </TabsList>
+          <EntityDetailTabs
+            defaultValue='resume'
+            tabs={[
+              {
+                value: 'resume',
+                label: 'Résumé',
+                icon: Truck,
+                content: (
+                <div className='space-y-3'>
+                  <Card className='border-transparent bg-muted/20 shadow-xs'>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Truck className='size-4 text-primary' />
+                        Identification
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='Plaque' value={vehicle.license_plate} />
+                      <DetailLine label='ID interne' value={vehicle.id} />
+                      <DetailLine
+                        label='Type'
+                        value={vehicleTypeLabels[vehicle.type]}
+                      />
+                      <DetailLine
+                        label='Entreprise'
+                        value={vehicle.tenant_name}
+                      />
+                      <DetailLine
+                        label='Tenant'
+                        value={tenantLabel(vehicle.tenant_type)}
+                      />
+                      <DetailLine label='Region' value={vehicle.region} />
+                    </CardContent>
+                  </Card>
 
-              <TabsContent value='resume' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <Truck className='size-4 text-primary' />
-                      Identification
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine label='Plaque' value={vehicle.license_plate} />
-                    <DetailLine label='ID interne' value={vehicle.id} />
-                    <DetailLine
-                      label='Type'
-                      value={vehicleTypeLabels[vehicle.type]}
-                    />
-                    <DetailLine
-                      label='Entreprise'
-                      value={vehicle.tenant_name}
-                    />
-                    <DetailLine
-                      label='Tenant'
-                      value={tenantLabel(vehicle.tenant_type)}
-                    />
-                    <DetailLine label='Region' value={vehicle.region} />
-                  </CardContent>
-                </Card>
-
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <Gauge className='size-4 text-primary' />
-                      Mission courante
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine
-                      label='Chauffeur'
-                      value={vehicle.assigned_driver ?? '—'}
-                    />
-                    <DetailLine
-                      label='Quantite demandee'
-                      value={`${Math.round(vehicle.requested_quantity)}`}
-                    />
-                    <DetailLine
-                      label='Quantite chargee'
-                      value={
-                        vehicle.loaded_quantity != null
-                          ? `${Math.round(vehicle.loaded_quantity)}`
-                          : '—'
-                      }
-                    />
-                    <DetailLine
-                      label='Quantite livree'
-                      value={
-                        vehicle.delivered_quantity != null
-                          ? `${Math.round(vehicle.delivered_quantity)}`
-                          : '—'
-                      }
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value='docs' className='space-y-3'>
-                {vehicle.type === 'VRAC' &&
-                  (vehicle.certificate_status === 'expired' ||
-                    vehicle.certificate_status === 'missing') && (
-                    <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200'>
-                      <p className='font-medium'>
-                        {vehicle.certificate_status === 'expired'
-                          ? 'Certificat de jaugement expiré'
-                          : 'Certificat de jaugement manquant'}
-                      </p>
-                      <p className='mt-1 text-xs'>
-                        Le jaugement ministériel est obligatoire pour les
-                        véhicules VRAC. Cette citerne ne peut pas être affectée
-                        à une tournée tant que le certificat n'est pas renouvelé.
-                      </p>
-                    </div>
-                  )}
-                <Separator />
-                <DetailLine
-                  label='Certificat'
-                  value={vehicle.certificate_number ?? '—'}
-                />
-                <DetailLine
-                  label='Expiration'
-                  value={
-                    vehicle.certificate_expiry_at
-                      ? new Date(
-                          vehicle.certificate_expiry_at,
-                        ).toLocaleDateString('fr-FR')
-                      : '—'
-                  }
-                />
-              </TabsContent>
-            </Tabs>
+                  <Card className='border-transparent bg-muted/20 shadow-xs'>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Gauge className='size-4 text-primary' />
+                        Mission courante
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine
+                        label='Chauffeur'
+                        value={vehicle.assigned_driver ?? '—'}
+                      />
+                       <DetailLine
+                         label='Quantite demandee'
+                         value={`${Math.round(vehicle.requested_quantity)} ${vehicle.type === 'VRAC' ? 'TM' : 'btl'}`}
+                       />
+                       <DetailLine
+                         label='Quantite chargee'
+                         value={
+                           vehicle.loaded_quantity != null
+                             ? `${Math.round(vehicle.loaded_quantity)} ${vehicle.type === 'VRAC' ? 'TM' : 'btl'}`
+                             : '—'
+                         }
+                       />
+                       <DetailLine
+                         label='Quantite livree'
+                         value={
+                           vehicle.delivered_quantity != null
+                             ? `${Math.round(vehicle.delivered_quantity)} ${vehicle.type === 'VRAC' ? 'TM' : 'btl'}`
+                             : '—'
+                         }
+                       />
+                    </CardContent>
+                  </Card>
+                </div>
+                ),
+              },
+              {
+                value: 'docs',
+                label: 'Documents',
+                icon: Gauge,
+                content: (
+                <div className='space-y-3'>
+                  {vehicle.type === 'VRAC' &&
+                    (vehicle.certificate_status === 'expired' ||
+                      vehicle.certificate_status === 'missing') && (
+                      <div className='rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200'>
+                        <p className='font-medium'>
+                          {vehicle.certificate_status === 'expired'
+                            ? 'Certificat de jaugement expiré'
+                            : 'Certificat de jaugement manquant'}
+                        </p>
+                        <p className='mt-1 text-xs'>
+                          Le jaugement ministériel est obligatoire pour les
+                          véhicules VRAC. Cette citerne ne peut pas être affectée
+                          à une tournée tant que le certificat n'est pas renouvelé.
+                        </p>
+                      </div>
+                    )}
+                  <Separator />
+                  <DetailLine
+                    label='Certificat'
+                    value={vehicle.certificate_number ?? '—'}
+                  />
+                  <DetailLine
+                    label='Expiration'
+                    value={
+                      vehicle.certificate_expiry_at
+                        ? new Date(
+                            vehicle.certificate_expiry_at,
+                          ).toLocaleDateString('fr-FR')
+                        : '—'
+                    }
+                  />
+                </div>
+                ),
+              },
+            ]}
+          />
 
             <Card className='border-transparent bg-muted/20 shadow-xs'>
               <CardHeader className='pb-2'>

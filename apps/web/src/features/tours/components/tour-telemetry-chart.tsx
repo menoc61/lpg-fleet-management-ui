@@ -81,8 +81,8 @@ export function TourTelemetryChart({
         </div>
       </CardHeader>
       <CardContent className='space-y-4 p-4'>
-        <div className='h-[320px] rounded-2xl bg-muted/25 px-2 py-4 shadow-inner'>
-          <ResponsiveContainer width='100%' aspect={16 / 9}>
+        <div className='h-[320px] w-full rounded-2xl bg-muted/25 px-2 py-4 shadow-inner'>
+          <ResponsiveContainer width='100%' height={280}>
             <ComposedChart data={chartData}>
               <defs>
                 <linearGradient
@@ -215,7 +215,7 @@ export function TourTelemetryChart({
           />
           <TelemetrySignal
             label='Écart non justifié'
-            value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : '0 kg'}
+            value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : isBottles ? '0 btl' : '0 TM'}
             hint={
               trip.unaccountedKg > 0
                 ? 'À expliquer avant clôture'

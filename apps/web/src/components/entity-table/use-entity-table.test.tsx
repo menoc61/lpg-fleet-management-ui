@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { act } from 'react'
 import type { Mock } from 'vitest'
 import type { ColumnDef } from '@tanstack/react-table'
 import { renderHook } from 'vitest-browser-react'
@@ -15,11 +16,13 @@ function columnsFn(onViewDetails?: (row: Row) => void): ColumnDef<Row>[] {
     {
       accessorKey: 'id',
       header: 'ID',
+      enableSorting: true,
       cell: ({ row }) => <span>{row.original.id}</span>,
     },
     {
       accessorKey: 'name',
       header: 'Nom',
+      enableSorting: true,
       cell: ({ row }) =>
         onViewDetails ? (
           <button onClick={() => onViewDetails(row.original)}>{row.original.name}</button>
@@ -121,11 +124,8 @@ describe('useEntityTable', () => {
       }),
     )
 
-    result.current.table.getHeaderGroups().forEach((group) => {
-      const nameHeader = group.headers.find((h) => h.column.id === 'name')
-      if (nameHeader && nameHeader.column.getCanSort()) {
-        nameHeader.column.toggleSorting(false)
-      }
+    act(() => {
+      result.current.setSorting([{ id: 'name', desc: true }])
     })
 
     expect(result.current.sorting.length).toBeGreaterThan(0)
@@ -143,16 +143,23 @@ describe('useEntityTable', () => {
       }),
     )
 
-    result.current.setColumnVisibility({ id: false })
+    act(() => {
+      result.current.setColumnVisibility({ id: false })
+    })
     expect(result.current.columnVisibility).toEqual({ id: false })
   })
 
   it('wires column filters through useTableUrlState', async () => {
     const navigate = vi.fn() as Mock<NavigateFn>
+    const cols: ColumnDef<Row & { role: string }>[] = [
+      { accessorKey: 'id', header: 'ID', enableSorting: true },
+      { accessorKey: 'name', header: 'Nom', enableSorting: true },
+      { accessorKey: 'role', header: 'Role', enableSorting: true },
+    ]
     const { result } = await renderHook(() =>
-      useEntityTable<Row>({
-        data: FIXTURES,
-        columns: columnsFn(),
+      useEntityTable<Row & { role: string }>({
+        data: (FIXTURES as Array<Row & { role: string }>),
+        columns: cols,
         search: { role: 'ADMIN' },
         navigate,
         options: {
@@ -170,10 +177,15 @@ describe('useEntityTable', () => {
 
   it('navigates with updated search when a column filter changes', async () => {
     const navigate = vi.fn() as Mock<NavigateFn>
+    const cols: ColumnDef<Row & { role: string }>[] = [
+      { accessorKey: 'id', header: 'ID', enableSorting: true },
+      { accessorKey: 'name', header: 'Nom', enableSorting: true },
+      { accessorKey: 'role', header: 'Role', enableSorting: true },
+    ]
     const { result } = await renderHook(() =>
-      useEntityTable<Row>({
-        data: FIXTURES,
-        columns: columnsFn(),
+      useEntityTable<Row & { role: string }>({
+        data: (FIXTURES as Array<Row & { role: string }>),
+        columns: cols,
         search: {},
         navigate,
         options: {
@@ -184,9 +196,9 @@ describe('useEntityTable', () => {
       }),
     )
 
-    const filterFn = result.current.table.getColumn('role')?.setFilterValue
-    expect(typeof filterFn).toBe('function')
-    filterFn?.('SUPERADMIN')
+    act(() => {
+      result.current.table.getColumn('role')?.setFilterValue('SUPERADMIN')
+    })
 
     const last = lastNavigate(navigate)
     expect(last).toBeDefined()
@@ -198,4 +210,59 @@ describe('useEntityTable', () => {
       expect((s as Record<string, unknown>).role).toBe('SUPERADMIN')
     }
   })
+
+  it('respects defaultSort as the initial sorting state', async () => {
+    const navigate = vi.fn() as Mock<NavigateFn>
+    const { result } = await renderHook(() =>
+      useEntityTable<Row>({
+        data: FIXTURES,
+        columns: columnsFn(),
+        search: {},
+        navigate,
+        options: { defaultSort: [{ id: 'name', desc: false }] },
+      }),
+    )
+    expect(result.current.sorting).toEqual([{ id: 'name', desc: false }])
+    const rows = result.current.table.getSortedRowModel().rows
+    expect(rows.map((r) => r.original.name)).toEqual([
+      'Alpha',
+      'Bravo',
+      'Charlie',
+    ])
+  })
+
+  it('groups rows when enableGrouping + onGroupingChange wiring is on', async () => {
+    type GroupedRow = { id: string; name: string; group: string }
+    const data: GroupedRow[] = [
+      { id: '1', name: 'A1', group: 'X' },
+      { id: '2', name: 'A2', group: 'X' },
+      { id: '3', name: 'B1', group: 'Y' },
+    ]
+    const groupedCols: ColumnDef<GroupedRow>[] = [
+      { accessorKey: 'name', header: 'Nom', cell: ({ row }) => row.original.name },
+      {
+        accessorKey: 'group',
+        header: 'Groupe',
+        enableGrouping: true,
+        cell: ({ row }) => row.original.group,
+      },
+    ]
+    const navigate = vi.fn() as Mock<NavigateFn>
+    const { result } = await renderHook(() =>
+      useEntityTable<GroupedRow>({
+        data,
+        columns: groupedCols,
+        search: {},
+        navigate,
+        options: { enableGrouping: true },
+      }),
+    )
+    act(() => {
+      result.current.table.setGrouping(['group'])
+    })
+    // After grouping, the row model has 2 group rows (one per group).
+    const groups = result.current.table.getRowModel().rows.filter((r) => r.getIsGrouped())
+    expect(groups.length).toBe(2)
+  })
 })
+

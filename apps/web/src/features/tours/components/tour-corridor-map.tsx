@@ -20,11 +20,15 @@ import {
 } from '@/components/ui/card'
 import { siteTypeLabels } from '@/features/sites/data/sites'
 import { type RouteTripView } from '../data/tour-activity'
+import { formatTm } from '@/features/map/utils/format'
 
 type TourCorridorMapProps = {
   trip: RouteTripView
   formatDateTime: (value: string) => string
+  formatQuantity?: (value: number) => string
 }
+
+const formatTmDefault = (value: number) => formatTm(value / 1000)
 
 type MapTheme = 'light' | 'dark'
 
@@ -55,6 +59,7 @@ const stopRoleStyles = {
 export function TourCorridorMap({
   trip,
   formatDateTime,
+  formatQuantity,
 }: TourCorridorMapProps) {
   const { resolvedTheme } = useTheme()
   const mapTheme = resolvedTheme
@@ -144,7 +149,7 @@ export function TourCorridorMap({
 
     if (!isReady || !graphicsLayer || !view) return
 
-    const graphics = createRouteGraphics(trip, mapTheme)
+     const graphics = createRouteGraphics(trip, mapTheme, formatQuantity ?? formatTmDefault)
 
     graphicsLayer.removeAll()
     graphicsLayer.addMany(graphics)
@@ -349,7 +354,7 @@ function MapSignals({
   )
 }
 
-function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme) {
+function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme, formatQuantity: (value: number) => string) {
   const routeCoordinates = [
     [trip.originSite.longitude, trip.originSite.latitude],
     ...trip.telemetry.map((point) => [point.longitude, point.latitude]),
@@ -369,7 +374,7 @@ function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme) {
     },
     popupTemplate: {
       title: `Tournée ${trip.reference}`,
-      content: createRoutePopupContent(trip),
+    content: createRoutePopupContent(trip, formatQuantity ?? formatTmDefault),
     },
   })
 
@@ -393,7 +398,7 @@ function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme) {
         },
         popupTemplate: {
           title: `Trace GPS ${trip.reference}`,
-          content: createTelemetryPopupContent(trip, point.recordedAt, point.lpgLevelPercent, point.estimatedVolumeKg),
+          content: createTelemetryPopupContent(trip, point.recordedAt, point.lpgLevelPercent, point.estimatedVolumeKg, formatQuantity ?? formatTmDefault),
         },
       })
   )
@@ -442,21 +447,21 @@ function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme) {
     },
     popupTemplate: {
       title: `${trip.truck.id} - position courante`,
-      content: createCurrentTruckPopupContent(trip),
+        content: createCurrentTruckPopupContent(trip, formatQuantity ?? formatTmDefault),
     },
   })
 
   return [routeGraphic, ...breadcrumbGraphics, ...stopGraphics, currentTruckGraphic]
 }
 
-function createRoutePopupContent(trip: RouteTripView) {
+function createRoutePopupContent(trip: RouteTripView, formatQuantity: (value: number) => string) {
   return `
     <div class="fleet-truck-popup">
       ${popupLine('Client', trip.customerName)}
       ${popupLine('Corridor', `${trip.originSite.city} -> ${trip.destinationSite.city}`)}
-      ${popupLine('Charge initiale', formatKg(trip.loadedQuantityKg))}
-      ${popupLine('Volume livré', formatKg(trip.deliveredQuantityKg))}
-      ${popupLine('Volume restant', formatKg(trip.remainingQuantityKg))}
+      ${popupLine('Charge initiale', formatQuantity(trip.loadedQuantityKg))}
+      ${popupLine('Volume livré', formatQuantity(trip.deliveredQuantityKg))}
+      ${popupLine('Volume restant', formatQuantity(trip.remainingQuantityKg))}
       ${popupLine('Prochaine étape', trip.nextStop.site.name)}
     </div>
   `
@@ -478,14 +483,14 @@ function createStopPopupContent(
   `
 }
 
-function createCurrentTruckPopupContent(trip: RouteTripView) {
+function createCurrentTruckPopupContent(trip: RouteTripView, formatQuantity: (value: number) => string) {
   return `
     <div class="fleet-truck-popup">
       ${popupLine('Camion', trip.truck.license_plate)}
       ${popupLine('Position', trip.truck.current_location ?? '')}
       ${popupLine('GPL', `${trip.latestTelemetry.lpgLevelPercent}%`)}
-      ${popupLine('Volume estime', formatKg(trip.latestTelemetry.estimatedVolumeKg))}
-      ${popupLine('Écart', trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : '0 kg')}
+      ${popupLine('Volume estime', formatQuantity(trip.latestTelemetry.estimatedVolumeKg))}
+      ${popupLine('Écart', trip.unaccountedKg > 0 ? formatQuantity(trip.unaccountedKg) : formatQuantity(0))}
       ${popupLine('Dernier releve', new Intl.DateTimeFormat('fr-FR', {
         hour: '2-digit',
         minute: '2-digit',
@@ -500,7 +505,8 @@ function createTelemetryPopupContent(
   trip: RouteTripView,
   recordedAt: string,
   lpgLevelPercent: number,
-  estimatedVolumeKg: number
+  estimatedVolumeKg: number,
+  formatQuantity: (value: number) => string,
 ) {
   return `
     <div class="fleet-truck-popup">
@@ -512,7 +518,7 @@ function createTelemetryPopupContent(
         month: 'short',
       }).format(new Date(recordedAt)))}
       ${popupLine('GPL', `${lpgLevelPercent}%`)}
-      ${popupLine('Volume estime', `${Math.round(estimatedVolumeKg).toLocaleString('fr-FR')} kg`)}
+      ${popupLine('Volume estime', formatQuantity(estimatedVolumeKg))}
     </div>
   `
 }
@@ -586,10 +592,4 @@ function SignalTile({
       <p className='mt-2 text-sm font-medium'>{value}</p>
     </div>
   )
-}
-
-function formatKg(value: number) {
-  return `${new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  }).format(value)} kg`
 }

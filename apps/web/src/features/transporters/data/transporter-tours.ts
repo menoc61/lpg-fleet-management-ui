@@ -140,7 +140,7 @@ export function getTourCargo(tour: DeliveryTour): string {
 }
 
 export function getTourVolume(tour: DeliveryTour): string {
-  return `${tour.requested_quantity} ${tour.type === 'VRAC' ? 't' : 'btl'}`
+  return `${tour.requested_quantity} ${tour.type === 'VRAC' ? 'TM' : 'btl'}`
 }
 
 export function getExecutionModeLabel(mode: DeliveryTour['execution_mode']): string {

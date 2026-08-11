@@ -57,7 +57,7 @@ export function TransporterHistory({ transporter }: { transporter: Organization 
                 </div>
                 <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Volume</span>
-                  <span className='text-right'>{tour.requested_quantity} {tour.type === 'VRAC' ? 't' : 'btl'}</span>
+                  <span className='text-right'>{tour.requested_quantity} {tour.type === 'VRAC' ? 'TM' : 'btl'}</span>
                 </div>
                 <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Mode</span>
@@ -104,7 +104,7 @@ export function TransporterHistory({ transporter }: { transporter: Organization 
                   <td className='p-3 font-medium whitespace-nowrap'>{tour.marketeur?.name ?? '—'}</td>
                   <td className='p-3 font-mono whitespace-nowrap'>{tour.id}</td>
                   <td className='p-3 whitespace-nowrap'>
-                    {tour.requested_quantity} {tour.type === 'VRAC' ? 't' : 'btl'}
+                    {tour.requested_quantity} {tour.type === 'VRAC' ? 'TM' : 'btl'}
                   </td>
                   <td className='p-3 whitespace-nowrap'>
                     <Badge variant={executionModeBadge[tour.execution_mode] ?? 'outline'} className='text-[10px]'>

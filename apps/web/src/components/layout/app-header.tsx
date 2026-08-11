@@ -1,4 +1,4 @@
-import { Moon, Search, Sun, LogOut } from 'lucide-react'
+import { Moon, Search, Sun, LogOut, Keyboard } from 'lucide-react'
 import { useGlobalSearchStore } from '@/features/command-palette/global-search-store'
 import { useTheme } from '@/context/theme-provider'
 import { Avatar, AvatarFallback, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@lpg/ui'
@@ -38,20 +38,21 @@ export function AppHeader() {
         </div>
 
         <div className='ml-auto flex items-center gap-3'>
-        <div
-          role="button"
-          tabIndex={0}
-          className="relative hidden w-72 md:w-80 md:block cursor-pointer rounded-full border border-border bg-background hover:border-border/70 hover:bg-background transition-colors px-3 shadow-sm"
-          onClick={() => useGlobalSearchStore.getState().setOpen(true)}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); useGlobalSearchStore.getState().setOpen(true) } }}
-          aria-label="Rechercher dans le système"
-        >
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" />
-          <div className="pointer-events-none absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1 rounded-md border border-border bg-background px-1.5 py-1 text-[10px] font-medium text-muted-foreground">
-            <span>Ctrl</span>
-            <span>K</span>
-          </div>
-        </div>
+          <Button
+            type='button'
+            variant='outline'
+            className='relative hidden w-72 md:w-80 md:flex items-center justify-between rounded-full border border-border bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-muted/30'
+            onClick={() => useGlobalSearchStore.getState().setOpen(true)}
+            aria-label='Rechercher dans le système'
+            data-icon='inline-start'
+          >
+            <Search className='size-4 shrink-0' />
+            <span className='truncate'>Rechercher…</span>
+            <kbd className='-mr-1 flex items-center gap-1 rounded-md border border-border bg-background px-1.5 py-1 text-[10px] font-medium text-muted-foreground'>
+              <Keyboard className='size-3' />
+              K
+            </kbd>
+          </Button>
 
           <NotificationCenter />
 

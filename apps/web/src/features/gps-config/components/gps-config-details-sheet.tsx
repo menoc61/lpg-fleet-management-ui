@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { GpsConfigView } from '../data/gps-config'
 import { deviceStatusLabel, displayNumber } from '../data/gps-config'
 
@@ -65,50 +65,57 @@ export function GpsConfigDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='config'>Configuration</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Satellite className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={config.id} />
-                  <DetailLine label='N° série' value={config.serialNumber} />
-                  <DetailLine label='Véhicule' value={config.vehiclePlate} />
-                  <DetailLine label='Firmware' value={config.firmwareVersion} />
-                  <DetailLine label='Organisation' value={config.orgName} />
-                  <DetailLine label='Dernière sync' value={config.lastSync} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='config' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <MapPin className='size-4 text-primary' />
-                    Paramètres
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Intervalle (s)' value={displayNumber(config.updateIntervalSec)} />
-                  <DetailLine label='Vitesse alerte (km/h)' value={displayNumber(config.alertSpeedKmh)} />
-                  <DetailLine label='Rayon geofence (m)' value={displayNumber(config.geofenceRadiusM)} />
-                  <DetailLine label='IMEI' value={config.imei ?? '—'} />
-                  <DetailLine label='Opérateur' value={config.operator ?? '—'} />
-                  <DetailLine label='Modèle' value={config.model ?? '—'} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Satellite,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Satellite className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={config.id} />
+                      <DetailLine label='N° série' value={config.serialNumber} />
+                      <DetailLine label='Véhicule' value={config.vehiclePlate} />
+                      <DetailLine label='Firmware' value={config.firmwareVersion} />
+                      <DetailLine label='Organisation' value={config.orgName} />
+                      <DetailLine label='Dernière sync' value={config.lastSync} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'config',
+                label: 'Configuration',
+                icon: MapPin,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <MapPin className='size-4 text-primary' />
+                        Paramètres
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='Intervalle (s)' value={displayNumber(config.updateIntervalSec)} />
+                      <DetailLine label='Vitesse alerte (km/h)' value={displayNumber(config.alertSpeedKmh)} />
+                      <DetailLine label='Rayon geofence (m)' value={displayNumber(config.geofenceRadiusM)} />
+                      <DetailLine label='IMEI' value={config.imei ?? '—'} />
+                      <DetailLine label='Opérateur' value={config.operator ?? '—'} />
+                      <DetailLine label='Modèle' value={config.model ?? '—'} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

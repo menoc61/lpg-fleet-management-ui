@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { LivreurView } from '../data/livreurs'
 import {
   livreurStatusLabel,
@@ -68,46 +68,62 @@ export function LivreurDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Truck className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={livreur.id} />
-                  <DetailLine label='Nom' value={livreur.fullName} />
-                  <DetailLine label='E-mail' value={livreur.email} />
-                  <DetailLine label='Organisation' value={livreur.orgName} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <ShieldCheck className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Statut' value={livreurStatusLabel(livreur.status)} />
-                  <DetailLine label='MFA' value={mfaStatusLabel(livreur.mfaStatus)} />
-                  <DetailLine label='Dernière connexion' value={livreur.lastLogin} />
-                  <DetailLine label='Créé le' value={livreur.created_at} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Truck,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Truck className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={livreur.id} />
+                      <DetailLine label='Nom' value={livreur.fullName} />
+                      <DetailLine label='E-mail' value={livreur.email} />
+                      <DetailLine label='Organisation' value={livreur.orgName} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: ShieldCheck,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <ShieldCheck className='size-4 text-primary' />
+                        Détails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine
+                        label='Statut'
+                        value={livreurStatusLabel(livreur.status)}
+                      />
+                      <DetailLine
+                        label='MFA'
+                        value={mfaStatusLabel(livreur.mfaStatus)}
+                      />
+                      <DetailLine
+                        label='Dernière connexion'
+                        value={livreur.lastLogin}
+                      />
+                      <DetailLine label='Créé le' value={livreur.created_at} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

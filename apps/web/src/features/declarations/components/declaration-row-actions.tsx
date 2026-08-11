@@ -22,7 +22,7 @@ export function DeclarationRowActions({ row }: { row: DeclarationView }) {
   function handleSubmit() {
     try {
       submitDeclaration(row.id)
-      toast.success(`${row.reference} — Declaration soumise`)
+      toast.success(`${row.reference} â€” Declaration soumise`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action impossible')
     }

@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { Organization } from '../data/organizations'
 import { orgStatusLabel, orgTypeLabel } from '../data/organizations'
 
@@ -65,47 +65,54 @@ export function OrganizationDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Building2 className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={org.id} />
-                  <DetailLine label='Nom' value={org.name} />
-                  <DetailLine label='Type' value={orgTypeLabel(org.type)} />
-                  <DetailLine label='Région' value={org.region} />
-                  <DetailLine label='Ville' value={org.city ?? '—'} />
-                  <DetailLine label='Sites' value={`${org.sites}`} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <MapPin className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Statut' value={orgStatusLabel(org.status)} />
-                  <DetailLine label='Créé le' value={org.created_at} />
-                  <DetailLine label='Mis à jour' value={org.updated_at} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Building2,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <Building2 className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='ID' value={org.id} />
+                      <DetailLine label='Nom' value={org.name} />
+                      <DetailLine label='Type' value={orgTypeLabel(org.type)} />
+                      <DetailLine label='Région' value={org.region} />
+                      <DetailLine label='Ville' value={org.city ?? '—'} />
+                      <DetailLine label='Sites' value={`${org.sites}`} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: MapPin,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <MapPin className='size-4 text-primary' />
+                        Détails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='Statut' value={orgStatusLabel(org.status)} />
+                      <DetailLine label='Créé le' value={org.created_at} />
+                      <DetailLine label='Mis à jour' value={org.updated_at} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

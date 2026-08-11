@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { CertificateView } from '../data/certificates'
 import { certStatusLabel } from '../data/certificates'
 
@@ -67,52 +67,62 @@ export function CertificateDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='details'>Détails</TabsTrigger>
-            </TabsList>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: FileCheck2,
+                content: (
+                  <Card>
+                    <CardHeader className='pb-2'>
+                      <CardTitle className='flex items-center gap-2 text-sm'>
+                        <FileCheck2 className='size-4 text-primary' />
+                        Informations générales
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className='space-y-3'>
+                      <DetailLine label='Véhicule' value={certificate.vehicleId} />
+                      <DetailLine label='Plaque' value={certificate.licensePlate} />
+                      <DetailLine label='Certificat n°' value={certificate.certificateNumber} />
+                      <DetailLine label='Type' value={certificate.vehicleType} />
+                      <DetailLine label='Émis le' value={certificate.issuedAt} />
+                      <DetailLine label='Expire le' value={certificate.expiryAt} />
+                    </CardContent>
+                  </Card>
+                ),
+              },
+              {
+                value: 'details',
+                label: 'Détails',
+                icon: FileCheck2,
+                content: (
+                  <div className='space-y-3'>
+                    <Card>
+                      <CardHeader className='pb-2'>
+                        <CardTitle className='flex items-center gap-2 text-sm'>
+                          <FileCheck2 className='size-4 text-primary' />
+                          Détails
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className='space-y-3'>
+                        <DetailLine label='Titulaire / Org' value={certificate.orgName} />
+                        <DetailLine label='Statut' value={certStatusLabel(certificate.status)} />
+                        <DetailLine label='Référence' value={certificate.id} />
+                      </CardContent>
+                    </Card>
 
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <FileCheck2 className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Véhicule' value={certificate.vehicleId} />
-                  <DetailLine label='Plaque' value={certificate.licensePlate} />
-                  <DetailLine label='Certificat n°' value={certificate.certificateNumber} />
-                  <DetailLine label='Type' value={certificate.vehicleType} />
-                  <DetailLine label='Émis le' value={certificate.issuedAt} />
-                  <DetailLine label='Expire le' value={certificate.expiryAt} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='details' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <FileCheck2 className='size-4 text-primary' />
-                    Détails
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Titulaire / Org' value={certificate.orgName} />
-                  <DetailLine label='Statut' value={certStatusLabel(certificate.status)} />
-                  <DetailLine label='Référence' value={certificate.id} />
-                </CardContent>
-              </Card>
-
-              <p className='text-xs text-muted-foreground'>
-                Le prévisualisation du document n'est pas disponible dans cette
-                vue. Statut actuel : {certStatusLabel(certificate.status)}.
-              </p>
-            </TabsContent>
-          </Tabs>
+                    <p className='text-xs text-muted-foreground'>
+                      Le prévisualisation du document n'est pas disponible dans
+                      cette vue. Statut actuel :{' '}
+                      {certStatusLabel(certificate.status)}.
+                    </p>
+                  </div>
+                ),
+              },
+            ]}
+          />
         </div>
       </SheetContent>
     </Sheet>

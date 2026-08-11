@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type ExpandedState,
+  type GroupingState,
   type OnChangeFn,
   type PaginationState,
   type SortingState,
@@ -9,9 +11,11 @@ import {
   type TableOptions,
   type VisibilityState,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
+  getGroupedRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -76,16 +80,26 @@ export type EntityTableOptions<TData> = Omit<
   | 'onSortingChange'
   | 'onColumnVisibilityChange'
   | 'onGlobalFilterChange'
+  | 'onGroupingChange'
+  | 'onExpandedChange'
   | 'getPaginationRowModel'
   | 'getFilteredRowModel'
   | 'getSortedRowModel'
   | 'getFacetedRowModel'
   | 'getFacetedUniqueValues'
+  | 'getGroupedRowModel'
+  | 'getExpandedRowModel'
 > & {
   /** Page size; defaults to 10. */
   pageSize?: number
   /** Default page (1-indexed); defaults to 1. */
   defaultPage?: number
+  /** Initial sort state — useful so a column arrives sorted out-of-the-box. */
+  defaultSort?: SortingState
+  /** Enable grouping on the table; caller still has to opt columns in via `enableGrouping: true`. */
+  enableGrouping?: boolean
+  /** Enable expanded rows. Auto-enabled when `enableGrouping` is on. */
+  enableExpanding?: boolean
   /** URL-state wiring. */
   urlState?: EntityTableUrlState
 }
@@ -108,6 +122,10 @@ export type UseEntityTableReturn<TData> = {
   setSorting: OnChangeFn<SortingState>
   columnFilters: ColumnFiltersState
   globalFilter: string | undefined
+  grouping: GroupingState
+  setGrouping: OnChangeFn<GroupingState>
+  expanded: ExpandedState
+  setExpanded: OnChangeFn<ExpandedState>
 }
 
 export function useEntityTable<TData>({
@@ -120,6 +138,8 @@ export function useEntityTable<TData>({
   const pageSize = options?.pageSize ?? 10
   const defaultPage = options?.defaultPage ?? 1
   const { urlState, ...rest } = options ?? {}
+  const groupingEnabled = options?.enableGrouping ?? false
+  const expandingEnabled = options?.enableExpanding ?? groupingEnabled
 
   const url = useTableUrlState({
     search,
@@ -130,9 +150,11 @@ export function useEntityTable<TData>({
 
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(options?.defaultSort ?? [])
+  const [grouping, setGrouping] = useState<GroupingState>([])
+  const [expanded, setExpanded] = useState<ExpandedState>({})
 
-  const table = useReactTable<TData>({
+  const tableOptions: TableOptions<TData> = {
     data,
     columns,
     state: {
@@ -142,8 +164,11 @@ export function useEntityTable<TData>({
       columnFilters: url.columnFilters,
       columnVisibility,
       ...(url.globalFilter !== undefined ? { globalFilter: url.globalFilter } : {}),
+      ...(groupingEnabled ? { grouping } : {}),
+      ...(expandingEnabled ? { expanded } : {}),
     },
     enableRowSelection: true,
+    enableGrouping: groupingEnabled,
     onPaginationChange: url.onPaginationChange as OnChangeFn<PaginationState>,
     onColumnFiltersChange: url.onColumnFiltersChange,
     onRowSelectionChange: setRowSelection,
@@ -152,14 +177,20 @@ export function useEntityTable<TData>({
     ...(url.onGlobalFilterChange
       ? { onGlobalFilterChange: url.onGlobalFilterChange as OnChangeFn<string> }
       : {}),
+    ...(groupingEnabled ? { onGroupingChange: setGrouping } : {}),
+    ...(expandingEnabled ? { onExpandedChange: setExpanded } : {}),
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(groupingEnabled ? { getGroupedRowModel: getGroupedRowModel() } : {}),
+    ...(expandingEnabled ? { getExpandedRowModel: getExpandedRowModel() } : {}),
     ...rest,
-  })
+  }
+
+  const table = useReactTable<TData>(tableOptions)
 
   useEffect(() => {
     url.ensurePageInRange(table.getPageCount())
@@ -176,8 +207,21 @@ export function useEntityTable<TData>({
       setSorting,
       columnFilters: url.columnFilters,
       globalFilter: url.globalFilter,
+      grouping,
+      setGrouping,
+      expanded,
+      setExpanded,
     }),
-    [table, rowSelection, columnVisibility, sorting, url.columnFilters, url.globalFilter],
+    [
+      table,
+      rowSelection,
+      columnVisibility,
+      sorting,
+      url.columnFilters,
+      url.globalFilter,
+      grouping,
+      expanded,
+    ],
   )
 
   return view

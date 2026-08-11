@@ -19,7 +19,7 @@ export type DashboardMetric = {
   id: string
   title: string
   value: number
-  unit: 'kg' | 'count' | 'percent' | 'days'
+  unit: 'TM' | 'btl' | 'count' | 'percent' | 'days'
   tone: DashboardMetricTone
   deltaPercent: number
   deltaDirection: DashboardTrendDirection
@@ -978,8 +978,8 @@ export function buildDashboardView(): DashboardView {
       {
         id: 'transported',
         title: 'Volumes transportés',
-        value: totalTransportedKg,
-        unit: 'kg',
+        value: totalTransportedKg / 1000,
+        unit: 'TM',
         tone: 'sky',
         deltaPercent: getDeltaPercent(
           dailyCurrent.transportedKg,
@@ -994,8 +994,8 @@ export function buildDashboardView(): DashboardView {
       {
         id: 'reserve',
         title: 'GPL en réserve',
-        value: totalReserveKg,
-        unit: 'kg',
+        value: totalReserveKg / 1000,
+        unit: 'TM',
         tone: 'emerald',
         deltaPercent: getDeltaPercent(
           dailyCurrent.reserveKg,
@@ -1010,8 +1010,8 @@ export function buildDashboardView(): DashboardView {
       {
         id: 'delivered',
         title: 'Flux livrés',
-        value: totalDeliveredKg,
-        unit: 'kg',
+        value: totalDeliveredKg / 1000,
+        unit: 'TM',
         tone: 'amber',
         deltaPercent: getDeltaPercent(
           dailyCurrent.deliveredKg,

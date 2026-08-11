@@ -431,70 +431,11 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     requires: ['transporters.read'],
   },
 
-  /* ----------- LIVREUR/PDA-specific ----------- */
-  {
-    id: 'missions',
-    label: 'Missions du jour',
-    icon: ListChecks,
-    path: 'missions',
-    requires: ['missions.read'],
-  },
-  {
-    id: 'tour-start',
-    label: 'Démarrer tournée',
-    icon: Play,
-    path: 'tour-start',
-    requires: ['tours.write'],
-  },
-  {
-    id: 'checkpoints',
-    label: 'Checkpoints',
-    icon: MapPin,
-    path: 'checkpoints',
-    requires: ['checkpoints.read'],
-  },
-  {
-    id: 'scan-rfid',
-    label: 'Scan RFID (IN/OUT)',
-    icon: ScanLine,
-    path: 'scan-rfid',
-    requires: ['scans.write'],
-  },
-  {
-    id: 'scan-vrac',
-    label: 'Relevé compteur VRAC',
-    icon: Gauge,
-    path: 'scan-vrac',
-    requires: ['scans.write'],
-  },
-  {
-    id: 'photos',
-    label: 'Capture photo/vidéo',
-    icon: Camera,
-    path: 'photos',
-    requires: ['scans.write'],
-  },
-  {
-    id: 'sync',
-    label: 'Synchronisation PDA',
-    icon: Upload,
-    path: 'sync',
-    requires: ['pda.sync'],
-  },
-  {
-    id: 'sync-status',
-    label: 'Rapport synchronisation',
-    icon: RefreshCw,
-    path: 'sync-status',
-    requires: ['pda.read'],
-  },
-  {
-    id: 'offline-data',
-    label: 'Données hors-ligne',
-    icon: Database,
-    path: 'offline-data',
-    requires: ['pda.read'],
-  },
+  /* ----------- LIVREUR/PDA-specific -----------
+   * Deferred: 9 PDA screens (missions, tour-start, checkpoints, scan-rfid,
+   * scan-vrac, photos, sync, sync-status, offline-data) removed from nav.
+   * Re-introduce when a dedicated LIVREUR milestone adds the routes.
+   */
 
   /* ----------- AGENT-specific ----------- */
   {
@@ -804,7 +745,9 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   LIVREUR: {
     groups: [
-      { title: 'PDA', items: ['missions', 'tour-start', 'checkpoints', 'scan-rfid', 'scan-vrac', 'photos', 'sync', 'sync-status', 'offline-data'] },
+      // PDA group deferred: 9 screens (missions, tour-start, checkpoints,
+      // scan-rfid, scan-vrac, photos, sync, sync-status, offline-data) had no
+      // on-disk route. Re-introduce when a dedicated LIVREUR milestone lands.
     ],
   },
 }

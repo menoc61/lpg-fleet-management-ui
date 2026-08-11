@@ -61,7 +61,7 @@ function PendingToursColumns(
       accessorKey: 'requested_quantity',
       header: 'Volume',
       cell: ({ row }) => (
-        <span className='font-mono text-sm'>{row.original.requested_quantity} {row.original.type === 'VRAC' ? 't' : 'btl'}</span>
+        <span className='font-mono text-sm'>{row.original.requested_quantity} {row.original.type === 'VRAC' ? 'TM' : 'btl'}</span>
       ),
     },
     {

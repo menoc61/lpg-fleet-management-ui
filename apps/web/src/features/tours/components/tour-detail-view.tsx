@@ -28,6 +28,7 @@ import {
 import { TourCorridorMap } from './tour-corridor-map'
 import { TourLpgVariationPanel } from './tour-lpg-variation-panel'
 import { TourTelemetryChart } from './tour-telemetry-chart'
+import { formatTm, formatBtl } from '@/features/map/utils/format'
 
 type TourDetailViewProps = {
   trip: TourActivity | null
@@ -84,11 +85,11 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
             <div className='grid gap-3 sm:grid-cols-3'>
               <HeroMetric
                 label='Charge initiale'
-                value={formatKg(trip.loadedQuantityKg)}
+                value={formatKg(trip.loadedQuantityKg, trip.tourneeType)}
               />
               <HeroMetric
                 label='Volume livre'
-                value={formatKg(trip.deliveredQuantityKg)}
+                value={formatKg(trip.deliveredQuantityKg, trip.tourneeType)}
               />
               <HeroMetric
                 label='ETA'
@@ -135,7 +136,7 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
               <DetailSignal
                 icon={AlertTriangle}
                 label='Écart non justifié'
-                value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : '0 kg'}
+                value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg, trip.tourneeType) : trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'}
                 hint={
                   trip.unaccountedKg > 0
                     ? 'À expliquer avant clôture'
@@ -161,13 +162,13 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
               <DetailSignal
                 icon={Package}
                 label='Volume restant'
-                value={formatKg(trip.remainingQuantityKg)}
+                value={formatKg(trip.remainingQuantityKg, trip.tourneeType)}
                 hint={`${trip.remainingPercent}% de la charge initiale`}
               />
               <DetailSignal
                 icon={CheckCircle2}
                 label='Livraison comptabilisée'
-                value={formatKg(trip.deliveredQuantityKg)}
+                value={formatKg(trip.deliveredQuantityKg, trip.tourneeType)}
                 hint={`${trip.deliveredPercent}% déjà affectés`}
               />
             </div>
@@ -201,13 +202,13 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
         </CardContent>
       </Card>
 
-      <TourLpgVariationPanel trip={trip} formatKg={formatKg} />
+       <TourLpgVariationPanel trip={trip} formatKg={(v) => formatKg(v, trip.tourneeType)} zeroUnit={trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'} />
 
       <section className='grid gap-4 2xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]'>
-        <TourCorridorMap trip={trip} formatDateTime={formatDateTime} />
+        <TourCorridorMap trip={trip} formatDateTime={formatDateTime} formatQuantity={(v) => formatKg(v, trip.tourneeType)} />
         <TourTelemetryChart
           trip={trip}
-          formatKg={formatKg}
+          formatKg={(v) => formatKg(v, trip.tourneeType)}
           formatShortTime={formatShortTime}
         />
       </section>
@@ -287,7 +288,7 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
                         label='Volume'
                         value={
                           stop.deliveredQuantityKg
-                            ? formatKg(stop.deliveredQuantityKg)
+                            ? formatKg(stop.deliveredQuantityKg, trip.tourneeType)
                             : '--'
                         }
                       />
@@ -433,10 +434,9 @@ function TripListMetric({ label, value }: { label: string; value: string }) {
   )
 }
 
-function formatKg(value: number) {
-  return `${new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  }).format(value)} kg`
+function formatKg(value: number, type: TourActivity['tourneeType'] = 'VRAC'): string {
+  if (type === 'VRAC') return formatTm(value / 1000)
+  return formatBtl(value)
 }
 
 function formatShortTime(value: string) {

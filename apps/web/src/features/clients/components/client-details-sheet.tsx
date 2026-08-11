@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@lpg/ui'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
+import { EntityDetailTabs } from '@/components/entity-table'
 import type { ClientView, ClientSiteView } from '../data/clients'
 import { clientStatusLabel, getClientSites } from '../data/clients'
 
@@ -67,63 +67,74 @@ export function ClientDetailsSheet({
             />
           </div>
 
-          <Tabs defaultValue='info'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='info'>Informations</TabsTrigger>
-              <TabsTrigger value='sites'>Sites ({sites.length})</TabsTrigger>
-            </TabsList>
+          <EntityDetailTabs
+            defaultValue='info'
+            tabs={[
+              {
+                value: 'info',
+                label: 'Informations',
+                icon: Building2,
+                content: (
+                  <div className='space-y-3'>
+                    <Card>
+                      <CardHeader className='pb-2'>
+                        <CardTitle className='flex items-center gap-2 text-sm'>
+                          <Building2 className='size-4 text-primary' />
+                          Informations générales
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className='space-y-3'>
+                        <DetailLine label='ID' value={client.id} />
+                        <DetailLine label='Nom' value={client.name} />
+                        <DetailLine label='Region' value={client.region} />
+                        <DetailLine label='Sites' value={`${client.clientSiteCount}`} />
+                      </CardContent>
+                    </Card>
 
-            <TabsContent value='info' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Building2 className='size-4 text-primary' />
-                    Informations générales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='ID' value={client.id} />
-                  <DetailLine label='Nom' value={client.name} />
-                  <DetailLine label='Region' value={client.region} />
-                  <DetailLine label='Sites' value={`${client.clientSiteCount}`} />
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <Users className='size-4 text-primary' />
-                    Contact principal
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  <DetailLine label='Nom' value={client.contactName} />
-                  <DetailLine label='Téléphone' value={client.contactPhone} />
-                  <DetailLine label='Email' value={client.contactEmail} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value='sites' className='space-y-3'>
-              <Card>
-                <CardHeader className='pb-2'>
-                  <CardTitle className='flex items-center gap-2 text-sm'>
-                    <MapPin className='size-4 text-primary' />
-                    Sites de livraison
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className='space-y-3'>
-                  {sites.length === 0 ? (
-                    <p className='text-sm text-muted-foreground'>Aucun site.</p>
-                  ) : (
-                    sites.map((site) => (
-                      <ClientSiteRow key={site.id} site={site} />
-                    ))
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                    <Card>
+                      <CardHeader className='pb-2'>
+                        <CardTitle className='flex items-center gap-2 text-sm'>
+                          <Users className='size-4 text-primary' />
+                          Contact principal
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className='space-y-3'>
+                        <DetailLine label='Nom' value={client.contactName} />
+                        <DetailLine label='Téléphone' value={client.contactPhone} />
+                        <DetailLine label='Email' value={client.contactEmail} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                ),
+              },
+              {
+                value: 'sites',
+                label: `Sites (${sites.length})`,
+                icon: MapPin,
+                content: (
+                  <div className='space-y-3'>
+                    <Card>
+                      <CardHeader className='pb-2'>
+                        <CardTitle className='flex items-center gap-2 text-sm'>
+                          <MapPin className='size-4 text-primary' />
+                          Sites de livraison
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className='space-y-3'>
+                        {sites.length === 0 ? (
+                          <p className='text-sm text-muted-foreground'>Aucun site.</p>
+                        ) : (
+                          sites.map((site) => (
+                            <ClientSiteRow key={site.id} site={site} />
+                          ))
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                ),
+              },
+            ]}
+          />
 
           <Card>
             <CardHeader className='pb-2'>

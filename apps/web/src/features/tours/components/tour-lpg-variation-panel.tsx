@@ -18,6 +18,7 @@ import {
 type TourLpgVariationPanelProps = {
   trip: RouteTripView
   formatKg: (value: number) => string
+  zeroUnit?: string
 }
 
 const toneClasses = {
@@ -38,6 +39,7 @@ const toneClasses = {
 export function TourLpgVariationPanel({
   trip,
   formatKg,
+  zeroUnit = '0 TM',
 }: TourLpgVariationPanelProps) {
   const variation = buildRouteLpgVariation(trip)
   const [loadingStage, liveStage, projectedStage] = variation.stages as [RouteLpgVariationStage, RouteLpgVariationStage, RouteLpgVariationStage]
@@ -139,7 +141,7 @@ export function TourLpgVariationPanel({
             value={
               variation.telemetryGapKg > 0
                 ? formatKg(variation.telemetryGapKg)
-                : '0 kg'
+                : zeroUnit
             }
             hint={
               variation.telemetryGapKg > 0

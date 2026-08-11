@@ -774,7 +774,7 @@ export function getTourCargo(activity: TourActivity): string {
 }
 
 export function getTourVolume(activity: TourActivity): string {
-  return `${activity.requested_quantity} ${activity.tourneeType === 'VRAC' ? 't' : 'btl'}`
+  return `${activity.requested_quantity} ${activity.tourneeType === 'VRAC' ? 'TM' : 'btl'}`
 }
 
 export function isActiveTourStatus(status: TourneeStatus): boolean {
