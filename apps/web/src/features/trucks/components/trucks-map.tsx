@@ -32,7 +32,7 @@ import {
   statusLabels,
   type Truck,
   type TruckStatus,
-} from '../trucks'
+} from '../data/trucks'
 import { quantityInfo } from '../lib/quantity'
 
 const arcgisApiKey = String(import.meta.env.VITE_ARCGIS_API_KEY ?? '').trim()

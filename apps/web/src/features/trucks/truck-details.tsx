@@ -3,9 +3,9 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@lpg/ui'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
-import { getTruckTelemetry, type Truck } from './trucks'
+import { getTruckTelemetry, type Truck } from './data/trucks'
 import { trucksHooks } from '@/lib/api/use-resources'
-import { TruckDetailsBody } from './truck-details-sheet'
+import { TruckDetailsBody } from './components/truck-details-sheet'
 
 export function TruckDetailsPage() {
   const { truckId } = useParams({ from: '/_authenticated/trucks/$truckId' })

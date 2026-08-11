@@ -1,7 +1,4 @@
-import {
-  UserRound,
-  Wrench,
-} from 'lucide-react'
+import { UserRound, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,13 +18,145 @@ import {
   statusClasses,
   statusLabels,
   type Truck,
-} from '../trucks'
-import { quantityInfo } from '../lib/quantity'
+  type TruckTelemetry,
+} from '../data/trucks'
+import { quantityInfo, type TruckQuantityInfo } from '../lib/quantity'
 
 type TruckDetailsSheetProps = {
   truck: Truck | null
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+export interface TruckDetailsBodyProps {
+  truck: Truck
+  telemetry: TruckTelemetry
+  info?: TruckQuantityInfo
+}
+
+export function TruckDetailsBody({
+  truck,
+  telemetry,
+  info: providedInfo,
+}: TruckDetailsBodyProps) {
+  const info = providedInfo ?? quantityInfo(truck)
+  return (
+    <div className='space-y-4'>
+      <div className='grid grid-cols-2 gap-3'>
+        <MetricCard
+          label='LPG'
+          value={
+            truck.type === 'VRAC'
+              ? `${Math.round(info.loaded)}/${truck.max_volume ?? '—'} TM`
+              : `${Math.round(info.loaded)}/${truck.max_bottle_count ?? '—'} bouteilles`
+          }
+          detail={`${info.percent}% remplis`}
+        />
+        <MetricCard
+          label='ETA'
+          value={
+            telemetry.expected_arrival
+              ? new Date(telemetry.expected_arrival).toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : '—'
+          }
+          detail='Prochaine etape'
+        />
+        <MetricCard
+          label='Risque'
+          value={riskLabels[truck.risk_level]}
+          detail='Score operationnel'
+          className={riskClasses[truck.risk_level]}
+        />
+      </div>
+
+      <Tabs defaultValue='resume'>
+        <TabsList className='grid w-full grid-cols-2'>
+          <TabsTrigger value='resume'>Resume</TabsTrigger>
+          <TabsTrigger value='docs'>Documents</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value='resume' className='space-y-3'>
+          <Card className='border-transparent bg-muted/20 shadow-xs'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='flex items-center gap-2 text-sm'>
+                Mission courante
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-3'>
+              <DetailLine label='Entreprise' value={truck.tenant_name} />
+              <DetailLine label='Region' value={truck.region} />
+              <DetailLine
+                label='Position'
+                value={truck.current_location ?? '—'}
+              />
+              <DetailLine label='Chauffeur' value={truck.assigned_driver ?? '—'} />
+              <DetailLine
+                label='Type'
+                value={truck.type === 'VRAC' ? 'Vrac (TM)' : 'Bouteilles 50kg'}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className='border-transparent bg-muted/20 shadow-xs'>
+            <CardHeader className='pb-2'>
+              <CardTitle className='flex items-center gap-2 text-sm'>
+                <UserRound className='size-4 text-primary' />
+                Equipe
+              </CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-3'>
+              <DetailLine
+                label='Chauffeur'
+                value={truck.assigned_driver ?? '—'}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value='docs' className='space-y-3'>
+          <Separator />
+          <DetailLine
+            label='Certificat'
+            value={truck.certificate_number ?? '—'}
+          />
+          <DetailLine
+            label='Validite'
+            value={
+              truck.certificate_expiry_at
+                ? new Date(truck.certificate_expiry_at).toLocaleDateString('fr-FR')
+                : '—'
+            }
+          />
+        </TabsContent>
+      </Tabs>
+
+      <Card className='border-transparent bg-muted/20 shadow-xs'>
+        <CardHeader className='pb-2'>
+          <CardTitle className='flex items-center gap-2 text-sm'>
+            <Wrench className='size-4 text-primary' />
+            Etat technique
+          </CardTitle>
+        </CardHeader>
+        <CardContent className='space-y-3'>
+          <DetailLine
+            label='Type vehicule'
+            value={truck.type === 'VRAC' ? 'Vrac' : 'Bouteilles 50kg'}
+          />
+          <DetailLine
+            label='Capacite max'
+            value={
+              truck.type === 'VRAC'
+                ? `${truck.max_volume ?? '—'} TM`
+                : `${truck.max_bottle_count ?? '—'} bouteilles`
+            }
+          />
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
 
 export function TruckDetailsSheet({
@@ -57,119 +186,7 @@ export function TruckDetailsSheet({
           </SheetHeader>
 
           <div className='space-y-4 px-4 pb-6'>
-            <div className='grid grid-cols-2 gap-3'>
-              <MetricCard
-                label='LPG'
-                value={
-                  truck.type === 'VRAC'
-                    ? `${Math.round(info.loaded)}/${truck.max_volume ?? '—'} TM`
-                    : `${Math.round(info.loaded)}/${truck.max_bottle_count ?? '—'} bouteilles`
-                }
-                detail={`${info.percent}% remplis`}
-              />
-              <MetricCard
-                label='ETA'
-                value={
-                  telemetry.expected_arrival
-                    ? new Date(telemetry.expected_arrival).toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : '—'
-                }
-                detail='Prochaine etape'
-              />
-              <MetricCard
-                label='Risque'
-                value={riskLabels[truck.risk_level]}
-                detail='Score operationnel'
-                className={riskClasses[truck.risk_level]}
-              />
-            </div>
-
-            <Tabs defaultValue='resume'>
-              <TabsList className='grid w-full grid-cols-2'>
-                <TabsTrigger value='resume'>Resume</TabsTrigger>
-                <TabsTrigger value='docs'>Documents</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value='resume' className='space-y-3'>
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      Mission courante
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine label='Entreprise' value={truck.tenant_name} />
-                    <DetailLine label='Region' value={truck.region} />
-                    <DetailLine
-                      label='Position'
-                      value={truck.current_location ?? '—'}
-                    />
-                    <DetailLine label='Chauffeur' value={truck.assigned_driver ?? '—'} />
-                    <DetailLine
-                      label='Type'
-                      value={truck.type === 'VRAC' ? 'Vrac (TM)' : 'Bouteilles 50kg'}
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card className='border-transparent bg-muted/20 shadow-xs'>
-                  <CardHeader className='pb-2'>
-                    <CardTitle className='flex items-center gap-2 text-sm'>
-                      <UserRound className='size-4 text-primary' />
-                      Equipe
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className='space-y-3'>
-                    <DetailLine
-                      label='Chauffeur'
-                      value={truck.assigned_driver ?? '—'}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value='docs' className='space-y-3'>
-                <Separator />
-                <DetailLine
-                  label='Certificat'
-                  value={truck.certificate_number ?? '—'}
-                />
-                <DetailLine
-                  label='Validite'
-                  value={
-                    truck.certificate_expiry_at
-                      ? new Date(truck.certificate_expiry_at).toLocaleDateString('fr-FR')
-                      : '—'
-                  }
-                />
-              </TabsContent>
-            </Tabs>
-
-            <Card className='border-transparent bg-muted/20 shadow-xs'>
-              <CardHeader className='pb-2'>
-                <CardTitle className='flex items-center gap-2 text-sm'>
-                  <Wrench className='size-4 text-primary' />
-                  Etat technique
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-3'>
-                <DetailLine
-                  label='Type vehicule'
-                  value={truck.type === 'VRAC' ? 'Vrac' : 'Bouteilles 50kg'}
-                />
-                <DetailLine
-                  label='Capacite max'
-                  value={
-                    truck.type === 'VRAC'
-                      ? `${truck.max_volume ?? '—'} TM`
-                      : `${truck.max_bottle_count ?? '—'} bouteilles`
-                  }
-                />
-              </CardContent>
-            </Card>
+            <TruckDetailsBody truck={truck} telemetry={telemetry} info={info} />
           </div>
         </SheetContent>
       ) : null}

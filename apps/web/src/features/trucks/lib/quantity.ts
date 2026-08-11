@@ -1,4 +1,4 @@
-import { getTruckTelemetry, type Truck } from '../trucks'
+import { getTruckTelemetry, type Truck } from '../data/trucks'
 
 export interface TruckQuantityInfo {
   amount: string

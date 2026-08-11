@@ -14,7 +14,7 @@ import {
   trucks as trucksList,
   type Truck,
   type TruckStatus,
-} from './trucks'
+} from './data/trucks'
 
 export const getTruckTelemetry = _getTruckTelemetry
 export const trucks: readonly Truck[] = trucksList

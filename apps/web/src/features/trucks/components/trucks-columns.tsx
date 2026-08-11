@@ -11,7 +11,7 @@ import {
   statusClasses,
   statusLabels,
   type Truck,
-} from '../trucks'
+} from '../data/trucks'
 import { quantityInfo } from '../lib/quantity'
 import { DataTableRowActions } from './data-table-row-actions'
 

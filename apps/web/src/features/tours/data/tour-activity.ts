@@ -20,7 +20,7 @@ import type {
   TourneeType,
 } from '@lpg/types'
 import { sites, type Site } from '@/features/sites/data/sites'
-import { trucks, type Truck } from '@/features/trucks/trucks'
+import { trucks, type Truck } from '@/features/trucks/data/trucks'
 import { resolveSlaThresholds, tourSlaFlags } from './tour-machine'
 
 export type { ExecutionMode, TourneeStatus }

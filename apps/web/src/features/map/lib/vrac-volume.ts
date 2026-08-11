@@ -1,5 +1,5 @@
-import { getTrucks, type Truck } from '../../trucks/trucks'
-import { quantityInfo } from '../../trucks/lib/quantity'
+import { getTrucks, type Truck } from '@/features/trucks/data/trucks'
+import { quantityInfo } from '@/features/trucks/lib/quantity'
 
 export interface VracSummary {
   totalTM: number

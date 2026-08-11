@@ -10,7 +10,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { type Truck } from '../trucks'
+import { type Truck } from '../data/trucks'
 
 type DataTableRowActionsProps = {
   truck: Truck

@@ -1,22 +1,31 @@
+import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useCallback, useState } from 'react'
 import { UsersTable } from './components/users-table'
 import { UserDetailsSheet } from './components/user-details-sheet'
-import { getUsers } from './data/users'
-import type { UserView } from './data/users'
+import { UserEditSheet } from './components/user-edit-sheet'
+import { useUsersStore } from '@/store/users-store'
+import { userToView, type UserView } from './data/users'
 
 const route = getRouteApi('/_authenticated/users/')
 
 export function UsersPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+
   const [detailsUser, setDetailsUser] = useState<UserView | null>(null)
-  const users = getUsers()
+  const [editingUser, setEditingUser] = useState<UserView | null>(null)
+
+  const users = useUsersStore((s) => s.users)
+  const view = useMemo(() => users.map(userToView), [users])
 
   const handleViewDetails = useCallback((user: UserView) => {
     setDetailsUser(user)
+  }, [])
+
+  const handleEdit = useCallback((user: UserView) => {
+    setEditingUser(user)
   }, [])
 
   return (
@@ -29,17 +38,18 @@ export function UsersPage() {
           <Users className='h-6 w-6 text-primary' />
           <h1 className='text-2xl font-bold tracking-tight'>Utilisateurs</h1>
           <Badge variant='outline' className='ml-auto'>
-            {users.length}
+            {view.length}
           </Badge>
         </div>
       </section>
 
       <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
         <UsersTable
-          data={users}
+          data={view}
           search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          onEdit={handleEdit}
         />
       </section>
 
@@ -48,6 +58,14 @@ export function UsersPage() {
         open={detailsUser !== null}
         onOpenChange={(open) => {
           if (!open) setDetailsUser(null)
+        }}
+      />
+
+      <UserEditSheet
+        user={editingUser}
+        open={editingUser !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingUser(null)
         }}
       />
     </main>

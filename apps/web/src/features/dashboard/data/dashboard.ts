@@ -6,7 +6,7 @@ import {
   type RouteTripView,
 } from '@/features/tours/data/tour-activity'
 import { sites } from '@/features/sites/data/sites'
-import { trucks } from '@/features/trucks/trucks'
+import { trucks } from '@/features/trucks/data/trucks'
 import { quantityInfo } from '@/features/trucks/lib/quantity'
 
 export type DashboardPeriod = 'daily' | 'weekly' | 'monthly'

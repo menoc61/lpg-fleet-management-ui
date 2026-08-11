@@ -25,7 +25,7 @@ import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
   truckTenantOptions,
   type Truck,
-} from '../trucks'
+} from '../data/trucks'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { getTrucksColumns } from './trucks-columns'
 

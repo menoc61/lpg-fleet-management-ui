@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
-import { type Truck } from '../trucks'
+import { type Truck } from '../data/trucks'
 
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
