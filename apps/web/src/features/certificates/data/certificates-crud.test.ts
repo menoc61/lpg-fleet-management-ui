@@ -22,9 +22,9 @@ describe('certificates-crud config', () => {
 
   it('clears certificate fields on the vehicle (delete = unset, not vehicle delete)', () => {
     const patch = certificateDeletePatch()
-    expect(patch.certificate_number).toBeUndefined()
-    expect(patch.certificate_url).toBeUndefined()
-    expect(patch.certificate_expiry_at).toBeUndefined()
-    expect(patch.certificate_issued_at).toBeUndefined()
+    expect(patch.certificate_number).toBe('')
+    expect(patch.certificate_url).toBe('')
+    expect(patch.certificate_expiry_at).toBe('')
+    expect(patch.certificate_issued_at).toBe('')
   })
 })

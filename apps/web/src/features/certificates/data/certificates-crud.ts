@@ -11,10 +11,10 @@ export { VEHICLE_OPTIONS }
 
 export function certificateDeletePatch(): Partial<Vehicle> {
   return {
-    certificate_number: undefined,
-    certificate_issued_at: undefined,
-    certificate_expiry_at: undefined,
-    certificate_url: undefined,
+    certificate_number: '',
+    certificate_issued_at: '',
+    certificate_expiry_at: '',
+    certificate_url: '',
   }
 }
 
