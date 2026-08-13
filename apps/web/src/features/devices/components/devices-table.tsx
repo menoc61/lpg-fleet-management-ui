@@ -38,6 +38,8 @@ type DevicesTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (device: DeviceView) => void
+  onEdit?: (device: DeviceView) => void
+  onDelete?: (device: DeviceView) => void
 }
 
 export function DevicesTable({
@@ -45,6 +47,8 @@ export function DevicesTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: DevicesTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -52,8 +56,8 @@ export function DevicesTable({
   const [grouping, setGrouping] = useState<GroupingState>([])
   const [expanded, setExpanded] = useState({})
   const columns = useMemo(
-    () => getDevicesColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getDevicesColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {

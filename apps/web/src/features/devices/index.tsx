@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
-import { CalendarDays, Cpu, Radio, Search, Truck, Users } from 'lucide-react'
+import { CalendarDays, Cpu, Plus, Radio, Search, Truck, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,9 @@ import {
   type Device,
   type DeviceView,
 } from './data/devices'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { deviceFields, deviceFromForm, deviceToForm } from './data/devices-crud'
+import { toast } from 'sonner'
 
 export const getDevicesView = _getDevicesView
 export const devices: readonly Device[] = devicesList
@@ -34,12 +37,28 @@ export function DevicesPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<DeviceFilter>('all')
   const [detailsDevice, setDetailsDevice] = useState<DeviceView | null>(null)
+  const crud = useEntityCrud<Device>('devices', 'devices', ['devices'])
 
   const allDevices = useMemo(() => getDevicesView(), [])
 
   const handleViewDetails = useCallback((device: DeviceView) => {
     setDetailsDevice(device)
   }, [])
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({ id: crud.editing.id, patch: deviceFromForm(values) })
+        toast.success('Appareil mis à jour.')
+      } else {
+        await crud.createMut.mutateAsync(deviceFromForm(values) as Omit<Device, 'id'>)
+        toast.success('Appareil créé.')
+      }
+      crud.close()
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   const filteredDevices = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -125,6 +144,11 @@ export function DevicesPage() {
           </div>
 
           <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+            {crud.perm.canCreate && (
+              <Button onClick={crud.openCreate}>
+                <Plus className='mr-1 h-4 w-4' /> Nouvel appareil
+              </Button>
+            )}
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
@@ -185,6 +209,8 @@ export function DevicesPage() {
           search={{}}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          onEdit={(d) => crud.openEdit(d as unknown as Device)}
+          onDelete={(d) => crud.removeMut.mutateAsync(d.id)}
         />
       </section>
 
@@ -194,6 +220,20 @@ export function DevicesPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsDevice(null)
         }}
+      />
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier l’appareil' : 'Nouvel appareil'}
+        description={crud.editing ? 'Mettez à jour les informations de l’appareil.' : 'Ajoutez un appareil au registre.'}
+        fields={deviceFields}
+        initial={crud.editing ? deviceToForm(crud.editing) : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
       />
     </main>
   )

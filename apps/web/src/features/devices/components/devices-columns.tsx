@@ -11,13 +11,18 @@ import {
   deviceTypeLabels,
   type DeviceView,
 } from '../data/devices'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type DevicesColumnsProps = {
   onViewDetails: (device: DeviceView) => void
+  onEdit?: (device: DeviceView) => void
+  onDelete?: (device: DeviceView) => void
 }
 
 export function getDevicesColumns({
   onViewDetails,
+  onEdit,
+  onDelete,
 }: DevicesColumnsProps): ColumnDef<DeviceView>[] {
   return [
     {
@@ -228,6 +233,23 @@ export function getDevicesColumns({
       meta: { label: 'Affectation', className: 'min-w-36' },
       enableSorting: false,
       enableGrouping: true,
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableHiding: false,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className='flex justify-end'>
+          <CrudRowActions
+            resource='devices'
+            itemLabel='cet appareil'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
     },
   ]
 }
