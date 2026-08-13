@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { VehiclesTable } from './components/vehicles-table'
 import { VehicleDetailsSheet } from './components/vehicle-details-sheet'
 import {
-  fleetVehicles,
   getVehiclesView,
   type VehicleView,
 } from './data/vehicles'
@@ -21,7 +20,7 @@ import { toast } from 'sonner'
 
 export { getVehiclesView }
 export type { VehicleView as Vehicle }
-export const vehicles: readonly VehicleView[] = fleetVehicles
+export const vehicles: readonly VehicleView[] = getVehiclesView()
 
 type VehicleStatusFilter = 'all' | VehicleView['status']
 
@@ -52,13 +51,15 @@ export function VehiclesPage() {
   const [search, setSearch] = useState(q ?? '')
   const [statusFilter, setStatusFilter] = useState<VehicleStatusFilter>('all')
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleView | null>(null)
+  const [, setVersion] = useState(0)
   const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['vehicles'])
   const authUser = useAuthStore((s) => s.user)
   const scopeOrgId = authUser?.org_id
+  const allVehicles = getVehiclesView()
   const scopedVehicles = useMemo(() => {
-    if (!scopeOrgId) return fleetVehicles
-    return fleetVehicles.filter((v) => v.org_id === scopeOrgId)
-  }, [scopeOrgId])
+    if (!scopeOrgId) return allVehicles
+    return allVehicles.filter((v) => v.org_id === scopeOrgId)
+  }, [scopeOrgId, allVehicles])
 
   const handleViewDetails = useCallback((vehicle: VehicleView) => {
     setDetailsVehicle(vehicle)
@@ -74,6 +75,7 @@ export function VehiclesPage() {
         toast.success('Véhicule créé.')
       }
       crud.close()
+      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -273,7 +275,10 @@ export function VehiclesPage() {
           onViewDetails={handleViewDetails}
           onOpenActiveTour={handleOpenActiveTour}
           onEdit={(v) => crud.openEdit(v as unknown as Vehicle)}
-          onDelete={(v) => crud.removeMut.mutateAsync(v.id)}
+          onDelete={async (v) => {
+            await crud.removeMut.mutateAsync(v.id)
+            setVersion((x) => x + 1)
+          }}
         />
       </section>
 

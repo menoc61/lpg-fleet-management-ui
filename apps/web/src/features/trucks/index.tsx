@@ -11,7 +11,7 @@ import { TrucksTable } from './components/trucks-table'
 import { TruckDetailsSheet } from './components/truck-details-sheet'
 import {
   getTruckTelemetry as _getTruckTelemetry,
-  trucks as trucksList,
+  getTrucks,
   type Truck,
   type TruckStatus,
 } from './data/trucks'
@@ -21,7 +21,6 @@ import type { Vehicle } from '@lpg/types'
 import { toast } from 'sonner'
 
 export const getTruckTelemetry = _getTruckTelemetry
-export const trucks: readonly Truck[] = trucksList
 export type { Truck, TruckStatus }
 
 type TruckFilter = 'all' | TruckStatus
@@ -36,6 +35,8 @@ export function TrucksPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<TruckFilter>('all')
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
+  const [, setVersion] = useState(0)
+  const trucks = getTrucks()
   const [activeTruckId] = useState<string>(trucks[0]?.id ?? '')
   const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['trucks'])
 
@@ -53,6 +54,7 @@ export function TrucksPage() {
         toast.success('Camion créé.')
       }
       crud.close()
+      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -75,7 +77,7 @@ export function TrucksPage() {
         .toLowerCase()
       return haystack.includes(query)
     })
-  }, [search])
+  }, [search, trucks])
 
   const visible = statusFilter === 'all' ? filteredTrucks : filteredTrucks.filter((t) => t.tournee_status === statusFilter)
 
@@ -94,7 +96,7 @@ export function TrucksPage() {
       { label: 'Cloturee', value: 'CLOSED', count: counts.CLOSED ?? 0 },
       { label: 'Annulee', value: 'CANCELLED', count: counts.CANCELLED ?? 0 },
     ]
-  }, [])
+  }, [trucks])
 
   const dateText = useMemo(
     () =>
@@ -121,7 +123,7 @@ export function TrucksPage() {
       { sum: 0, count: 0 },
     )
     return count === 0 ? 0 : Math.round(sum / count)
-  }, [visible])
+  }, [visible, trucks])
 
   const selectedTruck =
     visible.find((t) => t.id === activeTruckId) ?? visible[0] ?? trucks[0]
@@ -228,7 +230,10 @@ export function TrucksPage() {
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onEdit={(t) => crud.openEdit(t as unknown as Vehicle)}
-          onDelete={(t) => crud.removeMut.mutateAsync(t.id)}
+          onDelete={async (t) => {
+            await crud.removeMut.mutateAsync(t.id)
+            setVersion((v) => v + 1)
+          }}
         />
       </section>
 
