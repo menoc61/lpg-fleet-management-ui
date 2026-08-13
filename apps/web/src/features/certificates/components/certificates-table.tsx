@@ -25,6 +25,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { CrudRowActions } from '@/components/entity-crud'
 import type { CertificateStatus, CertificateView } from '../data/certificates'
 import { certStatusLabel } from '../data/certificates'
 
@@ -47,6 +48,8 @@ type CertificatesTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (certificate: CertificateView) => void
+  onEdit?: (certificate: CertificateView) => void
+  onDelete?: (certificate: CertificateView) => void
 }
 
 export function CertificatesTable({
@@ -54,6 +57,8 @@ export function CertificatesTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: CertificatesTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -137,8 +142,25 @@ export function CertificatesTable({
         meta: { label: 'Statut' },
         enableHiding: false,
       },
+      {
+        id: 'actions',
+        header: () => <span className='sr-only'>Actions</span>,
+        cell: ({ row }: { row: { original: CertificateView } }) => (
+          <div className='text-right'>
+            <CrudRowActions
+              resource='certificates'
+              itemLabel='ce certificat'
+              onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+              onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+            />
+          </div>
+        ),
+        meta: { label: 'Actions' },
+        enableHiding: false,
+        enableSorting: false,
+      },
     ],
-    [onViewDetails],
+    [onViewDetails, onEdit, onDelete],
   )
 
   const {

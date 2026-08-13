@@ -1,10 +1,16 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { FileCheck } from 'lucide-react'
+import { FileCheck, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
+import { api } from '@lpg/api-client'
+import { useEntityPermission } from '@/lib/permissions/use-entity-permission'
 import { CertificatesTable } from './components/certificates-table'
 import { CertificateDetailsSheet } from './components/certificate-details-sheet'
+import { CertificateEditSheet } from './components/certificate-edit-sheet'
 import { getCertificates } from './data/certificates'
+import { certificateDeletePatch } from './data/certificates-crud'
 import type { CertificateView } from './data/certificates'
 
 const route = getRouteApi('/_authenticated/certificates/')
@@ -12,11 +18,28 @@ const route = getRouteApi('/_authenticated/certificates/')
 export function CertificatesPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+  const perm = useEntityPermission('certificates')
   const [detailsCert, setDetailsCert] = useState<CertificateView | null>(null)
+  const [editCert, setEditCert] = useState<CertificateView | null | 'new'>(null)
+  const [refresh, setRefresh] = useState(0)
   const certificates = getCertificates()
 
   const handleViewDetails = useCallback((certificate: CertificateView) => {
     setDetailsCert(certificate)
+  }, [])
+
+  const handleOpenEdit = useCallback((certificate: CertificateView) => {
+    setEditCert(certificate)
+  }, [])
+
+  const handleDelete = useCallback(async (certificate: CertificateView) => {
+    try {
+      await api.vehicles.patch(certificate.vehicleId, certificateDeletePatch())
+      toast.success('Certificat supprimé.')
+      setRefresh((v) => v + 1)
+    } catch {
+      toast.error('Échec de la suppression.')
+    }
   }, [])
 
   return (
@@ -31,15 +54,23 @@ export function CertificatesPage() {
           <Badge variant='outline' className='ml-auto'>
             {certificates.length}
           </Badge>
+          {perm.canCreate && (
+            <Button onClick={() => setEditCert('new')}>
+              <Plus className='mr-1 h-4 w-4' /> Nouveau certificat
+            </Button>
+          )}
         </div>
       </section>
 
       <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
         <CertificatesTable
+          key={refresh}
           data={certificates}
           search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          onEdit={handleOpenEdit}
+          onDelete={handleDelete}
         />
       </section>
 
@@ -49,6 +80,15 @@ export function CertificatesPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsCert(null)
         }}
+      />
+
+      <CertificateEditSheet
+        certificate={editCert === 'new' ? null : editCert}
+        open={editCert !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditCert(null)
+        }}
+        onSaved={() => setRefresh((v) => v + 1)}
       />
     </main>
   )
