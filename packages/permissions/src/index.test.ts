@@ -19,8 +19,8 @@ import {
 const ALL_CODES = new Set(PERMISSION_CATALOG.map((e) => e.code))
 
 describe('catalog integrity', () => {
-  it('defines exactly 149 codes across 9 categories', () => {
-    expect(PERMISSION_CATALOG).toHaveLength(149)
+  it('defines exactly 153 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(153)
     expect(new Set(PERMISSION_CATALOG.map((e) => e.category))).toHaveLength(9)
     expect(PERMISSION_CATEGORIES).toHaveLength(9)
   })
@@ -51,7 +51,7 @@ describe('catalog integrity', () => {
       identity: 16,
       governance: 19,
       sites: 13,
-      fleet: 22,
+      fleet: 26,
       supply: 8,
       tours: 19,
       compliance: 14,
@@ -128,6 +128,29 @@ describe('abilities', () => {
 
   it('SUPERADMIN ability allows read users', () => {
     expect(defineAbilityFor('SUPERADMIN').can('read', 'users')).toBe(true)
+  })
+})
+
+describe('CRUD codes for M3', () => {
+  it('ADMIN can create and delete drivers', () => {
+    expect(can('ADMIN', 'create', 'drivers')).toBe(true)
+    expect(can('ADMIN', 'delete', 'drivers')).toBe(true)
+  })
+  it('ADMIN can create and delete devices', () => {
+    expect(can('ADMIN', 'create', 'devices')).toBe(true)
+    expect(can('ADMIN', 'delete', 'devices')).toBe(true)
+  })
+  it('ADMIN can create and delete sites', () => {
+    expect(can('ADMIN', 'create', 'sites')).toBe(true)
+    expect(can('ADMIN', 'delete', 'sites')).toBe(true)
+  })
+  it('MARKETEUR can create and delete drivers (own fleet)', () => {
+    expect(can('MARKETEUR', 'create', 'drivers')).toBe(true)
+    expect(can('MARKETEUR', 'delete', 'drivers')).toBe(true)
+  })
+  it('INTEGRATEUR can create and delete devices', () => {
+    expect(can('INTEGRATEUR', 'create', 'devices')).toBe(true)
+    expect(can('INTEGRATEUR', 'delete', 'devices')).toBe(true)
   })
 })
 
