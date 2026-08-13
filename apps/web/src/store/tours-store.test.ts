@@ -264,4 +264,68 @@ describe('tours store', () => {
       expect(useToursStore.getState().viewById('tour-005')!.tourneeStatus).toBe('ACKNOWLEDGED')
     })
   })
+
+  describe('end-to-end click-through (EXTERNAL lifecycle)', () => {
+    it('walks DRAFT → PENDINGTRANSPORTERACK → ACKNOWLEDGED → INPROGRESS via the store', () => {
+      const created = useToursStore.getState().createTour({
+        marketeur_org_id: MARKETEUR_ORG,
+        execution_mode: 'EXTERNAL',
+        type: 'BOUTEILLES50KG',
+        requested_quantity: 120,
+        transporter_org_id: TRANSPORTEUR_ORG,
+      })
+      const id = created.id
+
+      // 1. MARKETEUR sends to transporter.
+      const sent = useToursStore.getState().performAction(id, 'send-to-transporter')
+      expect(sent.tourneeStatus).toBe('PENDINGTRANSPORTERACK')
+
+      // 2. TRANSPORTEUR acknowledges, assigning their own crew+vehicle.
+      const ack = useToursStore.getState().performAction(id, 'acknowledge')
+      expect(ack.tourneeStatus).toBe('ACKNOWLEDGED')
+
+      // 3. LIVREUR starts the mission on the PDA.
+      const started = useToursStore.getState().performAction(id, 'start')
+      expect(started.tourneeStatus).toBe('INPROGRESS')
+      expect(started.startedAt).toBeTruthy()
+
+      // 4. The enriched view reflects the running state.
+      const stored = useToursStore.getState().viewById(id)
+      expect(stored?.tourneeStatus).toBe('INPROGRESS')
+    })
+
+    it('closes a CHECKPOINTACTIVE tour and guards it from further actions', () => {
+      // tour-008 is seeded CHECKPOINTACTIVE (INTERNAL, crew assigned).
+      const closed = useToursStore.getState().performAction('tour-008', 'close')
+      expect(closed.tourneeStatus).toBe('CLOSED')
+      expect(tourStatusLabels[closed.tourneeStatus]).toBe('Livrée')
+      const stored = useToursStore.getState().tours.find((t) => t.id === 'tour-008')!
+      expect(stored.status).toBe('CLOSED')
+      expect(typeof stored.closed_at).toBe('string')
+      expect(stored.closed_at).toBeTruthy()
+
+      expect(() => useToursStore.getState().performAction('tour-008', 'cancel')).toThrow(
+        /Transition interdite/,
+      )
+    })
+
+    it('throws when a button action is not legal at the current status (no skip-ahead)', () => {
+      const created = useToursStore.getState().createTour({
+        marketeur_org_id: MARKETEUR_ORG,
+        execution_mode: 'EXTERNAL',
+        type: 'VRAC',
+        requested_quantity: 5000,
+        transporter_org_id: TRANSPORTEUR_ORG,
+      })
+      const id = created.id
+
+      // Sending to the transporter is fine...
+      useToursStore.getState().performAction(id, 'send-to-transporter')
+
+      // ...but a LIVREUR cannot start a tour that still awaits acknowledgement.
+      expect(() => useToursStore.getState().performAction(id, 'start')).toThrow(
+        /Transition interdite/,
+      )
+    })
+  })
 })

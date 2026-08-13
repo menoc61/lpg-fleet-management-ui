@@ -33,11 +33,11 @@ export const pickupStatusOptions: readonly { label: string; value: PickupStatus 
 
 const allSites = [...sites, ...client_sites]
 
-function siteName(id: string): string {
+export function siteName(id: string): string {
   return allSites.find((s) => s.id === id)?.name ?? id
 }
 
-function orgName(id: string): string {
+export function orgName(id: string): string {
   return organizations.find((o) => o.id === id)?.name ?? id
 }
 
