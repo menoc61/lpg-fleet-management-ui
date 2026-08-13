@@ -25,6 +25,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { CrudRowActions } from '@/components/entity-crud'
 import type { ClientView } from '../data/clients'
 import { clientStatusLabel } from '../data/clients'
 
@@ -33,6 +34,8 @@ type ClientsTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (client: ClientView) => void
+  onEdit?: (client: ClientView) => void
+  onDelete?: (client: ClientView) => void
 }
 
 export function ClientsTable({
@@ -40,6 +43,8 @@ export function ClientsTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: ClientsTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -108,8 +113,25 @@ export function ClientsTable({
         cell: ({ row }: { row: { original: ClientView } }) => <Badge variant='outline'>{clientStatusLabel(row.original.status)}</Badge>,
         meta: { label: 'Statut' },
       },
+      {
+        id: 'actions',
+        header: '',
+        enableHiding: false,
+        enableSorting: false,
+        cell: ({ row }: { row: { original: ClientView } }) => (
+          <div className='flex justify-end'>
+            <CrudRowActions
+              resource='clients'
+              itemLabel='ce client'
+              onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+              onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+            />
+          </div>
+        ),
+        meta: { label: 'Actions' },
+      },
     ],
-    [onViewDetails],
+    [onViewDetails, onEdit, onDelete],
   )
 
   const {
