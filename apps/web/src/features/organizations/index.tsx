@@ -1,11 +1,20 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { Building2 } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useCallback, useState } from 'react'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { OrganizationsTable } from './components/organizations-table'
 import { OrganizationDetailsSheet } from './components/organization-details-sheet'
 import { getOrganizations } from './data/organizations'
 import type { Organization } from './data/organizations'
+import {
+  organizationFields,
+  organizationFromForm,
+  organizationToForm,
+} from './data/organizations-crud'
+import type { Organization as CuratedOrganization } from '@lpg/types'
+import { toast } from 'sonner'
 
 const route = getRouteApi('/_authenticated/organizations/')
 
@@ -13,11 +22,32 @@ export function OrganizationsPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const [detailsOrg, setDetailsOrg] = useState<Organization | null>(null)
+  const crud = useEntityCrud<CuratedOrganization>('organizations', 'orgs', ['organizations'])
   const orgs = getOrganizations()
 
   const handleViewDetails = useCallback((org: Organization) => {
     setDetailsOrg(org)
   }, [])
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({
+          id: crud.editing.id,
+          patch: organizationFromForm(values),
+        })
+        toast.success('Organisation mise à jour.')
+      } else {
+        await crud.createMut.mutateAsync(
+          organizationFromForm(values) as Omit<CuratedOrganization, 'id'>,
+        )
+        toast.success('Organisation créée.')
+      }
+      crud.close()
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   return (
     <main
@@ -27,10 +57,15 @@ export function OrganizationsPage() {
       <section className='rounded-2xl border-transparent bg-background/88 p-3 shadow-sm backdrop-blur-sm sm:p-4'>
         <div className='flex flex-wrap items-center gap-2'>
           <Building2 className='h-6 w-6 text-primary' />
-          <h1 className='text-2xl font-bold tracking-tight'>Organizations</h1>
+          <h1 className='text-2xl font-bold tracking-tight'>Organisations</h1>
           <Badge variant='outline' className='ml-auto'>
             {orgs.length}
           </Badge>
+          {crud.perm.canCreate && (
+            <Button onClick={crud.openCreate}>
+              <Plus className='mr-1 h-4 w-4' /> Nouvelle organisation
+            </Button>
+          )}
         </div>
       </section>
 
@@ -40,6 +75,8 @@ export function OrganizationsPage() {
           search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          onEdit={(org) => crud.openEdit(org as unknown as CuratedOrganization)}
+          onDelete={(org) => crud.removeMut.mutateAsync(org.id)}
         />
       </section>
 
@@ -49,6 +86,24 @@ export function OrganizationsPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsOrg(null)
         }}
+      />
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier l’organisation' : 'Nouvelle organisation'}
+        description={
+          crud.editing
+            ? 'Mettez à jour les informations de l’organisation.'
+            : 'Créez une nouvelle organisation.'
+        }
+        fields={organizationFields}
+        initial={crud.editing ? organizationToForm(crud.editing) : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
       />
     </main>
   )

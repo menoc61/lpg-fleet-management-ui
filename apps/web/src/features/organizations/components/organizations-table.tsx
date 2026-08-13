@@ -27,12 +27,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { Organization } from '../data/organizations'
 import { orgTypeLabel, orgStatusLabel } from '../data/organizations'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type OrganizationsTableProps = {
   data: Organization[]
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (org: Organization) => void
+  onEdit?: (org: Organization) => void
+  onDelete?: (org: Organization) => void
 }
 
 export function OrganizationsTable({
@@ -40,6 +43,8 @@ export function OrganizationsTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: OrganizationsTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -101,8 +106,25 @@ export function OrganizationsTable({
         cell: ({ row }: { row: { original: Organization } }) => row.original.sites,
         meta: { label: 'Sites' },
       },
+      {
+        id: 'actions',
+        header: '',
+        enableHiding: false,
+        enableSorting: false,
+        cell: ({ row }: { row: { original: Organization } }) => (
+          <div className='flex justify-end'>
+            <CrudRowActions
+              resource='orgs'
+              itemLabel='cette organisation'
+              onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+              onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+            />
+          </div>
+        ),
+        meta: { label: 'Actions' },
+      },
     ],
-    [onViewDetails],
+    [onViewDetails, onEdit, onDelete],
   )
 
   const {
