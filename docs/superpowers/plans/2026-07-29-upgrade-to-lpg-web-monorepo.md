@@ -75,7 +75,7 @@
 - Consumes: spec §2.2, source `pnpm-workspace.yaml`, `turbo.json`, root `package.json`, `vercel.json`
 - Produces: workspace root that can accept `packages/*` and `apps/*`
 
-- [ ] **Step 1: Create `pnpm-workspace.yaml` with packages and overrides**
+- [x] **Step 1: Create `pnpm-workspace.yaml` with packages and overrides**
 Write from source's exact content:
 ```yaml
 packages:
@@ -90,7 +90,7 @@ overrides:
   "react-hook-form": "7.73.1"
 ```
 
-- [ ] **Step 2: Create root `turbo.json`**
+- [x] **Step 2: Create root `turbo.json`**
 ```json
 {
   "$schema": "https://turbo.build/schema.json",
@@ -110,7 +110,7 @@ overrides:
 }
 ```
 
-- [ ] **Step 3: Create root `package.json`**
+- [x] **Step 3: Create root `package.json`**
 ```json
 {
   "name": "lpg-fleet-platform",
@@ -133,7 +133,7 @@ overrides:
 }
 ```
 
-- [ ] **Step 4: Create root `vercel.json`**
+- [x] **Step 4: Create root `vercel.json`**
 ```json
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
@@ -153,16 +153,16 @@ overrides:
 }
 ```
 
-- [ ] **Step 5: Add `.turbo/` to `.gitignore`**
+- [x] **Step 5: Add `.turbo/` to `.gitignore`**
 Find the `.gitignore` file and append `/.turbo` at the end if not already present.
 
-- [ ] **Step 6: Run `pnpm install` and verify**
+- [x] **Step 6: Run `pnpm install` and verify**
 ```bash
 pnpm install
 ```
 Expected: workspace install succeeds without peer-dep errors. If `scripts/dev-kill.js` doesn't exist yet, create a minimal empty script `node -e "console.log('kill')"` — it just needs to not throw.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 ```bash
 git add pnpm-workspace.yaml turbo.json package.json vercel.json .gitignore
 git commit -m "chore: add monorepo skeleton (pnpm-workspace, turbo, vercel)"
@@ -185,27 +185,27 @@ git commit -m "chore: add monorepo skeleton (pnpm-workspace, turbo, vercel)"
 - Consumes: spec §4, source `packages/*/package.json`, `packages/*/tsconfig.json`, `packages/*/src/index.ts`
 - Produces: 7 workspace packages with stub exports, all type-checking independently
 
-- [ ] **Step 1: Copy each package's `package.json` from source**
+- [x] **Step 1: Copy each package's `package.json` from source**
 For every package in `packages/` (types, config, permissions, api-client, mock-data, mock-api, ui):
 1. Copy `package.json` from source repo's `packages/<pkg>/package.json` to local `packages/<pkg>/package.json`.
 2. Copy `tsconfig.json` from source repo's `packages/<pkg>/tsconfig.json` to local `packages/<pkg>/tsconfig.json`.
 3. Create `packages/<pkg>/src/index.ts` with a single re-export of the source's `src/index.ts`.
 
-- [ ] **Step 2: Ensure `tsconfig.json` path aliases use correct relative paths**
+- [x] **Step 2: Ensure `tsconfig.json` path aliases use correct relative paths**
 The source's `tsconfig.app.json` uses `../../packages/...` for `@lpg/type` aliases. Inside each package's own `tsconfig.json`, the `paths` for `@/*` use `./src/*` (relative to the package). Verify `noEmit: true` in each.
 
-- [ ] **Step 3: Run `pnpm install` (regenerate lockfile)**
+- [x] **Step 3: Run `pnpm install` (regenerate lockfile)**
 ```bash
 pnpm install
 ```
 
-- [ ] **Step 4: Run `pnpm -r typecheck`**
+- [x] **Step 4: Run `pnpm -r typecheck`**
 ```bash
 pnpm -r typecheck
 ```
 Expected: all 7 packages type-check cleanly (they are empty stubs). `apps/web` may fail (not yet moved) — ignore it for now.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 ```bash
 git add packages/
 git commit -m "chore: scaffold 7 shared workspace packages"
@@ -224,17 +224,17 @@ git commit -m "chore: scaffold 7 shared workspace packages"
 - Consumes: all current target files (spec §3, Task 1 completed)
 - Produces: `apps/web/` with all existing target code; root no longer has `src/`
 
-- [ ] **Step 1: Create `apps/web/` directory structure**
+- [x] **Step 1: Create `apps/web/` directory structure**
 ```bash
 mkdir -p apps/web
 ```
 
-- [ ] **Step 2: Move `src/*` into `apps/web/*`**
+- [x] **Step 2: Move `src/*` into `apps/web/*`**
 ```bash
 Move-Item -Path "src/*" -Destination "apps/web/" -Force
 ```
 
-- [ ] **Step 3: Move root-level config files into `apps/web/`**
+- [x] **Step 3: Move root-level config files into `apps/web/`**
 Copy (do not delete originals yet) the following from root to `apps/web/`:
 - `index.html`
 - `.env`, `.env.example`
@@ -244,42 +244,42 @@ Copy (do not delete originals yet) the following from root to `apps/web/`:
 - `vercel.json` (will be updated in next task)
 - `public/` contents (favicon, any static assets)
 
-- [ ] **Step 4: Update root aliases in moved files**
+- [x] **Step 4: Update root aliases in moved files**
 In `apps/web/vite.config.ts`, change the `resolve.alias` path from `path.resolve(__dirname, './src')` to `path.resolve(__dirname, '.')` (since files are now at `apps/web/` root, not `apps/web/src/`).
 
-- [ ] **Step 5: Update `tsconfig.app.json` paths**
+- [x] **Step 5: Update `tsconfig.app.json` paths**
 In `apps/web/tsconfig.app.json`, set `"include"` to cover the new file layout. The source's `tsconfig.app.json` includes `["main.tsx", "vite-env.d.ts", "routeTree.gen.ts", "tanstack-table.d.ts", "**/*.ts", "**/*.tsx"]` — match this template. Set `"paths"` `@/*` to `["./*"]` (source convention, no `/`).
 
-- [ ] **Step 6: Remove old `src/` from root**
+- [x] **Step 6: Remove old `src/` from root**
 ```bash
 Remove-Item -Recurse -Force src/
 ```
 
-- [ ] **Step 7: Run typecheck from root**
+- [x] **Step 7: Run typecheck from root**
 ```bash
 pnpm -F @lpg/web typecheck 2>/dev/null || pnpm -F web typecheck  2>/dev/null || cd apps/web && node_modules\.bin\tsc.cmd --noEmit -p tsconfig.app.json
 ```
 Expected: passes (same as pre-upgrade baseline). If there are errors from the alias change, fix the `@` alias to point `./` instead of `./src`.
 
-- [ ] **Step 8: Run lint**
+- [x] **Step 8: Run lint**
 ```bash
 cd apps/web && node_modules\.bin\eslint.cmd .
 ```
 Expected: same 4 errors + 1 warning as baseline.
 
-- [ ] **Step 9: Run build**
+- [x] **Step 9: Run build**
 ```bash
 cd apps/web && node_modules\.bin\vite.cmd build
 ```
 Expected: bundle produces in `apps/web/dist/`.
 
-- [ ] **Step 10: Run tests**
+- [x] **Step 10: Run tests**
 ```bash
 cd apps/web && node_modules\.bin\vitest.cmd run --browser.headless
 ```
 Expected: same test count as baseline.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 ```bash
 git add -A
 git commit -m "chore: move app into apps/web (monorepo app shell)"
@@ -298,26 +298,26 @@ git commit -m "chore: move app into apps/web (monorepo app shell)"
 - Consumes: source `packages/ui/src/*`, spec §3.1 backward-compat section
 - Produces: `@lpg/ui` fully populated; target-old components still importable
 
-- [ ] **Step 1: Replace `packages/ui` stub with source content**
+- [x] **Step 1: Replace `packages/ui` stub with source content**
 Copy all files from source `packages/ui/src/` to local `packages/ui/src/`:
 ```bash
 Remove-Item -Recurse -Force packages/ui/src/*
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\ui\src\*" -Destination packages/ui/src/ -Recurse -Force
 ```
 
-- [ ] **Step 2: Verify `packages/ui` typechecks**
+- [x] **Step 2: Verify `packages/ui` typechecks**
 ```bash
 pnpm -F @lpg/ui typecheck
 ```
 Expected: 0 errors.
 
-- [ ] **Step 3: Create backward-compat shim for target-only components**
+- [x] **Step 3: Create backward-compat shim for target-only components**
 The target has `components/data-table/*`, `components/select-dropdown.tsx`, `components/learn-more.tsx`, `components/coming-soon.tsx`, `components/date-picker.tsx` that are not in `@lpg/ui` yet. Create shim files that re-export from the local `@lpg/ui` package or keep local copies:
 1. `apps/web/src/components/data-table/index.tsx` — re-export from `@lpg/ui` data-table barrel
 2. Remaining `components/data-table/*.tsx` — same pattern
 3. `components/select-dropdown.tsx`, `components/learn-more.tsx`, `components/coming-soon.tsx`, `components/date-picker.tsx` — keep as-is for now (target-only, not replacing them)
 
-- [ ] **Step 4: Add `@lpg/ui` path alias to `apps/web/tsconfig.app.json`**
+- [x] **Step 4: Add `@lpg/ui` path alias to `apps/web/tsconfig.app.json`**
 Add to `paths`:
 ```json
 "@lpg/ui": ["./node_modules/@lpg/ui/src/index.ts"]
@@ -325,13 +325,13 @@ Add to `paths`:
 
 Actually — wait. This is a monorepo where `pnpm` symlinks the packages. The source convention is `"@lpg/ui": ["../../packages/ui/src/index.ts"]` in `apps/web/tsconfig.app.json`. Use that same relative path.
 
-- [ ] **Step 5: Run typecheck from apps/web**
+- [x] **Step 5: Run typecheck from apps/web**
 ```bash
 pnpm -F @lpg/web typecheck
 ```
 Expected: no new type errors from the shim.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 ```bash
 git add packages/ui/ apps/web/src/components/data-table/
 git commit -m "feat: add @lpg/ui package with backward-compat shim"
@@ -350,7 +350,7 @@ git commit -m "feat: add @lpg/ui package with backward-compat shim"
 - Consumes: source `packages/types/src/`, `packages/config/src/`, `packages/permissions/src/`
 - Produces: `@lpg/types`, `@lpg/config`, `@lpg/permissions` wired into `apps/web`
 
-- [ ] **Step 1: Copy source content into the 3 packages**
+- [x] **Step 1: Copy source content into the 3 packages**
 ```bash
 Remove-Item -Recurse -Force packages/types/src/*
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\types\src\*" -Destination packages/types/src/ -Recurse -Force
@@ -362,7 +362,7 @@ Remove-Item -Recurse -Force packages/permissions/src/*
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\permissions\src\*" -Destination packages/permissions/src/ -Recurse -Force
 ```
 
-- [ ] **Step 2: Copy each package's `package.json` and `tsconfig.json` from source**
+- [x] **Step 2: Copy each package's `package.json` and `tsconfig.json` from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\types\package.json" -Destination packages/types/package.json -Force
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\types\tsconfig.json" -Destination packages/types/tsconfig.json -Force
@@ -372,12 +372,12 @@ Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\pack
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\permissions\tsconfig.json" -Destination packages/permissions/tsconfig.json -Force
 ```
 
-- [ ] **Step 3: Run `pnpm install` to regenerate lockfile**
+- [x] **Step 3: Run `pnpm install` to regenerate lockfile**
 ```bash
 pnpm install
 ```
 
-- [ ] **Step 4: Add `@lpg/types`, `@lpg/config`, `@lpg/permissions` path aliases to `apps/web/tsconfig.app.json`**
+- [x] **Step 4: Add `@lpg/types`, `@lpg/config`, `@lpg/permissions` path aliases to `apps/web/tsconfig.app.json`**
 Match the source's `tsconfig.app.json` paths block exactly:
 ```json
 "paths": {
@@ -389,28 +389,28 @@ Match the source's `tsconfig.app.json` paths block exactly:
 }
 ```
 
-- [ ] **Step 5: Replace local type references in apps/web**
+- [x] **Step 5: Replace local type references in apps/web**
 Scan `apps/web/src/` for any local type-only imports that should now come from `@lpg/types`. Use `@lpg/types` for domain types (Truck, Route, Marketer, Transporter, Site, Trip, User, Role, Permission). Keep local imports for app-specific types.
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 ```bash
 pnpm -F @lpg/web typecheck
 ```
 Expected: clean (or only pre-existing errors).
 
-- [ ] **Step 7: Run lint**
+- [x] **Step 7: Run lint**
 ```bash
 pnpm -F @lpg/web lint
 ```
 Expected: same as baseline (5 issues), no new ones.
 
-- [ ] **Step 8: Run build + test**
+- [x] **Step 8: Run build + test**
 ```bash
 pnpm -F @lpg/web build && pnpm -F @lpg/web test
 ```
 Expected: build succeeds, same test count.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 ```bash
 git add packages/types/ packages/config/ packages/permissions/ apps/web/tsconfig.app.json
 git commit -m "feat: adopt @lpg/types, @lpg/config, @lpg/permissions packages"
@@ -429,7 +429,7 @@ git commit -m "feat: adopt @lpg/types, @lpg/config, @lpg/permissions packages"
 - Consumes: source `packages/api-client/src/`, `packages/mock-data/src/`, `packages/mock-api/src/`
 - Produces: adapter switching by `VITE_API_MODE`, `main.tsx` wired with PermissionsProvider, fake adapter available
 
-- [ ] **Step 1: Copy source content into the 3 packages**
+- [x] **Step 1: Copy source content into the 3 packages**
 ```bash
 # api-client
 Remove-Item -Recurse -Force packages/api-client/src/*
@@ -450,15 +450,15 @@ Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\pack
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\packages\mock-api\tsconfig.json" -Destination packages/mock-api/tsconfig.json -Force
 ```
 
-- [ ] **Step 2: Run `pnpm install` to regenerate lockfile with new workspace deps**
+- [x] **Step 2: Run `pnpm install` to regenerate lockfile with new workspace deps**
 ```bash
 pnpm install
 ```
 
-- [ ] **Step 3: Add `@lpg/api-client` alias to `apps/web/tsconfig.app.json`** (if not already added in Task 5)
+- [x] **Step 3: Add `@lpg/api-client` alias to `apps/web/tsconfig.app.json`** (if not already added in Task 5)
 Ensure paths includes `"@lpg/api-client": ["../../packages/api-client/src/index.ts"]`.
 
-- [ ] **Step 4: Update `apps/web/main.tsx`**
+- [x] **Step 4: Update `apps/web/main.tsx`**
 Replace the current `main.tsx` with the source's `main.tsx` pattern. Key changes:
 - Import `toastError` from `@/lib/toast` (will be created in next task)
 - Import `useAuthStore` from `@/store/auth-store` (will be created next)
@@ -467,19 +467,19 @@ Replace the current `main.tsx` with the source's `main.tsx` pattern. Key changes
 - On 401 query error: call `useAuthStore.getState().logout()` then `router.navigate({ to: '/login' })`
 - Keep the same QueryClient, QueryCache, retry, and error handling structure as the target's current `main.tsx`
 
-- [ ] **Step 5: Create `apps/web/.env.example`**
+- [x] **Step 5: Create `apps/web/.env.example`**
 ```
 VITE_ARCGIS_API_KEY=
 VITE_API_MODE=mock
 ```
 
-- [ ] **Step 6: Run typecheck**
+- [x] **Step 6: Run typecheck**
 ```bash
 pnpm -F @lpg/web typecheck
 ```
 Expected: may show errors for missing `toast.ts` and `auth-store.ts` and `PermissionsProvider.tsx` — these are created in the next tasks. This is expected.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 ```bash
 git add packages/api-client/ packages/mock-data/ packages/mock-api/ apps/web/main.tsx apps/web/.env.example
 git commit -m "feat: adopt @lpg/api-client, @lpg/mock-data, @lpg/mock-api packages"
@@ -503,46 +503,46 @@ git commit -m "feat: adopt @lpg/api-client, @lpg/mock-data, @lpg/mock-api packag
 - Consumes: `@lpg/permissions` (source's CASL ability factory), `@lpg/types` (Role, Permission types)
 - Produces: ability context, permissions provider, auth/role stores, role-switcher in layout
 
-- [ ] **Step 1: Create `apps/web/store/auth-store.ts`**
+- [x] **Step 1: Create `apps/web/store/auth-store.ts`**
 Copy from source `apps/web/store/auth-store.ts`. Key exports: `useAuthStore` (zustand), with actions `login(user)`, `logout()`, `selectUser()`.
 
-- [ ] **Step 2: Create `apps/web/store/role-store.ts`**
+- [x] **Step 2: Create `apps/web/store/role-store.ts`**
 Copy from source `apps/web/store/role-store.ts`. Key exports: `useRoleStore` (zustand), with action `setRole(role)`.
 
-- [ ] **Step 3: Create `apps/web/context/AbilityContext.ts`**
+- [x] **Step 3: Create `apps/web/context/AbilityContext.ts`**
 From source. Exports `useAbility()`, `AbilityContext.Provider`.
 
-- [ ] **Step 4: Create `apps/web/context/PermissionsProvider.tsx`**
+- [x] **Step 4: Create `apps/web/context/PermissionsProvider.tsx`**
 From source. Wraps children, reads `useAuthStore`, `useRoleStore`, constructs CASL `AppAbility`, provides via `AbilityContext`.
 
-- [ ] **Step 5: Create `apps/web/config/rbac/roles.ts`**
+- [x] **Step 5: Create `apps/web/config/rbac/roles.ts`**
 From source. Defines `Role` union type and role permissions mapping.
 
-- [ ] **Step 6: Create `apps/web/config/rbac/sidebar-by-role.ts`**
+- [x] **Step 6: Create `apps/web/config/rbac/sidebar-by-role.ts`**
 From source. Maps roles to visible sidebar items.
 
-- [ ] **Step 7: Create `apps/web/components/layout/role-switcher.tsx`**
+- [x] **Step 7: Create `apps/web/components/layout/role-switcher.tsx`**
 From source. A UI component that cycles through roles for demo purposes.
 
-- [ ] **Step 8: Update layout files to include role-switcher**
+- [x] **Step 8: Update layout files to include role-switcher**
 Check source `components/layout/app-header.tsx` (or equivalent) — if it includes the role-switcher, add it to target's layout.
 
-- [ ] **Step 9: Run typecheck**
+- [x] **Step 9: Run typecheck**
 ```bash
 pnpm -F @lpg/web typecheck
 ```
 
-- [ ] **Step 10: Run lint**
+- [x] **Step 10: Run lint**
 ```bash
 pnpm -F @lpg/web lint
 ```
 
-- [ ] **Step 11: Run build + test**
+- [x] **Step 11: Run build + test**
 ```bash
 pnpm -F @lpg/web build && pnpm -F @lpg/web test
 ```
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 ```bash
 git add apps/web/context/ apps/web/store/ apps/web/config/rbac/ apps/web/components/layout/role-switcher.tsx
 git commit -m "feat: adopt CASL permissions system (auth-store, role-store, PermissionsProvider, AbilityContext)"
@@ -575,7 +575,7 @@ git commit -m "feat: adopt CASL permissions system (auth-store, role-store, Perm
 - Consumes: Task 7 (PermissionsProvider, auth-store, role-store), spec §3 roles/ routes layout
 - Produces: dynamic `$role/$module` route, role-specific screens, login/terms routes, dashboard sub-routes
 
-- [ ] **Step 1: Copy `config/modules/` from source**
+- [x] **Step 1: Copy `config/modules/` from source**
 ```bash
 # Create directory
 mkdir -p apps/web/config/modules
@@ -583,36 +583,36 @@ mkdir -p apps/web/config/modules
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\config\modules\*" -Destination apps/web/config/modules/ -Recurse -Force
 ```
 
-- [ ] **Step 2: Copy `config/rbac/` (if not already done in Task 7)**
+- [x] **Step 2: Copy `config/rbac/` (if not already done in Task 7)**
 Ensure `apps/web/config/rbac/roles.ts` and `apps/web/config/rbac/sidebar-by-role.ts` exist — copy from source if missing.
 
-- [ ] **Step 3: Copy `module/` from source**
+- [x] **Step 3: Copy `module/` from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\module\*" -Destination apps/web/module/ -Recurse -Force
 ```
 
-- [ ] **Step 4: Copy `roles/` from source**
+- [x] **Step 4: Copy `roles/` from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\roles\*" -Destination apps/web/roles/ -Recurse -Force
 ```
 
-- [ ] **Step 5: Copy `routes/_authenticated/$role/` from source**
+- [x] **Step 5: Copy `routes/_authenticated/$role/` from source**
 Create the dynamic route files:
 ```bash
 mkdir -p apps/web/routes/_authenticated/'$role'
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\routes\_authenticated\$role\*" -Destination apps/web/routes/_authenticated/'$role/' -Recurse -Force
 ```
 
-- [ ] **Step 6: Create `routes/login.tsx` and `routes/terms.tsx`**
+- [x] **Step 6: Create `routes/login.tsx` and `routes/terms.tsx`**
 Copy from source `apps/web/routes/login.tsx` and `apps/web/routes/terms.tsx`.
 
-- [ ] **Step 7: Ensure dashboard sub-routes exist**
+- [x] **Step 7: Ensure dashboard sub-routes exist**
 Copy `routes/_authenticated/dashboard/fleets/$fleetName.tsx` and `routes/_authenticated/dashboard/sites/$siteId.tsx` from source.
 
-- [ ] **Step 8: Create settings sub-route `notification-groups.tsx`**
+- [x] **Step 8: Create settings sub-route `notification-groups.tsx`**
 Copy from source `routes/_authenticated/settings/notification-groups.tsx`.
 
-- [ ] **Step 9: Regenerate `routeTree.gen.ts`**
+- [x] **Step 9: Regenerate `routeTree.gen.ts`**
 ```bash
 pnpm -F @lpg/web dev
 # or manually run the TanStack Router generator
@@ -620,17 +620,17 @@ pnpm -F @lpg/web build  # or the specific generator command from source
 ```
 The generator reads `routes/**` and produces `routeTree.gen.ts`. Commit the regenerated file.
 
-- [ ] **Step 10: Run typecheck**
+- [x] **Step 10: Run typecheck**
 ```bash
 pnpm -F @lpg/web typecheck
 ```
 
-- [ ] **Step 11: Run lint**
+- [x] **Step 11: Run lint**
 ```bash
 pnpm -F @lpg/web lint
 ```
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 ```bash
 git add apps/web/config/modules/ apps/web/module/ apps/web/roles/ apps/web/routes/
 git commit -m "feat: adopt module routing system, roles, and new routes ($role/$module, login, terms)"
@@ -656,19 +656,19 @@ git commit -m "feat: adopt module routing system, roles, and new routes ($role/$
 - Consumes: all previous tasks, spec §5 data flow
 - Produces: dashboard charts, notifications UI, command palette, PWA manifest, all new feature components
 
-- [ ] **Step 1: Copy `features/command-palette/` from source**
+- [x] **Step 1: Copy `features/command-palette/` from source**
 ```bash
 mkdir -p apps/web/features/command-palette
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\command-palette\*" -Destination apps/web/features/command-palette/ -Recurse -Force
 ```
 
-- [ ] **Step 2: Copy `features/notifications/` from source**
+- [x] **Step 2: Copy `features/notifications/` from source**
 ```bash
 mkdir -p apps/web/features/notifications
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\notifications\*" -Destination apps/web/features/notifications/ -Recurse -Force
 ```
 
-- [ ] **Step 3: Copy/update dashboard chart components from source**
+- [x] **Step 3: Copy/update dashboard chart components from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\dashboard\chart-area-interactive.tsx" -Destination apps/web/features/dashboard/ -Force
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\dashboard\chart-bar.tsx" -Destination apps/web/features/dashboard/ -Force
@@ -681,7 +681,7 @@ Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\dashboard\dashboard.test.ts" -Destination apps/web/features/dashboard/ -Force
 ```
 
-- [ ] **Step 4: Copy/update routes-related components from source**
+- [x] **Step 4: Copy/update routes-related components from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\routes\route-corridor-map.tsx" -Destination apps/web/features/routes/ -Force
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\routes\route-lpg-variation.ts" -Destination apps/web/features/routes/ -Force
@@ -691,7 +691,7 @@ Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\routes\routes.test.ts" -Destination apps/web/features/routes/ -Force
 ```
 
-- [ ] **Step 5: Copy/update transporter components from source**
+- [x] **Step 5: Copy/update transporter components from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\transporters\transporter-details.tsx" -Destination apps/web/features/transporters/ -Force
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\transporters\transporter-history.tsx" -Destination apps/web/features/transporters/ -Force
@@ -701,19 +701,19 @@ Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\transporters\transporters-bulk-actions.tsx" -Destination apps/web/features/transporters/ -Force
 ```
 
-- [ ] **Step 6: Copy/update truck components from source**
+- [x] **Step 6: Copy/update truck components from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\trucks\truck-details-sheet.tsx" -Destination apps/web/features/trucks/ -Force
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\trucks\trucks-map.tsx" -Destination apps/web/features/trucks/ -Force
 ```
 
-- [ ] **Step 7: Copy/update marketer components from source**
+- [x] **Step 7: Copy/update marketer components from source**
 ```bash
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\marketers\components\marketers-bulk-actions.tsx" -Destination apps/web/features/marketers/components/ -Force
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\marketers\components\marketer-cylinders.tsx" -Destination apps/web/features/marketers/components/ -Force
 ```
 
-- [ ] **Step 8: Update PWA config in `apps/web/vite.config.ts`**
+- [x] **Step 8: Update PWA config in `apps/web/vite.config.ts`**
 Add `VitePWA` plugin import and configuration matching source's `vite.config.ts`. The VitePWA config:
 ```ts
 import { VitePWA } from 'vite-plugin-pwa'
@@ -743,30 +743,30 @@ VitePWA({
 })
 ```
 
-- [ ] **Step 9: Update `apps/web/index.html`**
+- [x] **Step 9: Update `apps/web/index.html`**
 Copy PWA-related meta tags from source if any exist in source's `index.html`.
 
-- [ ] **Step 10: Install `vite-plugin-pwa`**
+- [x] **Step 10: Install `vite-plugin-pwa`**
 ```bash
 pnpm add -D vite-plugin-pwa@^1.0.0
 ```
 
-- [ ] **Step 11: Run typecheck**
+- [x] **Step 11: Run typecheck**
 ```bash
 pnpm -F @lpg/web typecheck
 ```
 
-- [ ] **Step 12: Run lint**
+- [x] **Step 12: Run lint**
 ```bash
 pnpm -F @lpg/web lint
 ```
 
-- [ ] **Step 13: Run build + test**
+- [x] **Step 13: Run build + test**
 ```bash
 pnpm -F @lpg/web build && pnpm -F @lpg/web test
 ```
 
-- [ ] **Step 14: Commit**
+- [x] **Step 14: Commit**
 ```bash
 git add apps/web/features/ apps/web/components/ apps/web/vite.config.ts apps/web/index.html
 git commit -m "feat: adopt dashboard charts, notifications, command-palette, PWA"
@@ -786,7 +786,7 @@ git commit -m "feat: adopt dashboard charts, notifications, command-palette, PWA
 - Consumes: all previous tasks, spec §8.1 baseline lint errors
 - Produces: 51+ passing tests, 0 lint errors, 0 warnings
 
-- [ ] **Step 1: Copy missing test files from source**
+- [x] **Step 1: Copy missing test files from source**
 ```bash
 # lib/breadcrumbs.test.ts
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\lib\breadcrumbs.test.ts" -Destination apps/web/lib/ -Force
@@ -802,31 +802,31 @@ Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps
 Copy-Item -Path "C:\Users\DTA_WorkStation\Documents\lpg-fleet-management-ui\apps\web\features\notifications\notifications-store.test.ts" -Destination apps/web/features/notifications/ -Force
 ```
 
-- [ ] **Step 2: Copy `test-utils/` additions from source**
+- [x] **Step 2: Copy `test-utils/` additions from source**
 Ensure `apps/web/test-utils/` matches source completely.
 
-- [ ] **Step 3: Fix `trip-route-map.tsx` lint errors**
+- [x] **Step 3: Fix `trip-route-map.tsx` lint errors**
 Line 113: replace `as any` cast with the actual ArcGIS basemap type enum from `@arcgis/core`. Extract the basemap value into a module-level `BASEMAPS` map to avoid mutating `viewRef` inside the effect. Line 227: replace `as any` with proper type. Line 241: remove `console.log` or replace with conditional debug logging.
 
-- [ ] **Step 4: Fix `trip-tracking.tsx` react-refresh warning**
+- [x] **Step 4: Fix `trip-tracking.tsx` react-refresh warning**
 Ensure the file only exports a single React component, or add the component to `extraHOCs` in eslint config. The simplest fix: move non-component exports into a separate file.
 
-- [ ] **Step 5: Update `apps/web/eslint.config.mjs`**
+- [x] **Step 5: Update `apps/web/eslint.config.mjs`**
 Replace entire file with source's `eslint.config.mjs` content (see Task 4 reading — `@typescript-eslint/no-explicit-any` is `warn` not `error`, `react-refresh/only-export-components` is `['warn', { allowConstantExport: true }]`).
 
-- [ ] **Step 6: Run lint**
+- [x] **Step 6: Run lint**
 ```bash
 pnpm -F @lpg/web lint
 ```
 Expected: 0 errors, 0 warnings.
 
-- [ ] **Step 7: Run tests**
+- [x] **Step 7: Run tests**
 ```bash
 pnpm -F @lpg/web test
 ```
 Expected: 51/51 passing.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 ```bash
 git add apps/web/features/ tests/ apps/web/eslint.config.mjs apps/web/features/activity/trip-tracking/components/trip-route-map.tsx apps/web/routes/_authenticated/activity/trip-tracking.tsx
 git commit -m "feat: adopt test suite, fix pre-existing lint errors in trip-route-map and trip-tracking"
@@ -842,40 +842,40 @@ git commit -m "feat: adopt test suite, fix pre-existing lint errors in trip-rout
 - Consumes: all completed tasks (1–10)
 - Produces: sign-off confirmation that all gates pass
 
-- [ ] **Step 1: Run `pnpm install`**
+- [x] **Step 1: Run `pnpm install`**
 ```bash
 pnpm install
 ```
 Expected: clean, no peer-dep errors.
 
-- [ ] **Step 2: Run `pnpm -r typecheck`**
+- [x] **Step 2: Run `pnpm -r typecheck`**
 ```bash
 pnpm -r typecheck
 ```
 Expected: 0 errors across all packages + apps.
 
-- [ ] **Step 3: Run `pnpm -r lint`**
+- [x] **Step 3: Run `pnpm -r lint`**
 ```bash
 pnpm -r lint
 ```
 Expected: 0 errors, 0 warnings.
 
-- [ ] **Step 4: Run `pnpm -r build`**
+- [x] **Step 4: Run `pnpm -r build`**
 ```bash
 pnpm -r build
 ```
 Expected: `@lpg/web` bundle produced, no warnings beyond known PWA.
 
-- [ ] **Step 5: Run `pnpm -r test`**
+- [x] **Step 5: Run `pnpm -r test`**
 ```bash
 pnpm -r test
 ```
 Expected: all 51+ tests pass.
 
-- [ ] **Step 6: Check Vercel config**
+- [x] **Step 6: Check Vercel config**
 Verify root `vercel.json` has `buildCommand: pnpm turbo run build --filter @lpg/web` and `outputDirectory: apps/web/dist`. Verify `apps/web/vercel.json` mirrors this.
 
-- [ ] **Step 7: Manual smoke (dev server)**
+- [x] **Step 7: Manual smoke (dev server)**
 ```bash
 pnpm -F @lpg/web dev
 ```
@@ -887,13 +887,13 @@ Open browser to `http://localhost:5173`. Verify:
 5. Trucks, Marketers, Routes, Transporters list pages render
 6. PWA manifest is valid (check DevTools → Application → Manifest)
 
-- [ ] **Step 8: Final commit**
+- [x] **Step 8: Final commit**
 ```bash
 git tag -a v2.3.0 -m "upgrade: @lpg/web monorepo migration complete"
 git push
 ```
 
-- [ ] **Step 9: Update spec status**
+- [x] **Step 9: Update spec status**
 Edit `docs/superpowers/specs/2026-07-29-upgrade-to-lpg-web-monorepo-design.md`, change status from "Pending user review" to "Complete — all gates passed".
 
 ---
