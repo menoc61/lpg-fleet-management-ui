@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   Button,
+  Checkbox,
   Input,
   Label,
   Select,
@@ -174,6 +175,33 @@ function Field({
             ))}
           </SelectContent>
         </Select>
+        {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
+      </div>
+    )
+  }
+
+  if (config.type === 'checklist') {
+    const selected = Array.isArray(value) ? (value as string[]) : []
+    return (
+      <div className='space-y-1.5'>
+        <Label>{config.label}</Label>
+        <div className='max-h-64 space-y-1 overflow-y-auto rounded-md border p-2'>
+          {(config.options ?? []).map((o) => (
+            <div key={o.value} className='flex items-center gap-2 rounded px-1 py-0.5 hover:bg-muted/50'>
+              <Checkbox
+                id={`${id}-${o.value}`}
+                checked={selected.includes(o.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) onChange([...selected, o.value])
+                  else onChange(selected.filter((c) => c !== o.value))
+                }}
+              />
+              <Label htmlFor={`${id}-${o.value}`} className='cursor-pointer font-mono text-xs'>
+                {o.value}
+              </Label>
+            </div>
+          ))}
+        </div>
         {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
       </div>
     )

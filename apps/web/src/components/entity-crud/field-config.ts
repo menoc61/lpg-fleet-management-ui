@@ -15,6 +15,7 @@ export type FieldType =
   | 'switch'
   | 'date'
   | 'url'
+  | 'checklist'
 
 export interface FieldOption {
   label: string
@@ -88,4 +89,10 @@ export const field = {
     type: 'date',
     ...extra,
   }),
+  checklist: (
+    name: string,
+    label: string,
+    options: FieldOption[],
+    extra: Partial<FieldConfig> = {},
+  ): FieldConfig => ({ name, label, type: 'checklist', options, defaultValue: [] as string[], ...extra }),
 }

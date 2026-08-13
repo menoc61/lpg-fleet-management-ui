@@ -1,27 +1,62 @@
-import { useMemo, useState } from 'react'
-import { Check, ShieldCheck, UserRound } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Plus, ShieldCheck, UserRound } from 'lucide-react'
 import { Badge } from '@lpg/ui'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { CrudRowActions } from '@/components/entity-crud'
+import type { CustomRole } from '@lpg/types'
 import {
   getActiveCustomRoleCount,
   getCustomRoleAssignmentCount,
   getCustomRoles,
   type CustomRoleView,
 } from './data/custom-roles'
+import {
+  customRoleFields,
+  customRoleFromForm,
+  customRoleToForm,
+} from './data/custom-roles-crud'
 
 export function CustomRolesPage() {
-  const roles = useMemo(() => getCustomRoles(), [])
-  const active = useMemo(() => getActiveCustomRoleCount(), [])
-  const assignments = useMemo(() => getCustomRoleAssignmentCount(), [])
+  const crud = useEntityCrud<CustomRole>('customRoles', 'custom-roles', ['custom-roles'])
+  const [, setRefresh] = useState(0)
+  const roles = getCustomRoles()
+  const active = getActiveCustomRoleCount()
+  const assignments = getCustomRoleAssignmentCount()
   const [expandedId, setExpandedId] = useState<string | null>(roles[0]?.id ?? null)
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({ id: crud.editing.id, patch: customRoleFromForm(values) })
+        toast.success('Rôle mis à jour.')
+      } else {
+        await crud.createMut.mutateAsync(customRoleFromForm(values) as Omit<CustomRole, 'id'>)
+        toast.success('Rôle créé.')
+      }
+      crud.close()
+      setRefresh((v) => v + 1)
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   return (
     <PageShell>
       <PageHeader
         title='Rôles personnalisés'
         description='Rôles construits par organisation avec leurs propres jeux de permissions.'
+        actions={
+          crud.perm.canCreate ? (
+            <Button onClick={crud.openCreate}>
+              <Plus className='mr-1 h-4 w-4' /> Nouveau rôle
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className='grid gap-4 sm:grid-cols-3'>
@@ -42,10 +77,26 @@ export function CustomRolesPage() {
               role={role}
               expanded={expandedId === role.id}
               onToggle={() => setExpandedId(expandedId === role.id ? null : role.id)}
+              onEdit={() => crud.openEdit(role as unknown as CustomRole)}
+              onDelete={() => crud.removeMut.mutateAsync(role.id)}
             />
           ))}
         </div>
       </SectionCard>
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier le rôle' : 'Nouveau rôle'}
+        description={crud.editing ? 'Mettez à jour le rôle et ses permissions.' : 'Créez un rôle personnalisé avec son jeu de permissions.'}
+        fields={customRoleFields}
+        initial={crud.editing ? customRoleToForm(crud.editing) : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
+      />
     </PageShell>
   )
 }
@@ -54,27 +105,39 @@ function CustomRoleCard({
   role,
   expanded,
   onToggle,
+  onEdit,
+  onDelete,
 }: {
   role: CustomRoleView
   expanded: boolean
   onToggle: () => void
+  onEdit?: () => void
+  onDelete?: () => void
 }) {
   return (
     <div className='rounded-lg border p-3'>
-      <button type='button' onClick={onToggle} className='flex w-full items-center justify-between gap-2 text-left'>
-        <div className='flex items-center gap-2'>
-          <ShieldCheck className='size-4 text-primary' />
-          <span className='font-medium'>{role.name}</span>
-          <Badge
-            variant={role.isActive ? 'default' : 'secondary'}
-            className={cn(!role.isActive && 'text-muted-foreground')}
-          >
-            {role.isActive ? 'Actif' : 'Inactif'}
-          </Badge>
-          <span className='hidden text-xs text-muted-foreground sm:inline'>{role.orgName}</span>
-        </div>
-        <span className='text-xs text-muted-foreground'>{role.permissionCount} permissions</span>
-      </button>
+      <div className='flex w-full items-center justify-between gap-2'>
+        <button type='button' onClick={onToggle} className='flex flex-1 items-center justify-between gap-2 text-left'>
+          <div className='flex items-center gap-2'>
+            <ShieldCheck className='size-4 text-primary' />
+            <span className='font-medium'>{role.name}</span>
+            <Badge
+              variant={role.isActive ? 'default' : 'secondary'}
+              className={cn(!role.isActive && 'text-muted-foreground')}
+            >
+              {role.isActive ? 'Actif' : 'Inactif'}
+            </Badge>
+            <span className='hidden text-xs text-muted-foreground sm:inline'>{role.orgName}</span>
+          </div>
+          <span className='text-xs text-muted-foreground'>{role.permissionCount} permissions</span>
+        </button>
+        <CrudRowActions
+          resource='custom-roles'
+          itemLabel='ce rôle'
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      </div>
 
       {expanded && (
         <div className='mt-3 space-y-3 border-t pt-3'>
