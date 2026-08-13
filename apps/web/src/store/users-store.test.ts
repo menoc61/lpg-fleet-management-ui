@@ -67,6 +67,39 @@ describe('users store', () => {
     })
   })
 
+  describe('createUser', () => {
+    it('prepends a new user with generated id and timestamps', () => {
+      const before = useUsersStore.getState().users.length
+      useUsersStore.getState().createUser({
+        first_name: 'Nouveau',
+        last_name: 'Test',
+        email: 'nouveau@test.cm',
+        system_role: 'MARKETEUR',
+        org_id: 'org-0002-sctm-0000-000000000001',
+        is_active: true,
+      } as never)
+      const after = useUsersStore.getState().users.length
+      expect(after).toBe(before + 1)
+      const first = useUsersStore.getState().users[0]
+      expect(first?.email).toBe('nouveau@test.cm')
+      expect(first?.id).toBeDefined()
+      expect(first?.created_at).toBeDefined()
+    })
+
+    it('does not mutate the shared curated fixture on init', () => {
+      const seeded = curated.users.length
+      useUsersStore.getState().createUser({
+        first_name: 'Nouveau',
+        last_name: 'Test',
+        email: 'nouveau2@test.cm',
+        system_role: 'MARKETEUR',
+        org_id: 'org-0002-sctm-0000-000000000001',
+        is_active: true,
+      } as never)
+      expect(curated.users.length).toBe(seeded)
+    })
+  })
+
   describe('deleteUser', () => {
     it('removes the row', () => {
       const lenBefore = useUsersStore.getState().users.length

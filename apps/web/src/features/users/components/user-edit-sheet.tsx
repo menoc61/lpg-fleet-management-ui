@@ -38,6 +38,15 @@ interface FormState {
   is_active: boolean
 }
 
+const EMPTY_FORM: FormState = {
+  first_name: '',
+  last_name: '',
+  email: '',
+  system_role: 'LIVREUR',
+  org_id: '',
+  is_active: true,
+}
+
 function userToForm(u: UserView): FormState {
   const parts = u.fullName.split(' ')
   return {
@@ -55,11 +64,11 @@ export function UserEditSheet({
   open,
   onOpenChange,
 }: UserEditSheetProps) {
-  if (!user) return null
+  const isCreate = user === null
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <UserEditForm
-        key={user.id}
+        key={isCreate ? 'new' : user!.id}
         user={user}
         onClose={() => onOpenChange(false)}
       />
@@ -71,15 +80,18 @@ function UserEditForm({
   user,
   onClose,
 }: {
-  user: UserView
+  user: UserView | null
   onClose: () => void
 }) {
   const activeRole = useRoleStore((s) => s.activeRole)
   const creatable = getCreatableRoles(activeRole)
   const roleOptions = creatable
   const orgOptions = curated.organizations as Array<{ id: string; name: string }>
+  const isCreate = user === null
 
-  const [form, setForm] = useState<FormState>(() => userToForm(user))
+  const [form, setForm] = useState<FormState>(() =>
+    user ? userToForm(user) : EMPTY_FORM,
+  )
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -102,17 +114,26 @@ function UserEditForm({
       org_id: form.org_id,
       is_active: form.is_active,
     }
-    useUsersStore.getState().updateUser(user.id, patch)
-    toast.success(`Utilisateur ${form.email} mis à jour`)
+    if (isCreate) {
+      useUsersStore.getState().createUser(patch as never)
+      toast.success(`Utilisateur ${form.email} créé`)
+    } else {
+      useUsersStore.getState().updateUser(user!.id, patch)
+      toast.success(`Utilisateur ${form.email} mis à jour`)
+    }
     onClose()
   }
 
   return (
     <SheetContent className='flex w-full flex-col sm:max-w-xl'>
       <SheetHeader className='pb-2'>
-        <SheetTitle>Modifier l&apos;utilisateur</SheetTitle>
+        <SheetTitle>
+          {isCreate ? 'Nouvel utilisateur' : 'Modifier l’utilisateur'}
+        </SheetTitle>
         <SheetDescription>
-          {user.email} — {ROLE_LABELS[user.role]}
+          {isCreate
+            ? 'Créez un utilisateur avec un rôle subordonné.'
+            : `${user!.email} — ${ROLE_LABELS[user!.role]}`}
         </SheetDescription>
       </SheetHeader>
 
@@ -192,7 +213,7 @@ function UserEditForm({
               Compte actif
             </Label>
             <p className='text-xs text-muted-foreground'>
-              Désactiver bloque la connexion sans supprimer l&apos;utilisateur.
+              Désactiver bloque la connexion sans supprimer l’utilisateur.
             </p>
           </div>
           <Switch
@@ -207,7 +228,9 @@ function UserEditForm({
         <Button variant='outline' onClick={onClose}>
           Annuler
         </Button>
-        <Button onClick={handleSave}>Enregistrer</Button>
+        <Button onClick={handleSave}>
+          {isCreate ? 'Créer' : 'Enregistrer'}
+        </Button>
       </SheetFooter>
     </SheetContent>
   )

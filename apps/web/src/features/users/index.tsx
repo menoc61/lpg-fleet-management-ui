@@ -1,24 +1,29 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
-import { Users } from 'lucide-react'
+import { Plus, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { UsersTable } from './components/users-table'
 import { UserDetailsSheet } from './components/user-details-sheet'
 import { UserEditSheet } from './components/user-edit-sheet'
 import { useUsersStore } from '@/store/users-store'
 import { userToView, type UserView } from './data/users'
+import { hasPermission } from '@lpg/permissions'
+import { useRoleStore } from '@/store/role-store'
 
 const route = getRouteApi('/_authenticated/users/')
 
 export function UsersPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
+  const activeRole = useRoleStore((s) => s.activeRole)
 
   const [detailsUser, setDetailsUser] = useState<UserView | null>(null)
-  const [editingUser, setEditingUser] = useState<UserView | null>(null)
+  const [editingUser, setEditingUser] = useState<UserView | null | 'new'>(null)
 
   const users = useUsersStore((s) => s.users)
   const view = useMemo(() => users.map(userToView), [users])
+  const canCreate = hasPermission(activeRole, 'users.create')
 
   const handleViewDetails = useCallback((user: UserView) => {
     setDetailsUser(user)
@@ -27,6 +32,10 @@ export function UsersPage() {
   const handleEdit = useCallback((user: UserView) => {
     setEditingUser(user)
   }, [])
+
+  const sheetOpen =
+    editingUser !== null && editingUser !== undefined
+  const editing = editingUser === 'new' ? null : editingUser
 
   return (
     <main
@@ -40,6 +49,11 @@ export function UsersPage() {
           <Badge variant='outline' className='ml-auto'>
             {view.length}
           </Badge>
+          {canCreate && (
+            <Button onClick={() => setEditingUser('new')}>
+              <Plus className='mr-1 h-4 w-4' /> Nouvel utilisateur
+            </Button>
+          )}
         </div>
       </section>
 
@@ -62,8 +76,8 @@ export function UsersPage() {
       />
 
       <UserEditSheet
-        user={editingUser}
-        open={editingUser !== null}
+        user={editing}
+        open={sheetOpen}
         onOpenChange={(open) => {
           if (!open) setEditingUser(null)
         }}

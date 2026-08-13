@@ -13,6 +13,7 @@ export type UserPatch = Partial<Pick<CuratedUser,
 
 interface UsersState {
   users: CuratedUser[]
+  createUser: (user: Omit<CuratedUser, 'id' | 'created_at' | 'updated_at'>) => void
   updateUser: (id: string, patch: UserPatch) => void
   setStatus: (id: string, active: boolean) => void
   deleteUser: (id: string) => void
@@ -23,6 +24,14 @@ interface UsersState {
 
 export const useUsersStore = create<UsersState>()((set, get) => ({
   users: (curated.users as CuratedUser[]).map((u) => ({ ...u })),
+
+  createUser(user) {
+    const id = `user-${crypto.randomUUID().slice(0, 8)}`
+    const now = new Date().toISOString()
+    set((s) => ({
+      users: [{ ...user, id, created_at: now, updated_at: now } as CuratedUser, ...s.users],
+    }))
+  },
 
   updateUser(id, patch) {
     set((s) => ({
