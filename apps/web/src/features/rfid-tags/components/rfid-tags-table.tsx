@@ -37,9 +37,16 @@ import { DataTableBulkActions as RfidTagsBulkActions } from './data-table-bulk-a
 type RfidTagsTableProps = {
   data: RfidTagView[]
   onOpenDetails: (tag: RfidTagView) => void
+  onEdit?: (tag: RfidTagView) => void
+  onDelete?: (tag: RfidTagView) => void
 }
 
-export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
+export function RfidTagsTable({
+  data,
+  onOpenDetails,
+  onEdit,
+  onDelete,
+}: RfidTagsTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -52,8 +59,8 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
   const [expanded, setExpanded] = useState({})
 
   const columns = useMemo(
-    () => getRfidTagsColumns({ onOpenDetails }),
-    [onOpenDetails]
+    () => getRfidTagsColumns({ onOpenDetails, onEdit, onDelete }),
+    [onOpenDetails, onEdit, onDelete]
   )
 
   const locationOptions = useMemo(() => getRfidTagLocationOptions(data), [data])

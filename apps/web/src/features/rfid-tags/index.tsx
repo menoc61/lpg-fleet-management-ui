@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,10 @@ import {
   rfidTagStatusOptions,
   type RfidTagView,
 } from './data/rfid-tags'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { rfidTagFields, rfidTagFromForm, rfidTagToForm } from './data/rfid-tags-crud'
+import type { RfidTag } from '@lpg/types'
+import { toast } from 'sonner'
 
 export const getRfidTags = _getRfidTags
 export type { RfidTag } from '@lpg/types'
@@ -28,8 +32,24 @@ export function RfidTagsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<RfidTagFilter>('all')
   const [detailsTag, setDetailsTag] = useState<RfidTagView | null>(null)
+  const crud = useEntityCrud<RfidTag>('rfidTags', 'rfid', ['rfid-tags'])
 
   const handleViewDetails = (tag: RfidTagView) => setDetailsTag(tag)
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({ id: crud.editing.id, patch: rfidTagFromForm(values) })
+        toast.success('Tag RFID mis à jour.')
+      } else {
+        await crud.createMut.mutateAsync(rfidTagFromForm(values) as Omit<RfidTag, 'id'>)
+        toast.success('Tag RFID créé.')
+      }
+      crud.close()
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   const filteredTags = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -80,6 +100,11 @@ export function RfidTagsPage() {
           </div>
 
           <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+            {crud.perm.canCreate && (
+              <Button onClick={crud.openCreate}>
+                <Plus className='mr-1 h-4 w-4' /> Nouveau tag
+              </Button>
+            )}
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
@@ -135,7 +160,12 @@ export function RfidTagsPage() {
             {visible.length} / {tags.length} tags
           </Badge>
         </div>
-        <RfidTagsTable data={visible} onOpenDetails={handleViewDetails} />
+        <RfidTagsTable
+          data={visible}
+          onOpenDetails={handleViewDetails}
+          onEdit={(t) => crud.openEdit(t as unknown as RfidTag)}
+          onDelete={(t) => crud.removeMut.mutateAsync(t.tag.id)}
+        />
       </section>
 
       <RfidTagDetailsSheet
@@ -144,6 +174,20 @@ export function RfidTagsPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsTag(null)
         }}
+      />
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier le tag RFID' : 'Nouveau tag RFID'}
+        description={crud.editing ? 'Mettez à jour les informations du tag.' : 'Ajoutez un tag RFID au registre.'}
+        fields={rfidTagFields}
+        initial={crud.editing ? rfidTagToForm(crud.editing) : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
       />
     </main>
   )

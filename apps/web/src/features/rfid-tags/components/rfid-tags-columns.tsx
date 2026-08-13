@@ -9,13 +9,18 @@ import {
   rfidTagStatusLabels,
   type RfidTagView,
 } from '../data/rfid-tags'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type RfidTagsColumnsProps = {
   onOpenDetails: (tag: RfidTagView) => void
+  onEdit?: (tag: RfidTagView) => void
+  onDelete?: (tag: RfidTagView) => void
 }
 
 export function getRfidTagsColumns({
   onOpenDetails,
+  onEdit,
+  onDelete,
 }: RfidTagsColumnsProps): ColumnDef<RfidTagView>[] {
   return [
     {
@@ -141,6 +146,23 @@ export function getRfidTagsColumns({
       ),
       meta: { label: 'Date creation', className: 'w-32' },
       enableGrouping: true,
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableHiding: false,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className='flex justify-end'>
+          <CrudRowActions
+            resource='rfid'
+            itemLabel='ce tag RFID'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
     },
   ]
 }
