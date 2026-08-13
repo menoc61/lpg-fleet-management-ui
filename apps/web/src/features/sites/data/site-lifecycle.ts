@@ -37,15 +37,29 @@ export const REGIONS: readonly string[] = Array.from(
 ).sort()
 
 export function getSiteRows(): SiteRow[] {
-  return siteRows
+  return curatedSites.map((site) => ({
+    id: site.id,
+    status: site.status,
+    region: site.region,
+    delivery_count: site.delivery_count ?? 0,
+    geo_confidence_score: site.geo_confidence_score ?? 0,
+    is_client_site: false,
+  }))
 }
 
 export function getClientSiteRows(): SiteRow[] {
-  return clientSiteRows
+  return curatedClientSites.map((site) => ({
+    id: site.id,
+    status: clientSiteStatus(site),
+    region: site.region,
+    delivery_count: site.delivery_count ?? 0,
+    geo_confidence_score: site.geo_confidence_score ?? 0,
+    is_client_site: true,
+  }))
 }
 
 export function getVerificationInbox(): SiteRow[] {
-  return [...siteRows, ...clientSiteRows]
+  return [...getSiteRows(), ...getClientSiteRows()]
     .filter((s) => s.status === 'ASSIGNED' || s.status === 'ACTIVE')
     .sort((a, b) => (a.delivery_count < b.delivery_count ? -1 : 1))
 }
