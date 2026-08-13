@@ -62,6 +62,7 @@ export function getMarketersColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'name',
@@ -72,6 +73,7 @@ export function getMarketersColumns({
         <div className='font-medium'>{row.original.name}</div>
       ),
       meta: { label: 'Nom', className: 'w-48' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'is_active',
@@ -88,6 +90,7 @@ export function getMarketersColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'user_count',
@@ -98,6 +101,7 @@ export function getMarketersColumns({
         <span className='font-medium'>{row.original.user_count ?? 0}</span>
       ),
       meta: { label: 'Utilisateurs' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'vehicle_count',
@@ -108,6 +112,7 @@ export function getMarketersColumns({
         <span className='font-medium'>{row.original.vehicle_count ?? 0}</span>
       ),
       meta: { label: 'Véhicules' },
+      enableGrouping: true,
     },
   ]
 }

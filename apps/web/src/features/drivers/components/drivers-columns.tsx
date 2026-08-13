@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTableColumnHeader } from '@/components/data-table'
+import { DataTableColumnHeader, StatusIndicator, STATUS_TONE_MAP } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import {
   driverStatusClasses,
@@ -84,6 +84,7 @@ export function getDriversColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'license_number',
@@ -94,6 +95,7 @@ export function getDriversColumns({
         <div className='font-mono text-xs'>{row.original.license_number}</div>
       ),
       meta: { label: 'Permis', className: 'w-32' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'org_name',
@@ -107,6 +109,7 @@ export function getDriversColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Entreprise' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'assigned_vehicle_count',
@@ -119,6 +122,7 @@ export function getDriversColumns({
         </span>
       ),
       meta: { label: 'Vehicules', className: 'w-24 text-center' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'active_tour_count',
@@ -131,6 +135,7 @@ export function getDriversColumns({
         </span>
       ),
       meta: { label: 'Tournees actives', className: 'w-24 text-center' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'is_active',
@@ -141,9 +146,11 @@ export function getDriversColumns({
         const isActive = row.original.is_active
         const status = isActive ? 'ACTIVE' : 'INACTIVE'
         return (
-          <Badge className={cn('font-medium', driverStatusClasses[status])}>
-            {driverStatusLabels[status]}
-          </Badge>
+          <StatusIndicator tone={STATUS_TONE_MAP[status]} ariaLabel={`Statut: ${driverStatusLabels[status]}`}>
+            <Badge className={cn('font-medium', driverStatusClasses[status])}>
+              {driverStatusLabels[status]}
+            </Badge>
+          </StatusIndicator>
         )
       },
       filterFn: (row, _id, value) => {
@@ -154,6 +161,7 @@ export function getDriversColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
   ]
 }

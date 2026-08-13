@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTableColumnHeader } from '@/components/data-table'
+import { DataTableColumnHeader, StatusIndicator, STATUS_TONE_MAP } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import {
   vehicleRiskClasses,
@@ -92,6 +92,7 @@ export function getVehiclesColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'type',
@@ -105,6 +106,7 @@ export function getVehiclesColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Type', className: 'w-32' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'tenant_name',
@@ -118,6 +120,7 @@ export function getVehiclesColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Entreprise' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'region',
@@ -131,6 +134,7 @@ export function getVehiclesColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Region' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'assigned_driver',
@@ -143,6 +147,7 @@ export function getVehiclesColumns({
         </LongText>
       ),
       meta: { label: 'Chauffeur', className: 'min-w-42' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -152,9 +157,11 @@ export function getVehiclesColumns({
       cell: ({ row }) => {
         const status = row.original.status
         return (
-          <Badge className={cn('font-medium', vehicleStatusClasses[status])}>
-            {vehicleStatusLabels[status]}
-          </Badge>
+          <StatusIndicator tone={STATUS_TONE_MAP[status] ?? 'muted'} ariaLabel={`Statut: ${vehicleStatusLabels[status]}`}>
+            <Badge className={cn('font-medium', vehicleStatusClasses[status])}>
+              {vehicleStatusLabels[status]}
+            </Badge>
+          </StatusIndicator>
         )
       },
       filterFn: (row, id, value) =>
@@ -162,6 +169,7 @@ export function getVehiclesColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       id: 'lpgLevel',
@@ -210,6 +218,7 @@ export function getVehiclesColumns({
       },
       meta: { label: 'Risque' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       id: 'certificate',

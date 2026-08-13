@@ -3,12 +3,12 @@ import { canAccessPath, deniedPathRedirect } from './route-access'
 
 describe('route-access', () => {
   describe('landings are always allowed (AGENTS.md §5)', () => {
-    it('TRANSPORTEUR can reach its own /transporters landing despite lacking transporters.read', () => {
-      expect(canAccessPath('TRANSPORTEUR', '/transporters')).toBe(true)
+    it('TRANSPORTEUR can reach its own /overview landing', () => {
+      expect(canAccessPath('TRANSPORTEUR', '/overview')).toBe(true)
     })
 
-    it('MARKETEUR can reach /marketers', () => {
-      expect(canAccessPath('MARKETEUR', '/marketers')).toBe(true)
+    it('MARKETEUR can reach /overview (its landing)', () => {
+      expect(canAccessPath('MARKETEUR', '/overview')).toBe(true)
     })
 
     it('SUPERADMIN landing /dashboard is allowed', () => {
@@ -19,6 +19,10 @@ describe('route-access', () => {
   describe('declared feature paths require the matching permission', () => {
     it('MARKETEUR is denied /organizations (orgs.read is not granted)', () => {
       expect(canAccessPath('MARKETEUR', '/organizations')).toBe(false)
+    })
+
+    it('MARKETEUR is denied /marketers (no organizational view — works on-site)', () => {
+      expect(canAccessPath('MARKETEUR', '/marketers')).toBe(false)
     })
 
     it('TRANSPORTEUR is denied from /audit-logs (no audit-logs.read)', () => {
@@ -84,11 +88,17 @@ describe('route-access', () => {
 
   describe('deniedPathRedirect', () => {
     it('redirects a denied role to its own landing (never loops)', () => {
-      expect(deniedPathRedirect('MARKETEUR', '/organizations')).toBe('/marketers')
+      expect(deniedPathRedirect('MARKETEUR', '/organizations')).toBe('/overview')
+      expect(deniedPathRedirect('MARKETEUR', '/marketers')).toBe('/overview')
     })
 
-    it('returns null when the path is allowed', () => {
+    it('returns /transporters when the path is denied for TRANSPORTEUR', () => {
+      expect(deniedPathRedirect('TRANSPORTEUR', '/audit-logs')).toBe('/transporters')
+    })
+
+    it('never redirects a role off its own landing (AGENTS.md §5)', () => {
       expect(deniedPathRedirect('TRANSPORTEUR', '/transporters')).toBeNull()
+      expect(deniedPathRedirect('MARKETEUR', '/overview')).toBeNull()
     })
   })
 })

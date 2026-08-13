@@ -27,24 +27,28 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
       header: 'Declaration',
       cell: ({ row }) => row.original.declaration_reference,
       meta: { label: 'Declaration' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'marketeur_name',
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'declared_volume',
       header: 'Declare (TM)',
       cell: ({ row }) => (row.original.declared_volume / 1000).toLocaleString('fr-FR'),
       meta: { label: 'Declare (TM)' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'tracked_volume',
       header: 'Suivi (TM)',
       cell: ({ row }) => (row.original.tracked_volume / 1000).toLocaleString('fr-FR'),
       meta: { label: 'Suivi (TM)' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'gap_percentage',
@@ -59,12 +63,14 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
         )
       },
       meta: { label: 'Ecart %' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'subsidy_impact',
       header: 'Impact subvention (XAF)',
       cell: ({ row }) => row.original.subsidy_impact.toLocaleString('fr-FR'),
       meta: { label: 'Impact subvention (XAF)' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -76,6 +82,7 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
     {
       id: 'actions',

@@ -70,6 +70,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'marketeurOrgId',
@@ -80,6 +81,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
         <LongText className='max-w-44'>{row.original.marketeurOrgId}</LongText>
       ),
       meta: { label: 'Marchand' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'sourceSiteName',
@@ -93,6 +95,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Site source' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'destSiteName',
@@ -106,6 +109,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Site destination' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'requestedQuantity',
@@ -116,6 +120,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
         <div className='font-mono text-xs'>{row.original.requestedQuantity} TM</div>
       ),
       meta: { label: 'Quantité demandée' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'approvedQuantity',
@@ -128,6 +133,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
         </div>
       ),
       meta: { label: 'Quantité approuvée' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -147,6 +153,7 @@ export function getSupplyColumns(): ColumnDef<SupplyRequest>[] {
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
   ]
 }

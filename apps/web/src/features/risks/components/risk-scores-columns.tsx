@@ -29,12 +29,14 @@ export function getRiskScoreColumns(): ColumnDef<RiskScoreView>[] {
       header: 'Type',
       cell: ({ row }) => riskEntityLabels[row.original.entity_type] ?? row.original.entity_type,
       meta: { label: 'Type' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'score',
       header: ({ column }) => <DataTableColumnHeader column={column} title='Score' />,
       cell: ({ row }) => <span className='font-semibold tabular-nums'>{row.original.score}</span>,
       meta: { label: 'Score' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'level',
@@ -43,6 +45,7 @@ export function getRiskScoreColumns(): ColumnDef<RiskScoreView>[] {
         <Badge className={LEVEL_CLASS[row.original.level]}>{riskLevelLabels[row.original.level]}</Badge>
       ),
       meta: { label: 'Niveau' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'detail',
@@ -51,12 +54,14 @@ export function getRiskScoreColumns(): ColumnDef<RiskScoreView>[] {
         <span className='line-clamp-2 max-w-xs text-xs text-muted-foreground'>{row.original.detail || '—'}</span>
       ),
       meta: { label: 'Détails' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'updated_at',
       header: 'Mis à jour',
       cell: ({ row }) => new Date(row.original.updated_at).toLocaleDateString('fr-FR'),
       meta: { label: 'Mis à jour' },
+      enableGrouping: true,
     },
   ]
 }

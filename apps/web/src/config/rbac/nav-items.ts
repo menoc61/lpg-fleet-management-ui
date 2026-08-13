@@ -29,9 +29,7 @@ import {
   Activity,
   AlertTriangle,
   Building2,
-  Camera,
   ClipboardList,
-  Database,
   FileBarChart,
   FileText,
   FileWarning,
@@ -46,7 +44,6 @@ import {
   MapPin,
   PackageCheck,
   Plug,
-  Play,
   RadioTower,
   Receipt,
   RefreshCw,
@@ -119,7 +116,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     label: 'Vue d\'ensemble',
     icon: LayoutDashboard,
     path: 'overview',
-    requires: ['reports.read'],
+    requires: ['overview.read'],
   },
 
   /* ----------- Cartography ----------- */
@@ -398,7 +395,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     label: 'Clients & sites livraison',
     icon: Building2,
     path: 'clients',
-    requires: ['markets.read'],
+    requires: ['sites.read'],
   },
   {
     id: 'performance',
@@ -621,7 +618,7 @@ export const WEB_ROLES = ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTEGRATEUR', 'A
 const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   SUPERADMIN: {
     groups: [
-      { title: 'Pilotage national', items: ['overview', 'map', 'finance', 'risk-scores'] },
+      { title: 'Pilotage national', items: ['overview', 'map', 'finance', 'risk-scores', 'dashboard'] },
       {
         title: 'Entités',
           items: [
@@ -670,7 +667,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   ADMIN: {
     groups: [
-      { title: 'Gestion', items: ['overview', 'users', 'marketers', 'transporters'] },
+      { title: 'Gestion', items: ['overview', 'users', 'marketers', 'transporters', 'dashboard-admin'] },
       {
         title: 'Validation & Contrôle',
         items: ['site-verifications', 'pickups', 'declarations', 'reconciliations'],
@@ -684,7 +681,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   SUPERVISOR: {
     groups: [
-      { title: 'Monitoring technique', items: ['overview', 'infra', 'system-metrics', 'system-health'] },
+      { title: 'Monitoring technique', items: ['overview', 'infra', 'system-metrics', 'system-health', 'dashboard-supervisor'] },
       {
         title: 'Piste technique (Anomalies)',
         items: ['device-health', 'gps-tracking', 'alerts', 'anomalies-technical'],
@@ -718,7 +715,7 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
   },
   MARKETEUR: {
     groups: [
-       { title: 'Ma flotte', items: ['overview', 'vehicles', 'drivers', 'devices'] },
+       { title: 'Ma flotte', items: ['overview', 'vehicles', 'drivers', 'devices', 'dashboard-marketeur'] },
       {
         title: 'Flux 1 — Approvisionnement',
         items: ['pickups', 'pickup-tracking'],
@@ -733,11 +730,11 @@ const ROLE_NAV_DECL: Record<Role, RoleDecl> = {
       },
     ],
   },
-  TRANSPORTEUR: {
+TRANSPORTEUR: {
     groups: [
       {
         title: 'Opérations',
-         items: ['overview', 'tours', 'tour-tracking'],
+         items: ['overview', 'tours', 'tour-tracking', 'dashboard-transporteur'],
       },
        { title: 'Ma flotte', items: ['vehicles', 'drivers', 'livreurs'] },
       { title: 'Contrats & Clients', items: ['contracts', 'performance'] },

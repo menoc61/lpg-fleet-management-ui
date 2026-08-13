@@ -90,6 +90,7 @@ export function getTrucksColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'license_plate',
@@ -100,6 +101,7 @@ export function getTrucksColumns({
         <div className='font-mono text-xs'>{row.original.license_plate}</div>
       ),
       meta: { label: 'Plaque', className: 'w-32' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'tenant_name',
@@ -113,6 +115,7 @@ export function getTrucksColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Entreprise' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'region',
@@ -126,6 +129,7 @@ export function getTrucksColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Region' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'assigned_driver',
@@ -140,6 +144,7 @@ export function getTrucksColumns({
         </div>
       ),
       meta: { label: 'Chauffeur', className: 'min-w-42' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'tournee_status',
@@ -159,6 +164,7 @@ export function getTrucksColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       id: 'lpgLevel',
@@ -209,6 +215,7 @@ export function getTrucksColumns({
       },
       meta: { label: 'Risque' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       id: 'actions',

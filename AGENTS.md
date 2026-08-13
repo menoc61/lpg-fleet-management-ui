@@ -52,6 +52,38 @@ Rules:
 - VRAC (GPL vrac) → TM (tonnes métriques). Never kg, never bare t.
 - Bouteilles 50 kg → btl (count of individual bottles).
 
+## 4. Business rules & system conventions
+
+- **Settings-Driven, zero hardcoded thresholds.** Business rules never embed raw
+  values. Geo confidence thresholds (`geo.confidence_*`), battery/offline alerts
+  (`device.battery_critical_threshold`, `device.offline_alert_minutes`), SLA
+  timeouts (`tournee.*`), tolerance percentages
+  (`reconciliation.volume_gap_tolerance_percent`), retention years
+  (`audit.retention_years`), MFA enforcement (`mfa.enforced_for_roles`), GPS
+  capture interval, and report expiry are read by `setting_key` from the
+  `settings` model (frontend fixture:
+  `packages/mock-data/src/seed/curated/10_system_config.json`, accessor
+  `getSettingNumber` in `packages/mock-data/src/settings.ts`).
+- **Role hierarchy:** SUPERADMIN > ADMIN > SUPERVISOR/AGENT/INTEGRATEUR >
+  MARKETEUR/TRANSPORTEUR > LIVREUR. A user may only create subordinates at or
+  below their own level (`HIERARCHY_LEVEL` / `canCreate` in `@lpg/permissions`).
+- **Dual-layer RBAC:** effective permissions = `system_role` base grants OR
+  `custom_roles` (JSONB) overrides, scoped by `user_site_assignments`. The web
+  matrix (`ROLE_GRANTS`) models the base layer; sidebars and route guards consume
+  it. No feature may rely solely on `system_role`.
+- **No organizational view for MARKETEUR.** MARKETEUR-role users work on-site
+  (e.g. site director of a MARKETEUR org). They never see organization-level
+  entity views (`/marketers`, `/organizations`); their home view is `/overview`.
+  Org-level entity management belongs to SUPERADMIN/ADMIN/AGENT.
+- **File storage:** all images, certificates, and proofs live in MinIO
+  (S3-compatible); only URL references are kept in the database.
+- **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
+- **Status lifecycles** come from the schema (device, RFID, pickup, tour, site) —
+  never invent new status strings.
+- **Workflows** resolve against TODO.md §5 (onboarding, geo-verification, certificates,
+  device lifecycle, flux 1 / 2a / 2b, reconciliation, anomalies, risk, reporting);
+  **monitoring/security** against TODO.md §6–§7.
+
 ## 5. Routing & navigation
 
 - **Only static feature routes exist.** There is **no** `$role/$module` dynamic router, no
@@ -63,7 +95,7 @@ Rules:
   role hierarchy: SUPERADMIN > ADMIN > SUPERVISOR/AGENT/INTEGRATEUR >
   MARKETEUR/TRANSPORTEUR > LIVREUR.
 - Post-login landing is per-role. Only SUPERADMIN lands on `/dashboard`; other roles land on
-  their own home feature (e.g. TRANSPORTEUR → `/transporters`, MARKETEUR → `/marketers`).
+  their own home feature (e.g. TRANSPORTEUR → `/transporters`, MARKETEUR → `/overview`).
 
 ## 6. Code naming & units
 

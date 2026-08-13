@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTableColumnHeader } from '@/components/data-table'
+import { DataTableColumnHeader, StatusIndicator, STATUS_TONE_MAP } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import {
   rfidTagStatusClasses,
@@ -81,6 +81,7 @@ export function getRfidTagsColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'bottle_serial',
@@ -91,6 +92,7 @@ export function getRfidTagsColumns({
         <span className='font-mono text-xs'>{row.original.bottle_serial}</span>
       ),
       meta: { label: 'Bouteille', className: 'w-32' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -101,9 +103,11 @@ export function getRfidTagsColumns({
         const status = row.original.status
 
         return (
-          <Badge className={cn('font-medium', rfidTagStatusClasses[status])}>
-            {rfidTagStatusLabels[status]}
-          </Badge>
+          <StatusIndicator tone={STATUS_TONE_MAP[status] ?? 'muted'} ariaLabel={`Statut: ${rfidTagStatusLabels[status]}`}>
+            <Badge className={cn('font-medium', rfidTagStatusClasses[status])}>
+              {rfidTagStatusLabels[status]}
+            </Badge>
+          </StatusIndicator>
         )
       },
       filterFn: (row, id, value) =>
@@ -111,6 +115,7 @@ export function getRfidTagsColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'location',
@@ -124,6 +129,7 @@ export function getRfidTagsColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Localisation' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'created_at',
@@ -134,6 +140,7 @@ export function getRfidTagsColumns({
         <span>{formatDateTime(row.original.created_at)}</span>
       ),
       meta: { label: 'Date creation', className: 'w-32' },
+      enableGrouping: true,
     },
   ]
 }

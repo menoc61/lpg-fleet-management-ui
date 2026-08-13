@@ -54,7 +54,7 @@ export function getToursColumns({
         </button>
       ),
       enableHiding: false,
-      enableGrouping: false,
+      enableGrouping: true,
       meta: { label: 'Reference' },
     },
     {
@@ -62,7 +62,7 @@ export function getToursColumns({
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
-      enableGrouping: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'execution_mode',
@@ -73,34 +73,35 @@ export function getToursColumns({
         </Badge>
       ),
       meta: { label: 'Mode' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'tourneeType',
       header: 'Type',
       cell: ({ row }) => getTourCargo(row.original),
       meta: { label: 'Type' },
-      enableGrouping: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'transporter_name',
       header: 'Transporteur',
       cell: ({ row }) => row.original.transporter_name ?? DASH,
       meta: { label: 'Transporteur' },
-      enableGrouping: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'vehicle_plate',
       header: 'Vehicule',
       cell: ({ row }) => row.original.vehicle_plate ?? DASH,
       meta: { label: 'Vehicule' },
-      enableGrouping: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'requested_quantity',
       header: 'Quantite',
       cell: ({ row }) => getTourVolume(row.original),
       meta: { label: 'Quantite' },
-      enableGrouping: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'delivered_quantity',
@@ -110,7 +111,7 @@ export function getToursColumns({
           ? `${row.original.delivered_quantity} ${row.original.tourneeType === 'VRAC' ? 'TM' : 'btl'}`
           : DASH,
       meta: { label: 'Livre' },
-      enableGrouping: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'tourneeStatus',
@@ -122,6 +123,7 @@ export function getToursColumns({
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
   ]
 }

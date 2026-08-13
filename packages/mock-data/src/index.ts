@@ -94,16 +94,23 @@ export interface AuthFixture {
   last_name: string
   system_role: string
   password: string
+  org_id: string
+  org_name: string
 }
 
-export const AUTH_FIXTURES: AuthFixture[] = curated.users.map((u) => ({
-  id: u.id,
-  email: u.email,
-  first_name: u.first_name,
-  last_name: u.last_name,
-  system_role: u.system_role,
-  password: 'password',
-}))
+export const AUTH_FIXTURES: AuthFixture[] = curated.users.map((u) => {
+  const org = (curated.organizations as any[]).find((o) => o.id === u.org_id)
+  return {
+    id: u.id,
+    email: u.email,
+    first_name: u.first_name,
+    last_name: u.last_name,
+    system_role: u.system_role,
+    password: 'password',
+    org_id: u.org_id ?? '',
+    org_name: org?.name ?? 'Organisation inconnue',
+  }
+})
 
 export interface FakeProfile {
   id: string
@@ -111,6 +118,8 @@ export interface FakeProfile {
   first_name: string
   last_name: string
   system_role: string
+  org_id: string
+  org_name: string
 }
 
 export const fakeProfiles: FakeProfile[] = AUTH_FIXTURES.map((f) => ({
@@ -119,4 +128,6 @@ export const fakeProfiles: FakeProfile[] = AUTH_FIXTURES.map((f) => ({
   first_name: f.first_name,
   last_name: f.last_name,
   system_role: f.system_role,
+  org_id: f.org_id,
+  org_name: f.org_name,
 }))

@@ -16,24 +16,28 @@ export function getTransporterContractColumns(): ColumnDef<TransporterContractVi
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'transporter_name',
       header: 'Transporteur',
       cell: ({ row }) => row.original.transporter_name,
       meta: { label: 'Transporteur' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'start_date',
       header: 'Début',
       cell: ({ row }) => row.original.start_date,
       meta: { label: 'Début' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'end_date',
       header: 'Fin',
       cell: ({ row }) => row.original.end_date ?? '—',
       meta: { label: 'Fin' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'is_primary',
@@ -42,6 +46,7 @@ export function getTransporterContractColumns(): ColumnDef<TransporterContractVi
         row.original.is_primary ? <Badge className='bg-indigo-100 text-indigo-800'>Principal</Badge> : '—'
       ),
       meta: { label: 'Principal' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'is_active',
@@ -53,6 +58,7 @@ export function getTransporterContractColumns(): ColumnDef<TransporterContractVi
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
   ]
 }

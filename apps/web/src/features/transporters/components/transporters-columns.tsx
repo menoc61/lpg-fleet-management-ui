@@ -61,6 +61,7 @@ export function getTransportersColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'name',
@@ -71,6 +72,7 @@ export function getTransportersColumns({
         <div className='font-medium'>{row.original.name}</div>
       ),
       meta: { label: 'Nom', className: 'w-48' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'is_active',
@@ -87,6 +89,7 @@ export function getTransportersColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'vehicle_count',
@@ -97,6 +100,7 @@ export function getTransportersColumns({
         <span className='font-medium'>{row.original.vehicle_count ?? 0}</span>
       ),
       meta: { label: 'Véhicules' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'driver_count',
@@ -107,6 +111,7 @@ export function getTransportersColumns({
         <span className='font-medium'>{row.original.driver_count ?? 0}</span>
       ),
       meta: { label: 'Chauffeurs' },
+      enableGrouping: true,
     },
   ]
 }

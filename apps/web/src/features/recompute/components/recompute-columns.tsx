@@ -71,6 +71,7 @@ export function getRecomputeColumns(): ColumnDef<RiskScoreView>[] {
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'entityType',
@@ -86,6 +87,7 @@ export function getRecomputeColumns(): ColumnDef<RiskScoreView>[] {
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Type entité' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'entityId',
@@ -96,6 +98,7 @@ export function getRecomputeColumns(): ColumnDef<RiskScoreView>[] {
         <LongText className='max-w-44'>{row.original.entityId}</LongText>
       ),
       meta: { label: 'Entité ID' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'score',
@@ -106,6 +109,7 @@ export function getRecomputeColumns(): ColumnDef<RiskScoreView>[] {
         <div className='font-mono text-xs'>{row.original.score}</div>
       ),
       meta: { label: 'Score' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'level',
@@ -125,6 +129,7 @@ export function getRecomputeColumns(): ColumnDef<RiskScoreView>[] {
       meta: { label: 'Niveau' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'modelVersion',
@@ -135,6 +140,7 @@ export function getRecomputeColumns(): ColumnDef<RiskScoreView>[] {
         <div className='font-mono text-xs'>{row.original.modelVersion}</div>
       ),
       meta: { label: 'Modèle', className: 'w-28' },
+      enableGrouping: true,
     },
     {
       id: 'period',

@@ -19,8 +19,8 @@ import {
 const ALL_CODES = new Set(PERMISSION_CATALOG.map((e) => e.code))
 
 describe('catalog integrity', () => {
-  it('defines exactly 141 codes across 9 categories', () => {
-    expect(PERMISSION_CATALOG).toHaveLength(141)
+  it('defines exactly 149 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(149)
     expect(new Set(PERMISSION_CATALOG.map((e) => e.category))).toHaveLength(9)
     expect(PERMISSION_CATEGORIES).toHaveLength(9)
   })
@@ -49,14 +49,14 @@ describe('catalog integrity', () => {
     )
     expect(counts).toEqual({
       identity: 16,
-      governance: 14,
+      governance: 19,
       sites: 13,
-      fleet: 21,
+      fleet: 22,
       supply: 8,
       tours: 19,
       compliance: 14,
       risk: 15,
-      reporting: 21,
+      reporting: 23,
     })
   })
 })

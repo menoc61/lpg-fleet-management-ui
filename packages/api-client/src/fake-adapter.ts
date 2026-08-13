@@ -27,6 +27,12 @@ function fakeToken(profileId: string): string {
   return `fake.${profileId}.${Date.now()}`
 }
 
+function genId(name: string): string {
+  const rnd =
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  return `${name}-${rnd}`
+}
+
 const COLLECTIONS: Record<string, unknown[]> = {
   regions: curated.regions,
   organizations: curated.organizations,
@@ -67,24 +73,63 @@ const COLLECTIONS: Record<string, unknown[]> = {
 
 export function createFakeAdapter(): ApiAdapter {
   return {
-    async request<T>(path: string): Promise<T> {
+    async request<T>(path: string, init?: import('./adapter.ts').RequestOptions): Promise<T> {
+      const method = (init?.method ?? 'GET').toUpperCase()
       const match = path.match(/^\/([a-z-]+)(?:\/([^?]+))?/i)
       const name = match?.[1]
       const id = match?.[2]
-      if (name && id && COLLECTIONS[name]) {
-        const item = (COLLECTIONS[name] as any[]).find((x) => x.id === id)
-        if (!item) throw new Error('Introuvable')
-        return delay(item) as Promise<T>
-      }
+      // api-client resource names use hyphens (e.g. `rfid-tags`); collections
+      // use snake_case (e.g. `rfid_tags`). Normalize for lookup.
+      const collection = name?.replace(/-/g, '_') ?? ''
+
       if (name === 'me') return delay(null as unknown as T)
+      if (!name || !COLLECTIONS[collection]) {
+        throw new Error(`Fake adapter: unsupported resource ${name ?? path}`)
+      }
+
+      // CREATE
+      if (method === 'POST') {
+        const body = init?.body ? JSON.parse(String(init.body)) : {}
+        const item = { id: genId(name), ...body }
+        ;(COLLECTIONS[collection] as unknown as any[]).push(item)
+        return delay(item as unknown as T)
+      }
+
+      // UPDATE
+      if ((method === 'PATCH' || method === 'PUT') && id) {
+        const coll = COLLECTIONS[collection] as unknown as any[]
+        const idx = coll.findIndex((x) => x.id === id)
+        if (idx === -1) throw new Error('Introuvable')
+        const body = init?.body ? JSON.parse(String(init.body)) : {}
+        coll[idx] = { ...coll[idx], ...body, id }
+        return delay(coll[idx] as unknown as T)
+      }
+
+      // DELETE
+      if (method === 'DELETE' && id) {
+        const coll = COLLECTIONS[collection] as unknown as any[]
+        const idx = coll.findIndex((x) => x.id === id)
+        if (idx === -1) throw new Error('Introuvable')
+        coll.splice(idx, 1)
+        return delay(undefined as unknown as T)
+      }
+
+      // READ by id
+      if (id) {
+        const item = (COLLECTIONS[collection] as unknown as any[]).find((x) => x.id === id)
+        if (!item) throw new Error('Introuvable')
+        return delay(item as unknown as T)
+      }
+
       throw new Error(`Fake adapter: unsupported path ${path}`)
     },
 
     async requestList<T>(path: string): Promise<ListResult<T>> {
       const match = path.match(/^\/([a-z-]+)/i)
       const name = match?.[1]
-      if (!name || !COLLECTIONS[name]) throw new Error(`Fake adapter: unknown resource ${name}`)
-      const items = COLLECTIONS[name] as T[]
+      const collection = name?.replace(/-/g, '_') ?? ''
+      if (!name || !COLLECTIONS[collection]) throw new Error(`Fake adapter: unknown resource ${name}`)
+      const items = COLLECTIONS[collection] as T[]
       const qs = path.includes('?') ? path.slice(path.indexOf('?') + 1) : ''
       const params = new URLSearchParams(qs)
       const page = Number(params.get('page') ?? 1)
@@ -96,6 +141,10 @@ export function createFakeAdapter(): ApiAdapter {
       const fixture =
         AUTH_FIXTURES.find((f) => f.email === creds.email) ?? AUTH_FIXTURES[0]
       if (!fixture) throw new Error('Fake adapter: no auth fixtures available')
+      const fullUser = (curated.users as any[]).find((u) => u.id === fixture.id)
+      const org = fullUser?.org_id
+        ? (curated.organizations as any[]).find((o) => o.id === fullUser.org_id)
+        : undefined
       return delay({
         access_token: fakeToken(fixture.id),
         refresh_token: fakeToken(fixture.id),
@@ -105,6 +154,8 @@ export function createFakeAdapter(): ApiAdapter {
           first_name: fixture.first_name,
           last_name: fixture.last_name,
           system_role: fixture.system_role as any,
+          org_id: fullUser?.org_id,
+          org_name: org?.name,
         },
       })
     },

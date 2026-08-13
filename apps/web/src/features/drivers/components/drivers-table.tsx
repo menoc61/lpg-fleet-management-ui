@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
+  getGroupedRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   type ColumnFiltersState,
+  type GroupingState,
   type PaginationState,
   type SortingState,
   type VisibilityState,
@@ -25,6 +28,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { driverStatusOptions, type DriverView } from '../data/drivers'
 import { getDriversColumns } from './drivers-columns'
+import { DataTableBulkActions as DriversBulkActions } from './data-table-bulk-actions'
 
 type DriversTableProps = {
   data: DriverView[]
@@ -45,6 +49,8 @@ export function DriversTable({
     pageIndex: 0,
     pageSize: 10,
   })
+  const [grouping, setGrouping] = useState<GroupingState>([])
+  const [expanded, setExpanded] = useState({})
 
   const columns = useMemo(
     () => getDriversColumns({ onViewDetails }),
@@ -61,20 +67,34 @@ export function DriversTable({
       rowSelection,
       columnFilters,
       columnVisibility,
+      grouping,
+      expanded,
     },
     enableRowSelection: true,
+    enableGrouping: true,
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGroupingChange: setGrouping,
+    onExpandedChange: setExpanded,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
+
+  useEffect(() => {
+    setPagination((prev) => ({
+      ...prev,
+      pageIndex: Math.min(prev.pageIndex, Math.max(table.getPageCount() - 1, 0)),
+    }))
+  }, [table.getPageCount()])
 
   return (
     <div
@@ -83,23 +103,39 @@ export function DriversTable({
         'flex flex-1 flex-col gap-4'
       )}
     >
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Rechercher chauffeur, permis, entreprise...'
-        searchKey='full_name'
-        filters={[
-          {
-            columnId: 'org_name',
-            title: 'Entreprise',
-            options: orgOptions,
-          },
-          {
-            columnId: 'is_active',
-            title: 'Statut',
-            options: [...driverStatusOptions],
-          },
-        ]}
-      />
+      <div className='flex flex-wrap items-center gap-3'>
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder='Rechercher chauffeur, permis, entreprise...'
+          searchKey='full_name'
+          filters={[
+            {
+              columnId: 'org_name',
+              title: 'Entreprise',
+              options: orgOptions,
+            },
+            {
+              columnId: 'is_active',
+              title: 'Statut',
+              options: [...driverStatusOptions],
+            },
+          ]}
+        />
+        <div className='flex items-center gap-2'>
+          <span className='text-xs text-muted-foreground'>Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) =>
+              setGrouping(e.target.value ? [e.target.value] : [])
+            }
+            className='h-8 rounded-md border bg-background px-2 text-sm'
+          >
+            <option value=''>—</option>
+            <option value='org_name'>Entreprise</option>
+            <option value='is_active'>Statut</option>
+          </select>
+        </div>
+      </div>
 
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -133,8 +169,13 @@ export function DriversTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
-                  onDoubleClick={() => onViewDetails(row.original)}
+                  className={cn(
+                    'group/row',
+                    row.getIsGrouped() && 'bg-muted/40 font-medium'
+                  )}
+                  onDoubleClick={() => {
+                    if (!row.getIsGrouped()) onViewDetails(row.original)
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -145,9 +186,24 @@ export function DriversTable({
                         cell.column.columnDef.meta?.tdClassName
                       )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+                      {cell.getIsGrouped() ? (
+                        <button
+                          type='button'
+                          className='flex items-center gap-2 text-primary'
+                          onClick={row.getToggleExpandedHandler()}
+                        >
+                          {row.getIsExpanded() ? '▼' : '▶'}{' '}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}{' '}
+                          ({row.subRows.length})
+                        </button>
+                      ) : cell.getIsPlaceholder() ? null : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
                       )}
                     </TableCell>
                   ))}
@@ -167,6 +223,7 @@ export function DriversTable({
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
+      <DriversBulkActions table={table} />
     </div>
   )
 }

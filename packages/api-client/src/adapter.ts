@@ -6,6 +6,8 @@ export interface AuthUser {
   first_name: string
   last_name: string
   system_role: Role
+  org_id?: string
+  org_name?: string
 }
 
 export interface AuthResult {

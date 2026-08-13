@@ -29,18 +29,21 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'period',
       header: 'Periode',
       cell: ({ row }) => row.original.period,
       meta: { label: 'Periode' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'volume_label',
       header: 'Volume declare',
       cell: ({ row }) => row.original.volume_label,
       meta: { label: 'Volume declare' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -52,6 +55,7 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
     {
       id: 'actions',

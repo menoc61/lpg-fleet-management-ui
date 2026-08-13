@@ -98,12 +98,14 @@ export function CertificatesTable({
           <Badge variant='outline'>{row.original.vehicleType}</Badge>
         ),
         meta: { label: 'Type' },
+        enableGrouping: true,
       },
       {
         accessorKey: 'orgName',
         header: 'Titulaire / Org',
         cell: ({ row }: { row: { original: CertificateView } }) => row.original.orgName,
         meta: { label: 'Titulaire / Org' },
+        enableGrouping: true,
       },
       {
         accessorKey: 'issuedAt',

@@ -37,6 +37,7 @@ export function getUsersColumns({
       ),
       cell: ({ row }) => row.original.email,
       meta: { label: 'E-mail' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'orgName',
@@ -45,6 +46,7 @@ export function getUsersColumns({
       ),
       cell: ({ row }) => row.original.orgName,
       meta: { label: 'Organisation' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'role',
@@ -56,6 +58,7 @@ export function getUsersColumns({
       ),
       filterFn: (row, _id, value) => row.original.role === value,
       meta: { label: 'Rôle' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -67,18 +70,21 @@ export function getUsersColumns({
       ),
       filterFn: (row, _id, value) => row.original.status === value,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'mfaStatus',
       header: 'MFA',
       cell: ({ row }) => mfaStatusLabel(row.original.mfaStatus),
       meta: { label: 'MFA' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'lastLogin',
       header: 'Dernière connexion',
       cell: ({ row }) => row.original.lastLogin,
       meta: { label: 'Dernière connexion' },
+      enableGrouping: true,
     },
     {
       id: 'actions',

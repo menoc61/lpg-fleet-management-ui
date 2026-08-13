@@ -44,6 +44,7 @@ export function getAnomalyColumns(): ColumnDef<AnomalyView>[] {
       header: 'Type',
       cell: ({ row }) => row.original.type_label,
       meta: { label: 'Type' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'category',
@@ -54,6 +55,7 @@ export function getAnomalyColumns(): ColumnDef<AnomalyView>[] {
         </Badge>
       ),
       meta: { label: 'Piste' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'severity',
@@ -64,18 +66,21 @@ export function getAnomalyColumns(): ColumnDef<AnomalyView>[] {
         </Badge>
       ),
       meta: { label: 'Gravité' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'entity_name',
       header: 'Entité',
       cell: ({ row }) => row.original.entity_name,
       meta: { label: 'Entité' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'assigned_agent',
       header: 'Assignée à',
       cell: ({ row }) => row.original.assigned_agent ?? '—',
       meta: { label: 'Assignée à' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -87,6 +92,7 @@ export function getAnomalyColumns(): ColumnDef<AnomalyView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
   ]
 }

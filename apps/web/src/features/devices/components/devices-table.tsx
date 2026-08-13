@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
+  getGroupedRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type GroupingState,
   type SortingState,
   type VisibilityState,
   useReactTable,
@@ -28,6 +31,7 @@ import {
   type DeviceView,
 } from '../data/devices'
 import { getDevicesColumns } from './devices-columns'
+import { DataTableBulkActions as DevicesBulkActions } from './data-table-bulk-actions'
 
 type DevicesTableProps = {
   data: DeviceView[]
@@ -45,6 +49,8 @@ export function DevicesTable({
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  const [grouping, setGrouping] = useState<GroupingState>([])
+  const [expanded, setExpanded] = useState({})
   const columns = useMemo(
     () => getDevicesColumns({ onViewDetails }),
     [onViewDetails]
@@ -79,17 +85,24 @@ export function DevicesTable({
       rowSelection,
       columnFilters,
       columnVisibility,
+      grouping,
+      expanded,
     },
     enableRowSelection: true,
+    enableGrouping: true,
     onPaginationChange,
     onColumnFiltersChange,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGroupingChange: setGrouping,
+    onExpandedChange: setExpanded,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
@@ -105,28 +118,45 @@ export function DevicesTable({
         'flex flex-1 flex-col gap-4'
       )}
     >
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Rechercher numéro de série, org, camion...'
-        searchKey='serial'
-        filters={[
-          {
-            columnId: 'type',
-            title: 'Type',
-            options: [...deviceTypeOptions],
-          },
-          {
-            columnId: 'status',
-            title: 'Statut',
-            options: [...deviceStatusOptions],
-          },
-          {
-            columnId: 'orgName',
-            title: 'Organisation',
-            options: orgNameOptions(data),
-          },
-        ]}
-      />
+      <div className='flex flex-wrap items-center gap-3'>
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder='Rechercher numéro de série, org, camion...'
+          searchKey='serial'
+          filters={[
+            {
+              columnId: 'type',
+              title: 'Type',
+              options: [...deviceTypeOptions],
+            },
+            {
+              columnId: 'status',
+              title: 'Statut',
+              options: [...deviceStatusOptions],
+            },
+            {
+              columnId: 'orgName',
+              title: 'Organisation',
+              options: orgNameOptions(data),
+            },
+          ]}
+        />
+        <div className='flex items-center gap-2'>
+          <span className='text-xs text-muted-foreground'>Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) =>
+              setGrouping(e.target.value ? [e.target.value] : [])
+            }
+            className='h-8 rounded-md border bg-background px-2 text-sm'
+          >
+            <option value=''>—</option>
+            <option value='type'>Type</option>
+            <option value='status'>Statut</option>
+            <option value='orgName'>Organisation</option>
+          </select>
+        </div>
+      </div>
 
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -160,8 +190,13 @@ export function DevicesTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
-                  onDoubleClick={() => onViewDetails(row.original)}
+                  className={cn(
+                    'group/row',
+                    row.getIsGrouped() && 'bg-muted/40 font-medium'
+                  )}
+                  onDoubleClick={() => {
+                    if (!row.getIsGrouped()) onViewDetails(row.original)
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -172,9 +207,24 @@ export function DevicesTable({
                         cell.column.columnDef.meta?.tdClassName
                       )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+                      {cell.getIsGrouped() ? (
+                        <button
+                          type='button'
+                          className='flex items-center gap-2 text-primary'
+                          onClick={row.getToggleExpandedHandler()}
+                        >
+                          {row.getIsExpanded() ? '▼' : '▶'}{' '}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}{' '}
+                          ({row.subRows.length})
+                        </button>
+                      ) : cell.getIsPlaceholder() ? null : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
                       )}
                     </TableCell>
                   ))}
@@ -194,6 +244,7 @@ export function DevicesTable({
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
+      <DevicesBulkActions table={table} />
     </div>
   )
 }

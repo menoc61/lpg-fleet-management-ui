@@ -11,6 +11,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   hydrateSession: () => Promise<void>
+  updateProfile: (patch: Partial<Pick<AuthUser, 'first_name' | 'last_name' | 'email'>>) => void
 }
 
 // Bridge the adapter to the stored access token so HTTP requests carry the bearer.
@@ -63,6 +64,12 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           set({ status: 'unauthenticated' })
         }
+      },
+
+      updateProfile(patch) {
+        const { user } = useAuthStore.getState()
+        if (!user) return
+        set({ user: { ...user, ...patch } })
       },
     }),
     {

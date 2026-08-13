@@ -6,6 +6,7 @@
 
 import { curated } from './curated.ts'
 import type { RiskScore } from './curated.ts'
+import { getSettingNumber } from './settings.ts'
 
 type Indexable = object
 
@@ -196,8 +197,9 @@ export interface DeviceStats {
 
 export function deviceStats(): DeviceStats {
   const attention: DeviceAttention[] = []
+  const criticalThreshold = getSettingNumber('device.battery_critical_threshold') ?? 15
   for (const device of curated.devices) {
-    if (device.battery_critical || (device.battery_level !== null && device.battery_level <= 25)) {
+    if (device.battery_critical || (device.battery_level !== null && device.battery_level <= criticalThreshold)) {
       attention.push({
         id: device.id,
         serial: device.serial_number,

@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTableColumnHeader } from '@/components/data-table'
+import { DataTableColumnHeader, StatusIndicator, STATUS_TONE_MAP } from '@/components/data-table'
 import { LongText } from '@/components/long-text'
 import {
   deviceStatusClasses,
@@ -85,6 +85,7 @@ export function getDevicesColumns({
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'type',
@@ -103,6 +104,7 @@ export function getDevicesColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Type' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -112,9 +114,11 @@ export function getDevicesColumns({
       cell: ({ row }) => {
         const status = row.original.status
         return (
-          <Badge className={cn('font-medium', deviceStatusClasses[status])}>
-            {deviceStatusLabels[status]}
-          </Badge>
+          <StatusIndicator tone={STATUS_TONE_MAP[status] ?? 'muted'} ariaLabel={`Statut: ${deviceStatusLabels[status]}`}>
+            <Badge className={cn('font-medium', deviceStatusClasses[status])}>
+              {deviceStatusLabels[status]}
+            </Badge>
+          </StatusIndicator>
         )
       },
       filterFn: (row, id, value) =>
@@ -122,6 +126,7 @@ export function getDevicesColumns({
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'orgName',
@@ -135,6 +140,7 @@ export function getDevicesColumns({
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Organisation' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       id: 'battery',
@@ -180,6 +186,7 @@ export function getDevicesColumns({
       ),
       meta: { label: 'Firmware', className: 'w-24' },
       enableSorting: false,
+      enableGrouping: true,
     },
     {
       accessorKey: 'lastSync',
@@ -194,6 +201,7 @@ export function getDevicesColumns({
         </span>
       ),
       meta: { label: 'Dernière synchro', className: 'w-32' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'vehiclePlate',
@@ -219,6 +227,7 @@ export function getDevicesColumns({
       },
       meta: { label: 'Affectation', className: 'min-w-36' },
       enableSorting: false,
+      enableGrouping: true,
     },
   ]
 }

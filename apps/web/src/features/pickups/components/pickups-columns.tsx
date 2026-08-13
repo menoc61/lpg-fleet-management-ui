@@ -36,24 +36,28 @@ export function getPickupsColumns({
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'source_name',
       header: 'Source',
       cell: ({ row }) => row.original.source_name,
       meta: { label: 'Source' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'destination_name',
       header: 'Destination',
       cell: ({ row }) => row.original.destination_name,
       meta: { label: 'Destination' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'requested_quantity',
       header: 'Quantité (kg)',
       cell: ({ row }) => new Intl.NumberFormat('fr-FR').format(row.original.requested_quantity),
       meta: { label: 'Quantité (kg)' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'pickup_status',
@@ -65,6 +69,7 @@ export function getPickupsColumns({
       ),
       meta: { label: 'Statut' },
       enableHiding: false,
+      enableGrouping: true,
     },
   ]
 }

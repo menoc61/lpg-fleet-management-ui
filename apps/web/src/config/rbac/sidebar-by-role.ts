@@ -13,6 +13,12 @@
  * at a bare feature path (`/trucks`, `/marketers`, …) regardless of the
  * active role. The role only governs *which* items are visible, never the
  * URL shape. Link labels, icons, and permission codes live in `nav-items.ts`.
+ *
+ * All web roles now land on `/overview` after login. The `/dashboard` route
+ * remains SUperADMIN-only (gated by `dashboard.read`). Per-role dashboards
+ * for ADMIN, SUPERVISOR, MARKETEUR, TRANSPORTEUR are available at
+ * `/dashboard-admin`, `/dashboard-supervisor`, `/dashboard-marketeur`,
+ * `/dashboard-transporteur` respectively.
  */
 
 import type { Role } from '@lpg/permissions'
@@ -30,13 +36,13 @@ import { buildSidebarFor } from './nav-items'
  */
 export const LANDING_BY_ROLE: Record<Role, string> = {
   SUPERADMIN: '/dashboard',
-  ADMIN: '/organizations',
-  SUPERVISOR: '/dashboard',
-  INTEGRATEUR: '/devices',
-  AGENT: '/client-sites',
-  MARKETEUR: '/marketers',
+  ADMIN: '/dashboard-admin',
+  SUPERVISOR: '/dashboard-supervisor',
+  INTEGRATEUR: '/overview',
+  AGENT: '/overview',
+  MARKETEUR: '/overview',
   TRANSPORTEUR: '/transporters',
-  LIVREUR: '/dashboard',
+  LIVREUR: '/overview',
 }
 
 /** Delegates entirely to the permission-driven projection. */

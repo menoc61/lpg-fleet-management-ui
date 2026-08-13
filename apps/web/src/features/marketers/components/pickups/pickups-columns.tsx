@@ -32,6 +32,7 @@ export const pickupsColumns = (
         </Badge>
       )
     },
+    enableGrouping: true,
   },
   {
     accessorKey: 'source_site',
@@ -42,6 +43,7 @@ export const pickupsColumns = (
         <div className='text-xs text-muted-foreground'>{row.original.source_site?.id ?? ''}</div>
       </div>
     ),
+    enableGrouping: true,
   },
   {
     accessorKey: 'destination_site',
@@ -52,6 +54,7 @@ export const pickupsColumns = (
         <div className='text-xs text-muted-foreground'>{row.original.destination_site?.id ?? ''}</div>
       </div>
     ),
+    enableGrouping: true,
   },
   {
     accessorKey: 'requested_quantity',
@@ -59,6 +62,7 @@ export const pickupsColumns = (
     cell: ({ row }) => (
       <span className='font-mono text-sm'>{row.original.requested_quantity}</span>
     ),
+    enableGrouping: true,
   },
   {
     accessorKey: 'approved_quantity',
@@ -68,6 +72,7 @@ export const pickupsColumns = (
         {row.original.approved_quantity ?? '—'}
       </span>
     ),
+    enableGrouping: true,
   },
   {
     accessorKey: 'created_at',
@@ -77,6 +82,7 @@ export const pickupsColumns = (
         {row.original.created_at ? format(new Date(row.original.created_at), 'dd/MM/yyyy HH:mm') : '—'}
       </span>
     ),
+    enableGrouping: true,
   },
   {
     id: 'actions',

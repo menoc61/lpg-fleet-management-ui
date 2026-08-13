@@ -27,24 +27,28 @@ export function getRedressementColumns(): ColumnDef<RedressementView>[] {
       header: 'Reconciliation',
       cell: ({ row }) => row.original.reconciliation_reference,
       meta: { label: 'Reconciliation' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'marketeur_name',
       header: 'Marketeur',
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'amount_label',
       header: 'Montant',
       cell: ({ row }) => <span className='font-medium'>{row.original.amount_label}</span>,
       meta: { label: 'Montant' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'due_date',
       header: 'Echeance',
       cell: ({ row }) => row.original.due_date ?? '—',
       meta: { label: 'Echeance' },
+      enableGrouping: true,
     },
     {
       accessorKey: 'status',
@@ -56,6 +60,7 @@ export function getRedressementColumns(): ColumnDef<RedressementView>[] {
       ),
       enableHiding: false,
       meta: { label: 'Statut' },
+      enableGrouping: true,
     },
     {
       id: 'actions',

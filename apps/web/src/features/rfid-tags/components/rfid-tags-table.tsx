@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
+  getGroupedRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   type ColumnFiltersState,
+  type GroupingState,
   type PaginationState,
   type SortingState,
   type VisibilityState,
@@ -29,6 +32,7 @@ import {
   type RfidTagView,
 } from '../data/rfid-tags'
 import { getRfidTagsColumns } from './rfid-tags-columns'
+import { DataTableBulkActions as RfidTagsBulkActions } from './data-table-bulk-actions'
 
 type RfidTagsTableProps = {
   data: RfidTagView[]
@@ -44,6 +48,8 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
     pageIndex: 0,
     pageSize: 10,
   })
+  const [grouping, setGrouping] = useState<GroupingState>([])
+  const [expanded, setExpanded] = useState({})
 
   const columns = useMemo(
     () => getRfidTagsColumns({ onOpenDetails }),
@@ -62,17 +68,24 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
       rowSelection,
       columnFilters,
       columnVisibility,
+      grouping,
+      expanded,
     },
     enableRowSelection: true,
+    enableGrouping: true,
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGroupingChange: setGrouping,
+    onExpandedChange: setExpanded,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
@@ -91,23 +104,38 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
         'flex flex-1 flex-col gap-4'
       )}
     >
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Rechercher tag RFID, bouteille, localisation...'
-        searchKey='tag_id'
-        filters={[
-          {
-            columnId: 'status',
-            title: 'Statut',
-            options: [...rfidTagStatusOptions],
-          },
-          {
-            columnId: 'location',
-            title: 'Localisation',
-            options: locationOptions,
-          },
-        ]}
-      />
+      <div className='flex flex-wrap items-center gap-3'>
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder='Rechercher tag RFID, bouteille, localisation...'
+          searchKey='tag_id'
+          filters={[
+            {
+              columnId: 'status',
+              title: 'Statut',
+              options: [...rfidTagStatusOptions],
+            },
+            {
+              columnId: 'location',
+              title: 'Localisation',
+              options: locationOptions,
+            },
+          ]}
+        />
+        <div className='flex items-center gap-2'>
+          <span className='text-xs text-muted-foreground'>Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) =>
+              setGrouping(e.target.value ? [e.target.value] : [])
+            }
+            className='h-8 rounded-md border bg-background px-2 text-sm'
+          >
+            <option value=''>—</option>
+            <option value='status'>Statut</option>
+          </select>
+        </div>
+      </div>
 
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -141,8 +169,13 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
-                  onDoubleClick={() => onOpenDetails(row.original)}
+                  className={cn(
+                    'group/row',
+                    row.getIsGrouped() && 'bg-muted/40 font-medium'
+                  )}
+                  onDoubleClick={() => {
+                    if (!row.getIsGrouped()) onOpenDetails(row.original)
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -153,9 +186,24 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
                         cell.column.columnDef.meta?.tdClassName
                       )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
+                      {cell.getIsGrouped() ? (
+                        <button
+                          type='button'
+                          className='flex items-center gap-2 text-primary'
+                          onClick={row.getToggleExpandedHandler()}
+                        >
+                          {row.getIsExpanded() ? '▼' : '▶'}{' '}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}{' '}
+                          ({row.subRows.length})
+                        </button>
+                      ) : cell.getIsPlaceholder() ? null : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )
                       )}
                     </TableCell>
                   ))}
@@ -175,6 +223,7 @@ export function RfidTagsTable({ data, onOpenDetails }: RfidTagsTableProps) {
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
+      <RfidTagsBulkActions table={table} />
     </div>
   )
 }

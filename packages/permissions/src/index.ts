@@ -76,6 +76,11 @@ export const PERMISSION_CATALOG = [
   { code: 'zones.read', category: 'governance', label: 'Voir les zones géographiques' },
   { code: 'zones.write', category: 'governance', label: 'Modifier les zones' },
   { code: 'zones.manage', category: 'governance', label: 'Gérer les zones' },
+  { code: 'clients.read', category: 'governance', label: 'Voir les clients' },
+  { code: 'clients.write', category: 'governance', label: 'Modifier les clients' },
+  { code: 'clients.create', category: 'governance', label: 'Créer des clients' },
+  { code: 'clients.delete', category: 'governance', label: 'Supprimer des clients' },
+  { code: 'clients.manage', category: 'governance', label: 'Gérer les clients' },
   // ---- sites (13) ----------------------------------------------------------
   { code: 'sites.read', category: 'sites', label: 'Voir les sites' },
   { code: 'sites.write', category: 'sites', label: 'Modifier les sites' },
@@ -112,6 +117,7 @@ export const PERMISSION_CATALOG = [
   { code: 'pda.sync', category: 'fleet', label: 'Synchroniser les PDA' },
   { code: 'rfid.read', category: 'fleet', label: 'Voir les tags RFID' },
   { code: 'rfid.write', category: 'fleet', label: 'Modifier les tags RFID' },
+  { code: 'rfid.delete', category: 'fleet', label: 'Supprimer les tags RFID' },
   // ---- supply (8) ------------------------------------------------------------
   { code: 'pickups.read', category: 'supply', label: 'Voir les enlèvements' },
   { code: 'pickups.write', category: 'supply', label: 'Modifier les enlèvements' },
@@ -194,6 +200,8 @@ export const PERMISSION_CATALOG = [
   { code: 'integrations.read', category: 'reporting', label: 'Voir les intégrations' },
   { code: 'integrations.write', category: 'reporting', label: 'Modifier les intégrations' },
   { code: 'national-map.read', category: 'reporting', label: 'Voir la carte nationale (SUPERADMIN)' },
+  { code: 'dashboard.read', category: 'reporting', label: 'Voir le tableau de bord national' },
+  { code: 'overview.read', category: 'reporting', label: 'Voir l\'aperçu' },
 ] as const satisfies readonly {
   code: string
   category: PermissionCategory
@@ -276,6 +284,7 @@ const ADMIN_GRANTS = [
   'markets.read', 'markets.write', 'markets.manage',
   'transporters.read', 'transporters.write', 'transporters.manage',
   'zones.read', 'zones.write', 'zones.manage',
+  'clients.read', 'clients.write', 'clients.create', 'clients.delete', 'clients.manage',
   'sites.read', 'sites.write', 'sites.create', 'sites.delete', 'sites.manage', 'sites.validate',
   'certificates.read', 'certificates.write', 'certificates.manage',
   'site-types.read', 'site-types.write',
@@ -292,6 +301,8 @@ const ADMIN_GRANTS = [
   'notification-groups.read', 'notification-groups.write',
   'notification-rules.read', 'notification-rules.write', 'notification-rules.manage',
   'settings.read', 'settings.write', 'settings.manage', 'system-health.read',
+  'dashboard.read',
+  'overview.read',
 ] as const satisfies readonly PermissionCode[]
 
 const SUPERVISOR_GRANTS = [
@@ -300,18 +311,20 @@ const SUPERVISOR_GRANTS = [
   'audit-logs.read', 'notification-groups.read', 'notification-rules.read',
   'reports.read', 'reports.export', 'integrations.read',
   'pda.read', 'devices.read', 'trucks.read', 'tours.read', 'checkpoints.read', 'scans.read',
+  'overview.read',
 ] as const satisfies readonly PermissionCode[]
 
 const INTEGRATEUR_GRANTS = [
   'devices.read', 'devices.write', 'devices.manage',
   'pda.read', 'pda.write', 'pda.sync',
-  'rfid.read', 'rfid.write',
+  'rfid.read', 'rfid.write', 'rfid.delete',
   'trucks.read', 'vehicle-types.read', 'vehicle-types.write', 'drivers.read',
   'sites.read', 'tours.read', 'missions.read', 'checkpoints.read', 'scans.read',
   'alerts.read', 'risks.read', 'metrics.read',
   'integrations.read', 'integrations.write',
   'notification-groups.read', 'notification-rules.read',
   'audit-logs.read', 'anomalies.read', 'incidents.read',
+  'overview.read',
 ] as const satisfies readonly PermissionCode[]
 
 const AGENT_GRANTS = [
@@ -324,8 +337,9 @@ const AGENT_GRANTS = [
   'sites.read', 'sites.verify', 'certificates.read',
   'reports.read', 'metrics.read',
   'deliveries.read', 'tours.read',
-  'markets.read', 'transporters.read', 'livreurs.read', 'quotas.read',
+  'markets.read', 'transporters.read', 'livreurs.read', 'quotas.read', 'clients.read',
   'notification-groups.read', 'notification-rules.read',
+  'overview.read',
 ] as const satisfies readonly PermissionCode[]
 
 const MARKETEUR_GRANTS = [
@@ -340,9 +354,10 @@ const MARKETEUR_GRANTS = [
   'quotas.read', 'quotas.write', 'quotas.manage', 'supply.manage',
   'declarations.read', 'declarations.write',
   'subsidies.read', 'invoices.read',
-  'markets.read', 'sites.read',
+  'sites.read',
   'anomalies.read', 'risks.read', 'alerts.read',
   'reports.read', 'reports.generate', 'reports.export', 'metrics.read',
+  'overview.read',
 ] as const satisfies readonly PermissionCode[]
 
 const TRANSPORTEUR_GRANTS = [
@@ -362,6 +377,7 @@ const TRANSPORTEUR_GRANTS = [
   'declarations.read', 'subsidies.read',
   'anomalies.read', 'risks.read', 'alerts.read',
   'reports.read', 'metrics.read',
+  'overview.read',
 ] as const satisfies readonly PermissionCode[]
 
 const LIVREUR_GRANTS = [
