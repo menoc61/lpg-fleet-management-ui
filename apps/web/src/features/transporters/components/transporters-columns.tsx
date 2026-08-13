@@ -3,13 +3,18 @@ import { cn } from '@/lib/utils'
 import { Badge, Checkbox } from '@lpg/ui'
 import { DataTableColumnHeader } from '@lpg/ui'
 import { type Organization } from '@lpg/types'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type TransportersColumnsProps = {
   onViewDetails: (transporter: Organization) => void
+  onEdit?: (transporter: Organization) => void
+  onDelete?: (transporter: Organization) => void
 }
 
 export function getTransportersColumns({
   onViewDetails,
+  onEdit,
+  onDelete,
 }: TransportersColumnsProps): ColumnDef<Organization>[] {
   return [
     {
@@ -112,6 +117,23 @@ export function getTransportersColumns({
       ),
       meta: { label: 'Chauffeurs' },
       enableGrouping: true,
+    },
+    {
+      id: 'actions',
+      header: () => <span className='sr-only'>Actions</span>,
+      cell: ({ row }) => (
+        <div className='text-right'>
+          <CrudRowActions
+            resource='transporters'
+            itemLabel='ce transporteur'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
+      enableHiding: false,
+      enableSorting: false,
     },
   ]
 }

@@ -4,13 +4,18 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { type Organization } from '@lpg/types'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type MarketersColumnsProps = {
   onViewDetails: (marketer: Organization) => void
+  onEdit?: (marketer: Organization) => void
+  onDelete?: (marketer: Organization) => void
 }
 
 export function getMarketersColumns({
   onViewDetails,
+  onEdit,
+  onDelete,
 }: MarketersColumnsProps): ColumnDef<Organization>[] {
   return [
     {
@@ -113,6 +118,23 @@ export function getMarketersColumns({
       ),
       meta: { label: 'Véhicules' },
       enableGrouping: true,
+    },
+    {
+      id: 'actions',
+      header: () => <span className='sr-only'>Actions</span>,
+      cell: ({ row }) => (
+        <div className='text-right'>
+          <CrudRowActions
+            resource='markets'
+            itemLabel='ce marketeur'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
+      enableHiding: false,
+      enableSorting: false,
     },
   ]
 }

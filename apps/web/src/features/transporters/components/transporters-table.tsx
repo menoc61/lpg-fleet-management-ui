@@ -30,6 +30,8 @@ type TransportersTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (transporter: Organization) => void
+  onEdit?: (transporter: Organization) => void
+  onDelete?: (transporter: Organization) => void
 }
 
 export function TransportersTable({
@@ -37,13 +39,15 @@ export function TransportersTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: TransportersTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
-    () => getTransportersColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getTransportersColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {

@@ -30,6 +30,8 @@ type MarketersTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (marketer: Organization) => void
+  onEdit?: (marketer: Organization) => void
+  onDelete?: (marketer: Organization) => void
 }
 
 export function MarketersTable({
@@ -37,13 +39,15 @@ export function MarketersTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: MarketersTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
-    () => getMarketersColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getMarketersColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {
