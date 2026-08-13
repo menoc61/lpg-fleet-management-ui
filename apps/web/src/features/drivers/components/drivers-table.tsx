@@ -34,12 +34,16 @@ type DriversTableProps = {
   data: DriverView[]
   orgOptions: { label: string; value: string }[]
   onViewDetails: (driver: DriverView) => void
+  onEdit?: (driver: DriverView) => void
+  onDelete?: (driver: DriverView) => void
 }
 
 export function DriversTable({
   data,
   orgOptions,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: DriversTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -53,8 +57,8 @@ export function DriversTable({
   const [expanded, setExpanded] = useState({})
 
   const columns = useMemo(
-    () => getDriversColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getDriversColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library

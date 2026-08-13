@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Main } from '@/components/layout/main'
 import {
@@ -12,6 +13,9 @@ import {
 } from './data/drivers'
 import { DriversTable } from './components/drivers-table'
 import { DriverDetailsSheet } from './components/driver-details-sheet'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { driverFields, driverFromForm, driverToForm } from './data/drivers-crud'
+import { toast } from 'sonner'
 
 export { getDriverById, getDriversView, drivers }
 export type { Driver, DriverView }
@@ -29,10 +33,26 @@ export function DriversPage() {
   const drivers = useMemo(() => getDriversView(), [])
   const [search, setSearch] = useState('')
   const [detailsDriver, setDetailsDriver] = useState<DriverView | null>(null)
+  const crud = useEntityCrud<Driver>('drivers', 'drivers', ['drivers'])
 
   const handleViewDetails = useCallback((driver: DriverView) => {
     setDetailsDriver(driver)
   }, [])
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({ id: crud.editing.id, patch: driverFromForm(values) })
+        toast.success('Chauffeur mis à jour.')
+      } else {
+        await crud.createMut.mutateAsync(driverFromForm(values) as Omit<Driver, 'id'>)
+        toast.success('Chauffeur créé.')
+      }
+      crud.close()
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   const orgOptions = useMemo(() => buildDriverOrgOptions(drivers), [drivers])
 
@@ -74,6 +94,11 @@ export function DriversPage() {
               className='h-9 ps-9'
             />
           </div>
+          {crud.perm.canCreate && (
+            <Button onClick={crud.openCreate}>
+              <Plus className='mr-1 h-4 w-4' /> Nouveau chauffeur
+            </Button>
+          )}
         </div>
 
         <div className='mt-4 space-y-1'>
@@ -107,6 +132,8 @@ export function DriversPage() {
           data={filteredDrivers}
           orgOptions={orgOptions}
           onViewDetails={handleViewDetails}
+          onEdit={(d) => crud.openEdit(d as unknown as Driver)}
+          onDelete={(d) => crud.removeMut.mutateAsync(d.id)}
         />
       </section>
 
@@ -116,6 +143,20 @@ export function DriversPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsDriver(null)
         }}
+      />
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier le chauffeur' : 'Nouveau chauffeur'}
+        description={crud.editing ? 'Mettez à jour les informations du chauffeur.' : 'Ajoutez un chauffeur à la flotte.'}
+        fields={driverFields}
+        initial={crud.editing ? driverToForm(crud.editing) : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
       />
     </Main>
   )

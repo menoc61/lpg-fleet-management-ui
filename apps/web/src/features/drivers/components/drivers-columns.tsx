@@ -9,13 +9,18 @@ import {
   driverStatusLabels,
   type DriverView,
 } from '../data/drivers'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type DriversColumnsProps = {
   onViewDetails: (driver: DriverView) => void
+  onEdit?: (driver: DriverView) => void
+  onDelete?: (driver: DriverView) => void
 }
 
 export function getDriversColumns({
   onViewDetails,
+  onEdit,
+  onDelete,
 }: DriversColumnsProps): ColumnDef<DriverView>[] {
   return [
     {
@@ -162,6 +167,23 @@ export function getDriversColumns({
       enableSorting: false,
       enableHiding: false,
       enableGrouping: true,
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableHiding: false,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className='flex justify-end'>
+          <CrudRowActions
+            resource='drivers'
+            itemLabel='ce chauffeur'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
     },
   ]
 }
