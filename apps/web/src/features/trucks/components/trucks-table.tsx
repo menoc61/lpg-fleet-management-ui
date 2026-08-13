@@ -34,6 +34,8 @@ type TrucksTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (truck: Truck) => void
+  onEdit?: (truck: Truck) => void
+  onDelete?: (truck: Truck) => void
 }
 
 export function TrucksTable({
@@ -41,13 +43,15 @@ export function TrucksTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: TrucksTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
-    () => getTrucksColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getTrucksColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {

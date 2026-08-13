@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
-import { CalendarDays, Gauge, Search, ShieldAlert, Truck as TruckIcon, Users } from 'lucide-react'
+import { CalendarDays, Gauge, Plus, Search, ShieldAlert, Truck as TruckIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,11 @@ import {
   type VehicleView,
 } from './data/vehicles'
 import { activeTourForVehicle, vehicleActiveTourLink } from '@/features/tours/data/active-tour'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { vehicleFields, vehicleFromForm, vehicleToForm } from './data/vehicles-crud'
+import { useAuthStore } from '@/store/auth-store'
+import type { Vehicle } from '@lpg/types'
+import { toast } from 'sonner'
 
 export { getVehiclesView }
 export type { VehicleView as Vehicle }
@@ -47,10 +52,32 @@ export function VehiclesPage() {
   const [search, setSearch] = useState(q ?? '')
   const [statusFilter, setStatusFilter] = useState<VehicleStatusFilter>('all')
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleView | null>(null)
+  const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['vehicles'])
+  const authUser = useAuthStore((s) => s.user)
+  const scopeOrgId = authUser?.org_id
+  const scopedVehicles = useMemo(() => {
+    if (!scopeOrgId) return fleetVehicles
+    return fleetVehicles.filter((v) => v.org_id === scopeOrgId)
+  }, [scopeOrgId])
 
   const handleViewDetails = useCallback((vehicle: VehicleView) => {
     setDetailsVehicle(vehicle)
   }, [])
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({ id: crud.editing.id, patch: vehicleFromForm(values) })
+        toast.success('Véhicule mis à jour.')
+      } else {
+        await crud.createMut.mutateAsync(vehicleFromForm(values) as Omit<Vehicle, 'id'>)
+        toast.success('Véhicule créé.')
+      }
+      crud.close()
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   const handleOpenActiveTour = useCallback(
     (vehicleId: string) => {
@@ -65,8 +92,8 @@ export function VehiclesPage() {
 
   const filteredVehicles = useMemo(() => {
     const query = search.trim().toLowerCase()
-    if (!query) return [...fleetVehicles]
-    return fleetVehicles.filter((vehicle) => {
+    if (!query) return [...scopedVehicles]
+    return scopedVehicles.filter((vehicle) => {
       const haystack = [
         vehicle.license_plate,
         vehicle.tenant_name,
@@ -79,7 +106,7 @@ export function VehiclesPage() {
         .toLowerCase()
       return haystack.includes(query)
     })
-  }, [search])
+  }, [search, scopedVehicles])
 
   const visible =
     statusFilter === 'all'
@@ -90,7 +117,7 @@ export function VehiclesPage() {
 
   const filterDefs: VehicleFilterDef[] = useMemo(() => {
     const counts: Partial<Record<VehicleView['status'], number>> = {}
-    for (const vehicle of fleetVehicles) {
+    for (const vehicle of scopedVehicles) {
       counts[vehicle.status] = (counts[vehicle.status] ?? 0) + 1
     }
     const statusDefs = statusFilterDefs.map((def) => ({
@@ -99,10 +126,10 @@ export function VehiclesPage() {
     }))
     const sortedDefs = [...statusDefs].sort((a, b) => b.count - a.count)
     return [
-      { label: 'Tous', value: 'all', count: fleetVehicles.length },
+      { label: 'Tous', value: 'all', count: scopedVehicles.length },
       ...sortedDefs,
     ]
-  }, [])
+  }, [scopedVehicles])
 
   const dateText = useMemo(
     () =>
@@ -116,7 +143,7 @@ export function VehiclesPage() {
   )
 
   const avgLpg = useMemo(() => {
-    const list = visible.length > 0 ? visible : fleetVehicles
+    const list = visible.length > 0 ? visible : scopedVehicles
     if (list.length === 0) return 0
     const { sum, count } = list.reduce(
       (acc, vehicle) => {
@@ -132,27 +159,27 @@ export function VehiclesPage() {
       { sum: 0, count: 0 },
     )
     return count === 0 ? 0 : Math.round(sum / count)
-  }, [visible])
+  }, [visible, scopedVehicles])
 
   const activeCount = useMemo(
     () =>
-      fleetVehicles.filter(
+      scopedVehicles.filter(
         (vehicle) =>
           vehicle.status === 'INPROGRESS' ||
           vehicle.status === 'CHECKPOINTACTIVE',
       ).length,
-    []
+    [scopedVehicles]
   )
 
   const atRiskCount = useMemo(
     () =>
-      fleetVehicles.filter(
+      scopedVehicles.filter(
         (vehicle) =>
           vehicle.risk_level === 'CRITIQUE' ||
           vehicle.risk_level === 'CRITIQUEEXTREME' ||
           vehicle.risk_level === 'ELEVE',
       ).length,
-    []
+    [scopedVehicles]
   )
 
   return (
@@ -166,12 +193,12 @@ export function VehiclesPage() {
             <TopStat
               icon={TruckIcon}
               label='Actifs'
-              value={`${activeCount}/${fleetVehicles.length}`}
+              value={`${activeCount}/${scopedVehicles.length}`}
             />
             <TopStat
               icon={Users}
               label='Chauffeurs'
-              value={`${fleetVehicles.filter((v) => v.assigned_driver !== '—').length}`}
+              value={`${scopedVehicles.filter((v) => v.assigned_driver !== '—').length}`}
               hint='Affectes au parc'
             />
             <TopStat icon={Gauge} label='LPG moyen' value={`${avgLpg}%`} />
@@ -179,6 +206,11 @@ export function VehiclesPage() {
           </div>
 
           <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+            {crud.perm.canCreate && (
+              <Button onClick={crud.openCreate}>
+                <Plus className='mr-1 h-4 w-4' /> Nouveau véhicule
+              </Button>
+            )}
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
@@ -231,7 +263,7 @@ export function VehiclesPage() {
             variant='outline'
             className='border-transparent bg-muted/35 text-foreground'
           >
-            {visible.length} / {fleetVehicles.length} vehicules
+            {visible.length} / {scopedVehicles.length} vehicules
           </Badge>
         </div>
         <VehiclesTable
@@ -240,6 +272,8 @@ export function VehiclesPage() {
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onOpenActiveTour={handleOpenActiveTour}
+          onEdit={(v) => crud.openEdit(v as unknown as Vehicle)}
+          onDelete={(v) => crud.removeMut.mutateAsync(v.id)}
         />
       </section>
 
@@ -249,6 +283,20 @@ export function VehiclesPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsVehicle(null)
         }}
+      />
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier le véhicule' : 'Nouveau véhicule'}
+        description={crud.editing ? 'Mettez à jour les informations du véhicule.' : 'Ajoutez un véhicule à la flotte.'}
+        fields={vehicleFields}
+        initial={crud.editing ? vehicleToForm(crud.editing) : scopeOrgId ? { org_id: scopeOrgId } : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
       />
     </main>
   )

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
-import { CalendarDays, Clock3, Gauge, Search, Truck as TruckIcon, Users } from 'lucide-react'
+import { CalendarDays, Clock3, Gauge, Plus, Search, Truck as TruckIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +15,10 @@ import {
   type Truck,
   type TruckStatus,
 } from './data/trucks'
+import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { vehicleFields, vehicleFromForm, vehicleToForm } from '@/features/vehicles/data/vehicles-crud'
+import type { Vehicle } from '@lpg/types'
+import { toast } from 'sonner'
 
 export const getTruckTelemetry = _getTruckTelemetry
 export const trucks: readonly Truck[] = trucksList
@@ -33,10 +37,26 @@ export function TrucksPage() {
   const [statusFilter, setStatusFilter] = useState<TruckFilter>('all')
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
   const [activeTruckId] = useState<string>(trucks[0]?.id ?? '')
+  const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['trucks'])
 
   const handleViewDetails = useCallback((truck: Truck) => {
     setDetailsTruck(truck)
   }, [])
+
+  async function handleSubmit(values: Record<string, unknown>) {
+    try {
+      if (crud.editing) {
+        await crud.updateMut.mutateAsync({ id: crud.editing.id, patch: vehicleFromForm(values) })
+        toast.success('Camion mis à jour.')
+      } else {
+        await crud.createMut.mutateAsync(vehicleFromForm(values) as Omit<Vehicle, 'id'>)
+        toast.success('Camion créé.')
+      }
+      crud.close()
+    } catch {
+      toast.error('Échec de l’enregistrement.')
+    }
+  }
 
   const filteredTrucks = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -131,6 +151,11 @@ export function TrucksPage() {
           </div>
 
           <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center'>
+            {crud.perm.canCreate && (
+              <Button onClick={crud.openCreate}>
+                <Plus className='mr-1 h-4 w-4' /> Nouveau véhicule
+              </Button>
+            )}
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
@@ -202,6 +227,8 @@ export function TrucksPage() {
           search={{}}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          onEdit={(t) => crud.openEdit(t as unknown as Vehicle)}
+          onDelete={(t) => crud.removeMut.mutateAsync(t.id)}
         />
       </section>
 
@@ -211,6 +238,20 @@ export function TrucksPage() {
         onOpenChange={(open) => {
           if (!open) setDetailsTruck(null)
         }}
+      />
+
+      <EntityFormSheet
+        open={crud.creating || crud.editing !== null}
+        onOpenChange={(open) => {
+          if (!open) crud.close()
+        }}
+        title={crud.editing ? 'Modifier le camion' : 'Nouveau camion'}
+        description={crud.editing ? 'Mettez à jour les informations du camion.' : 'Ajoutez un camion à la flotte.'}
+        fields={vehicleFields}
+        initial={crud.editing ? vehicleToForm(crud.editing) : null}
+        onSubmit={handleSubmit}
+        onCancel={crud.close}
+        submitting={crud.createMut.isPending || crud.updateMut.isPending}
       />
     </main>
   )

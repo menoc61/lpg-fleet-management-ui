@@ -14,13 +14,18 @@ import {
 } from '../data/trucks'
 import { quantityInfo } from '../lib/quantity'
 import { DataTableRowActions } from './data-table-row-actions'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type TrucksColumnsProps = {
   onViewDetails: (truck: Truck) => void
+  onEdit?: (truck: Truck) => void
+  onDelete?: (truck: Truck) => void
 }
 
 export function getTrucksColumns({
   onViewDetails,
+  onEdit,
+  onDelete,
 }: TrucksColumnsProps): ColumnDef<Truck>[] {
   return [
     {
@@ -227,6 +232,23 @@ export function getTrucksColumns({
       ),
       enableSorting: false,
       enableHiding: false,
+    },
+    {
+      id: 'crud-actions',
+      header: '',
+      enableHiding: false,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className='flex justify-end'>
+          <CrudRowActions
+            resource='trucks'
+            itemLabel='ce camion'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
     },
   ]
 }

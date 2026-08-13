@@ -15,15 +15,20 @@ import {
   type VehicleView,
 } from '../data/vehicles'
 import { activeTourForVehicle } from '@/features/tours/data/active-tour'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type VehiclesColumnsProps = {
   onViewDetails: (vehicle: VehicleView) => void
   onOpenActiveTour: (vehicleId: string) => void
+  onEdit?: (vehicle: VehicleView) => void
+  onDelete?: (vehicle: VehicleView) => void
 }
 
 export function getVehiclesColumns({
   onViewDetails,
   onOpenActiveTour,
+  onEdit,
+  onDelete,
 }: VehiclesColumnsProps): ColumnDef<VehicleView>[] {
   return [
     {
@@ -262,6 +267,23 @@ export function getVehiclesColumns({
       },
       meta: { label: 'En tournée', className: 'w-36' },
       enableSorting: false,
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableHiding: false,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className='flex justify-end'>
+          <CrudRowActions
+            resource='trucks'
+            itemLabel='ce véhicule'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
     },
   ]
 }

@@ -40,6 +40,8 @@ type VehiclesTableProps = {
   navigate: NavigateFn
   onViewDetails: (vehicle: VehicleView) => void
   onOpenActiveTour: (vehicleId: string) => void
+  onEdit?: (vehicle: VehicleView) => void
+  onDelete?: (vehicle: VehicleView) => void
 }
 
 export function VehiclesTable({
@@ -48,6 +50,8 @@ export function VehiclesTable({
   navigate,
   onViewDetails,
   onOpenActiveTour,
+  onEdit,
+  onDelete,
 }: VehiclesTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -55,8 +59,8 @@ export function VehiclesTable({
   const [grouping, setGrouping] = useState<GroupingState>([])
   const [expanded, setExpanded] = useState({})
   const columns = useMemo(
-    () => getVehiclesColumns({ onViewDetails, onOpenActiveTour }),
-    [onViewDetails, onOpenActiveTour]
+    () => getVehiclesColumns({ onViewDetails, onOpenActiveTour, onEdit, onDelete }),
+    [onViewDetails, onOpenActiveTour, onEdit, onDelete]
   )
 
   const tenantOptions = useMemo(() => getTenantOptions(), [])
