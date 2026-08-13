@@ -30,7 +30,8 @@ export function buildDriverOrgOptions(drivers: readonly DriverView[]) {
 }
 
 export function DriversPage() {
-  const drivers = useMemo(() => getDriversView(), [])
+  const [, setVersion] = useState(0)
+  const drivers = getDriversView()
   const [search, setSearch] = useState('')
   const [detailsDriver, setDetailsDriver] = useState<DriverView | null>(null)
   const crud = useEntityCrud<Driver>('drivers', 'drivers', ['drivers'])
@@ -49,6 +50,7 @@ export function DriversPage() {
         toast.success('Chauffeur créé.')
       }
       crud.close()
+      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -133,7 +135,10 @@ export function DriversPage() {
           orgOptions={orgOptions}
           onViewDetails={handleViewDetails}
           onEdit={(d) => crud.openEdit(d as unknown as Driver)}
-          onDelete={(d) => crud.removeMut.mutateAsync(d.id)}
+          onDelete={async (d) => {
+            await crud.removeMut.mutateAsync(d.id)
+            setVersion((v) => v + 1)
+          }}
         />
       </section>
 

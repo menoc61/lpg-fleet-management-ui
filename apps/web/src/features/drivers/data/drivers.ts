@@ -113,14 +113,12 @@ function buildView(driver: Driver): DriverView {
   }
 }
 
-const driversView: readonly DriverView[] = drivers.map(buildView)
-
 export function getDriversView(): DriverView[] {
-  return [...driversView]
+  return (drivers as Driver[]).map(buildView)
 }
 
 export function getDriverById(id: string): DriverView | undefined {
-  return driversView.find((driver) => driver.id === id)
+  return (drivers as Driver[]).map(buildView).find((driver) => driver.id === id)
 }
 
 export { drivers, organizations }

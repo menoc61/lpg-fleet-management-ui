@@ -159,22 +159,18 @@ function buildView(device: Device): DeviceView {
   }
 }
 
-const devicesView: DeviceView[] = (mockDevices as Device[]).map(buildView)
-const deviceViewById = new Map(
-  devicesView.map((view) => [view.serial, view] as [string, DeviceView]),
-)
-
 export function getDevicesView(): DeviceView[] {
-  return devicesView
+  return (mockDevices as Device[]).map(buildView)
 }
 
 export function getDeviceById(id: string): DeviceView | undefined {
-  return deviceViewById.get(id)
+  return (mockDevices as Device[]).map(buildView).find((view) => view.id === id)
 }
 
 export function getAssignmentsCount(): { total: number; assigned: number; unassigned: number } {
-  const assigned = devicesView.filter(
+  const views = (mockDevices as Device[]).map(buildView)
+  const assigned = views.filter(
     (view) => view.vehiclePlate || view.driverName,
   ).length
-  return { total: devicesView.length, assigned, unassigned: devicesView.length - assigned }
+  return { total: views.length, assigned, unassigned: views.length - assigned }
 }

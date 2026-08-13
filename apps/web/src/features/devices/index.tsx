@@ -37,9 +37,10 @@ export function DevicesPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<DeviceFilter>('all')
   const [detailsDevice, setDetailsDevice] = useState<DeviceView | null>(null)
+  const [, setVersion] = useState(0)
   const crud = useEntityCrud<Device>('devices', 'devices', ['devices'])
 
-  const allDevices = useMemo(() => getDevicesView(), [])
+  const allDevices = getDevicesView()
 
   const handleViewDetails = useCallback((device: DeviceView) => {
     setDetailsDevice(device)
@@ -55,6 +56,7 @@ export function DevicesPage() {
         toast.success('Appareil créé.')
       }
       crud.close()
+      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -82,7 +84,7 @@ export function DevicesPage() {
     return haystackDevices.filter((device) => device.type === typeFilter)
   }, [search, typeFilter, allDevices])
 
-  const assignments = useMemo(() => getAssignmentsCount(), [])
+  const assignments = getAssignmentsCount()
 
   const filterDefs: DeviceFilterDef[] = useMemo(() => {
     const counts = allDevices.reduce<Record<string, number>>((acc, device) => {
@@ -210,7 +212,10 @@ export function DevicesPage() {
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onEdit={(d) => crud.openEdit(d as unknown as Device)}
-          onDelete={(d) => crud.removeMut.mutateAsync(d.id)}
+          onDelete={async (d) => {
+            await crud.removeMut.mutateAsync(d.id)
+            setVersion((v) => v + 1)
+          }}
         />
       </section>
 
