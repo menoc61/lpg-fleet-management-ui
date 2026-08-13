@@ -27,12 +27,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { DepotView } from '../data/depots'
 import { depotStatusLabel } from '../data/depots'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type DepotsTableProps = {
   data: DepotView[]
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (depot: DepotView) => void
+  onEdit?: (depot: DepotView) => void
+  onDelete?: (depot: DepotView) => void
 }
 
 export function DepotsTable({
@@ -40,6 +43,8 @@ export function DepotsTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: DepotsTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -101,8 +106,25 @@ export function DepotsTable({
         cell: ({ row }: { row: { original: DepotView } }) => <Badge variant='outline'>{depotStatusLabel(row.original.status)}</Badge>,
         meta: { label: 'Statut' },
       },
+      {
+        id: 'actions',
+        header: '',
+        enableHiding: false,
+        enableSorting: false,
+        cell: ({ row }: { row: { original: DepotView } }) => (
+          <div className='flex justify-end'>
+            <CrudRowActions
+              resource='orgs'
+              itemLabel='ce dépôt'
+              onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+              onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+            />
+          </div>
+        ),
+        meta: { label: 'Actions' },
+      },
     ],
-    [onViewDetails],
+    [onViewDetails, onEdit, onDelete],
   )
 
   const {
