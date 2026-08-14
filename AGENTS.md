@@ -88,8 +88,8 @@ Rules:
   (site-scoped fields). No store writes may bypass the guards.
 - **Site-scoped writes:** MARKETEUR creates only for their site; TRANSPORTEUR
   acknowledges with only their org's crew.
-- **MFA awareness:** `mfa.enforced_for_roles` (comma-separated) gates the MFA
-  setup prompt; never hardcode the role list.
+- **MFA awareness:** `mfa.enforced_for_roles` (JSON array or comma-separated
+  string in the setting) gates the MFA setup prompt; never hardcode the role list.
 - **File storage:** all images, certificates, and proofs live in MinIO
   (S3-compatible); only URL references are kept in the database.
 - **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
