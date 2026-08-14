@@ -141,10 +141,14 @@ export function createFakeAdapter(): ApiAdapter {
       const fixture =
         AUTH_FIXTURES.find((f) => f.email === creds.email) ?? AUTH_FIXTURES[0]
       if (!fixture) throw new Error('Fake adapter: no auth fixtures available')
-      const fullUser = (curated.users as any[]).find((u) => u.id === fixture.id)
-      const org = fullUser?.org_id
-        ? (curated.organizations as any[]).find((o) => o.id === fullUser.org_id)
+      const user = (curated.users as any[]).find((u) => u.id === fixture.id)
+      const org = user?.org_id
+        ? (curated.organizations as any[]).find((o) => o.id === user.org_id)
         : undefined
+      const assignments = (curated as any).user_site_assignments ?? []
+      const site_ids = assignments
+        .filter((a: any) => a.user_id === fixture.id)
+        .map((a: any) => a.site_id)
       return delay({
         access_token: fakeToken(fixture.id),
         refresh_token: fakeToken(fixture.id),
@@ -154,8 +158,10 @@ export function createFakeAdapter(): ApiAdapter {
           first_name: fixture.first_name,
           last_name: fixture.last_name,
           system_role: fixture.system_role as any,
-          org_id: fullUser?.org_id,
+          org_id: user?.org_id,
           org_name: org?.name,
+          org_type: org?.type,
+          site_ids,
         },
       })
     },

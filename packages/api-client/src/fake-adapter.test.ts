@@ -31,3 +31,11 @@ describe('fake-adapter write support (CRUD integration seam)', () => {
     await expect(api.clients.remove('does-not-exist')).rejects.toThrow()
   })
 })
+
+describe('fake-adapter login', () => {
+  it('includes org_type and site_ids on the logged-in user', async () => {
+    const result = await api.auth.login({ email: 'b.ndoumbetane@csph.cm', password: 'password' })
+    expect(result.user.org_type).toBeDefined()
+    expect(Array.isArray(result.user.site_ids)).toBe(true)
+  })
+})
