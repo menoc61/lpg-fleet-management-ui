@@ -1,5 +1,5 @@
-import { scan_events, settings } from '@lpg/mock-data'
-import type { Declaration, Reconciliation, Setting } from '@lpg/types'
+import { delivery_tours, getSettingNumber } from '@lpg/mock-data'
+import type { Declaration, Reconciliation } from '@lpg/types'
 
 export interface ReconciliationComputation {
   declaration_id: string
@@ -13,31 +13,47 @@ export interface ReconciliationComputation {
 }
 
 const TOLERANCE_KEY = 'reconciliation.volume_gap_tolerance_percent'
-const SUBSIDY_RATE_PER_TM = 1000
+const SUBSIDY_RATE_KEY = 'reconciliation.subsidy_rate_per_tm'
+const DEFAULT_TOLERANCE = 2.5
+const DEFAULT_SUBSIDY_RATE_PER_TM = 500000
 
-function resolveTolerance(settingsList: Setting[]): number {
-  const setting = settingsList.find((s) => s.setting_key === TOLERANCE_KEY)
-  return setting ? Number(setting.setting_value) : 2.5
+function resolveTolerance(): number {
+  return getSettingNumber(TOLERANCE_KEY) ?? DEFAULT_TOLERANCE
 }
 
+function resolveSubsidyRate(): number {
+  return getSettingNumber(SUBSIDY_RATE_KEY) ?? DEFAULT_SUBSIDY_RATE_PER_TM
+}
+
+/**
+ * Tracked volume = sum of delivered quantities (TM or btl depending on the tour's
+ * type) across all delivery tours. Previously this naively summed every
+ * `meter_reading` (an ever-increasing counter) on `OUT` scans, producing values
+ * larger than the declared volume by orders of magnitude and breaking the gap
+ * and subsidy math.
+ * TODO: period + marketeur scoping and per-scan deltas are backend-owned; this
+ * selector mirrors the frontend's available fixtures only.
+ */
 export function sumTrackedVolume(): number {
-  return scan_events
-    .filter((s) => s.direction === 'OUT')
-    .reduce((acc, s) => acc + (s.meter_reading ?? 0), 0)
+  return delivery_tours.reduce((acc, t) => acc + (t.delivered_quantity ?? 0), 0)
 }
 
 export function computeReconciliation(
   declaration: Declaration,
   trackedVolume?: number,
   toleranceOverride?: number,
+  subsidyRateOverride?: number,
 ): ReconciliationComputation {
-  const tolerance = toleranceOverride ?? resolveTolerance(settings as Setting[])
+  const tolerance = toleranceOverride ?? resolveTolerance()
+  const subsidyRate = subsidyRateOverride ?? resolveSubsidyRate()
   const tracked = trackedVolume ?? sumTrackedVolume()
   const volumeGap = declaration.declared_volume - tracked
   const gapPct =
     declaration.declared_volume > 0
       ? Math.abs((volumeGap / declaration.declared_volume) * 100)
-      : 0
+      : volumeGap !== 0
+        ? 100
+        : 0
   return {
     declaration_id: declaration.id,
     declared_volume: declaration.declared_volume,
@@ -46,7 +62,7 @@ export function computeReconciliation(
     gap_pct: Math.round(gapPct * 100) / 100,
     tolerance_pct: tolerance,
     within_tolerance: gapPct <= tolerance,
-    subsidy_impact: Math.round(Math.abs(volumeGap) * SUBSIDY_RATE_PER_TM),
+    subsidy_impact: Math.round(Math.abs(volumeGap) * subsidyRate),
   }
 }
 

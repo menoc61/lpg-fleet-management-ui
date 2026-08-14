@@ -17,7 +17,7 @@ import {
 
 type TourLpgVariationPanelProps = {
   trip: RouteTripView
-  formatKg: (value: number) => string
+  formatQuantity: (value: number) => string
   zeroUnit?: string
 }
 
@@ -38,7 +38,7 @@ const toneClasses = {
 
 export function TourLpgVariationPanel({
   trip,
-  formatKg,
+  formatQuantity,
   zeroUnit = '0 TM',
 }: TourLpgVariationPanelProps) {
   const variation = buildRouteLpgVariation(trip)
@@ -80,24 +80,24 @@ export function TourLpgVariationPanel({
           <StageCard
             stage={loadingStage}
             hint={`Depart ${trip.originSite.name}`}
-            formatKg={formatKg}
+            formatQuantity={formatQuantity}
           />
 
           <FlowConnector
-            value={formatKg(Math.abs(liveStage!.deltaKg))}
+            value={formatQuantity(Math.abs(liveStage!.delta))}
             label='variation mesuree'
           />
 
           <StageCard
             stage={liveStage!}
             hint={`Dernier ping ${trip.truck.current_location}`}
-            formatKg={formatKg}
+            formatQuantity={formatQuantity}
           />
 
           <FlowConnector
             value={
-              variation.nextDropKg > 0
-                ? formatKg(variation.nextDropKg)
+              variation.nextDrop > 0
+                ? formatQuantity(variation.nextDrop)
                 : 'Aucun drop'
             }
             label='prochaine sortie GPL'
@@ -110,7 +110,7 @@ export function TourLpgVariationPanel({
                 ? 'Mission cloturee'
                 : `Projection apres ${trip.nextStop.site.name}`
             }
-            formatKg={formatKg}
+            formatQuantity={formatQuantity}
           />
         </div>
 
@@ -118,15 +118,15 @@ export function TourLpgVariationPanel({
           <MetricTile
             icon={Package}
             label='Livraison comptabilisée'
-            value={formatKg(variation.deliveredKg)}
+            value={formatQuantity(variation.delivered)}
             hint={`${variation.deliveredPercent}% déjà livrés`}
           />
           <MetricTile
             icon={ArrowRight}
             label='Prochaine étape'
             value={
-              variation.nextDropKg > 0
-                ? formatKg(variation.nextDropKg)
+              variation.nextDrop > 0
+                ? formatQuantity(variation.nextDrop)
                 : 'Aucune sortie GPL'
             }
             hint={
@@ -139,12 +139,12 @@ export function TourLpgVariationPanel({
             icon={Gauge}
             label='Ecart telemetry'
             value={
-              variation.telemetryGapKg > 0
-                ? formatKg(variation.telemetryGapKg)
+              variation.telemetryGap > 0
+                ? formatQuantity(variation.telemetryGap)
                 : zeroUnit
             }
             hint={
-              variation.telemetryGapKg > 0
+              variation.telemetryGap > 0
                 ? 'À rapprocher du stock déclaré'
                 : 'Stock déclaré cohérent'
             }
@@ -158,17 +158,17 @@ export function TourLpgVariationPanel({
 function StageCard({
   stage,
   hint,
-  formatKg,
+  formatQuantity,
 }: {
   stage: RouteLpgVariationStage
   hint: string
-  formatKg: (value: number) => string
+  formatQuantity: (value: number) => string
 }) {
   const tone = toneClasses[stage.tone]
   const deltaText =
-    stage.deltaKg === 0
+    stage.delta === 0
       ? 'Base de reference'
-      : `${stage.deltaKg > 0 ? '+' : '-'}${formatKg(Math.abs(stage.deltaKg))}`
+      : `${stage.delta > 0 ? '+' : '-'}${formatQuantity(Math.abs(stage.delta))}`
 
   return (
     <div className='min-w-0 flex-1 rounded-2xl bg-muted/30 p-4 shadow-xs'>
@@ -182,7 +182,7 @@ function StageCard({
 
       <div className='mt-4 space-y-3'>
         <p className='text-2xl font-semibold tracking-tight'>
-          {formatKg(stage.quantityKg)}
+          {formatQuantity(stage.quantity)}
         </p>
 
         <div className='space-y-1.5'>

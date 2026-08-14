@@ -14,5 +14,5 @@ export function getTransporters(): Organization[] {
 export const transporters: Organization[] = getTransporters()
 
 export function getTransporterById(id: string): Organization | undefined {
-  return transporters.find((t) => t.id === id)
+  return getTransporters().find((t) => t.id === id)
 }

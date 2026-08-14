@@ -27,7 +27,7 @@ const STATUS_VALUES = ['UNASSIGNED', 'ASSIGNED', 'ACTIVE', 'VERIFIED', 'SUSPENDE
 
 function SitesTableCore({ rows, role, onAction, onDelete }: { rows: SiteRow[]; role: SiteRole; onAction: (row: SiteRow, req: TransitionRequest) => void; onDelete?: (row: SiteRow) => void }) {
   const columns = useMemo<ColumnDef<SiteRow>[]>(() => [
-    { accessorKey: 'id', header: 'ID', cell: ({ row }) => <span className='font-mono text-xs'>{row.original.id}</span>, meta: { label: 'ID' }, enableHiding: false },
+    /*{ accessorKey: 'id', header: 'ID', cell: ({ row }) => <span className='font-mono text-xs'>{row.original.id}</span>, meta: { label: 'ID' }, enableHiding: false },*/
     { accessorKey: 'region', header: 'Région', cell: ({ row }) => <Badge variant='outline'>{row.original.region}</Badge>, meta: { label: 'Région' } },
     { accessorKey: 'delivery_count', header: 'Livraisons', cell: ({ row }) => row.original.delivery_count, meta: { label: 'Livraisons' } },
     { accessorKey: 'geo_confidence_score', header: 'Confiance', cell: ({ row }) => `${row.original.geo_confidence_score}/100`, meta: { label: 'Confiance' } },

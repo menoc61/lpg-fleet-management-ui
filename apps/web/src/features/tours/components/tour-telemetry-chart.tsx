@@ -24,13 +24,13 @@ import type { RouteTelemetryPoint, TourActivity } from '../data/tour-activity'
 
 type TourTelemetryChartProps = {
   trip: TourActivity
-  formatKg: (value: number) => string
+  formatQuantity: (value: number) => string
   formatShortTime: (value: string) => string
 }
 
 export function TourTelemetryChart({
   trip,
-  formatKg,
+  formatQuantity,
   formatShortTime,
 }: TourTelemetryChartProps) {
   const isBottles = trip.tourneeType === 'BOUTEILLES50KG'
@@ -39,7 +39,7 @@ export function TourTelemetryChart({
     .filter((stop) => stop.completed)
     .reduce(
       (sum, stop) =>
-        sum + Math.round(Number(stop.deliveredQuantityKg ?? 0)),
+        sum + Math.round(Number(stop.deliveredQuantity ?? 0)),
       0,
     )
   const totalBottles = trip.requested_quantity
@@ -54,9 +54,9 @@ export function TourTelemetryChart({
       )
       return {
         timeLabel: formatShortTime(point.recordedAt),
-        estimatedVolumeKg: point.estimatedVolumeKg,
+        estimatedVolume: point.estimatedVolume,
         lpgLevelPercent: point.lpgLevelPercent,
-        deliveredKg: cumulativeDelivered,
+        delivered: cumulativeDelivered,
         remainingBottles: isBottles
           ? Math.max(totalBottles - cumulativeDelivered, 0)
           : null,
@@ -139,7 +139,7 @@ export function TourTelemetryChart({
                       value?: number
                       color?: string
                     }>}
-                    formatKg={formatKg}
+                    formatQuantity={formatQuantity}
                     isBottles={isBottles}
                     totalBottles={totalBottles}
                   />
@@ -147,7 +147,7 @@ export function TourTelemetryChart({
               />
               <Area
                 yAxisId='volume'
-                dataKey='estimatedVolumeKg'
+                dataKey='estimatedVolume'
                 name='Volume restant'
                 fill={isBottles ? 'url(#tour-telemetry-bottles)' : 'url(#tour-telemetry-volume)'}
                 stroke={isBottles ? '#6366f1' : '#22c55e'}
@@ -166,7 +166,7 @@ export function TourTelemetryChart({
               ) : null}
               <Line
                 yAxisId='volume'
-                dataKey='deliveredKg'
+                dataKey='delivered'
                 name='Volume livré'
                 stroke='#f59e0b'
                 strokeWidth={2.5}
@@ -190,7 +190,7 @@ export function TourTelemetryChart({
             value={
               isBottles
                 ? `${Math.max(totalBottles - deliveredBottles, 0)} / ${totalBottles}`
-                : formatKg(trip.remainingQuantityKg)
+                : formatQuantity(trip.remainingQuantity)
             }
             hint={
               isBottles
@@ -204,7 +204,7 @@ export function TourTelemetryChart({
             value={
               isBottles
                 ? `${deliveredBottles} btl`
-                : formatKg(trip.deliveredQuantityKg ?? 0)
+                : formatQuantity(trip.deliveredQuantity ?? 0)
             }
             hint={
               isBottles
@@ -215,9 +215,9 @@ export function TourTelemetryChart({
           />
           <TelemetrySignal
             label='Écart non justifié'
-            value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg) : isBottles ? '0 btl' : '0 TM'}
+            value={trip.unaccounted > 0 ? formatQuantity(trip.unaccounted) : isBottles ? '0 btl' : '0 TM'}
             hint={
-              trip.unaccountedKg > 0
+              trip.unaccounted > 0
                 ? 'À expliquer avant clôture'
                 : 'Bilan de charge cohérent'
             }
@@ -233,14 +233,14 @@ function TelemetryTooltip({
   active,
   label,
   payload,
-  formatKg,
+  formatQuantity,
   isBottles,
   totalBottles,
 }: {
   active?: boolean
   label?: string | string[]
   payload?: Array<{ name?: string; value?: number; color?: string }>
-  formatKg: (value: number) => string
+  formatQuantity: (value: number) => string
   isBottles: boolean
   totalBottles: number
 }) {
@@ -258,7 +258,7 @@ function TelemetryTooltip({
         {isBottles ? (
           <>
             <p className='text-indigo-600 dark:text-indigo-300'>
-              Volume citerne: {formatKg(Number(volume ?? 0))}
+              Volume citerne: {formatQuantity(Number(volume ?? 0))}
             </p>
             <p className='text-violet-600 dark:text-violet-300'>
               Bouteilles restantes: {Number(remainingBottles ?? 0)} / {totalBottles}
@@ -266,11 +266,11 @@ function TelemetryTooltip({
           </>
         ) : (
           <p className='text-emerald-600 dark:text-emerald-300'>
-            Volume restant: {formatKg(Number(volume ?? 0))}
+            Volume restant: {formatQuantity(Number(volume ?? 0))}
           </p>
         )}
         <p className='text-amber-600 dark:text-amber-300'>
-          {isBottles ? 'Bouteilles livrées' : 'Volume livré'}: {formatKg(Number(delivered ?? 0))}
+          {isBottles ? 'Bouteilles livrées' : 'Volume livré'}: {formatQuantity(Number(delivered ?? 0))}
         </p>
       </div>
     </div>
@@ -284,12 +284,12 @@ function computeCumulativeDelivered(
   totalBottles: number,
 ): number {
   const points = telemetry.slice(0, index + 1)
-  let totalLoad = points[0]?.estimatedVolumeKg ?? 0
+  let totalLoad = points[0]?.estimatedVolume ?? 0
   let cumulative = 0
   for (const point of points) {
-    const delivered = Math.max(totalLoad - point.estimatedVolumeKg, 0)
+    const delivered = Math.max(totalLoad - point.estimatedVolume, 0)
     cumulative = delivered
-    totalLoad = point.estimatedVolumeKg
+    totalLoad = point.estimatedVolume
   }
   if (isBottles && totalBottles > 0) {
     return Math.min(Math.round(cumulative), totalBottles)

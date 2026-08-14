@@ -3,11 +3,12 @@ import { AlertTriangle, Coins, FileBarChart, Receipt } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
 import { ReconciliationsTable } from './components/reconciliations-table'
-import { getReconciliations, getReconciliationSummary } from './data/reconciliations'
+import { getReconciliations, getReconciliationSummary, gapToleranceThreshold } from './data/reconciliations'
 
 export function ReconciliationsPage() {
   const rows = useMemo(() => getReconciliations(), [])
   const summary = useMemo(() => getReconciliationSummary(rows), [rows])
+  const tolerance = gapToleranceThreshold()
 
   return (
     <PageShell>
@@ -18,7 +19,7 @@ export function ReconciliationsPage() {
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <KpiTile label='Total' value={String(summary.total)} icon={<FileBarChart className='size-4 text-primary' />} />
         <KpiTile
-          label='Écarts > 2,5 %'
+          label={`Écarts > ${tolerance.toLocaleString('fr-FR')} %`}
           value={String(summary.flagged)}
           icon={<AlertTriangle className='size-4 text-rose-500' />}
         />

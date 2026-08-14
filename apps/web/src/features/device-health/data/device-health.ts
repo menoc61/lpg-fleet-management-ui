@@ -1,4 +1,4 @@
-import { deviceStats } from '@lpg/mock-data'
+import { deviceStats, getSettingNumber } from '@lpg/mock-data'
 import { type DeviceType, type DeviceStatus } from '@lpg/types'
 
 export type { DeviceType, DeviceStatus }
@@ -37,7 +37,11 @@ export function getDeviceHealth(): DeviceHealthView[] {
 export function getDeviceHealthSummary() {
   const stats = deviceStats()
   const attention = getDeviceHealth()
-  const batteryCritical = attention.filter((d) => (d.battery ?? 0) <= 15).length
+  const batteryCriticalThreshold =
+    getSettingNumber('device.battery_critical_threshold') ?? 15
+  const batteryCritical = attention.filter(
+    (d) => (d.battery ?? 0) <= batteryCriticalThreshold
+  ).length
   return {
     total: stats.total,
     attention: attention.length,

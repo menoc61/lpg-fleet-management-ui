@@ -72,12 +72,20 @@ describe('tour-machine transitions', () => {
       expect(canTransition('PENDINGTRANSPORTERACK', 'INPROGRESS', 'EXTERNAL')).toBe(false)
     })
 
-    it('allows cancel from any non-terminal state', () => {
-      for (const from of ['DRAFT', 'PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE', 'PENDINGTRANSPORTERACK', 'ACKNOWLEDGED'] as const) {
+    it('allows cancel only from pre-rollout states', () => {
+      const cancellable = ['DRAFT', 'PLANNED', 'PENDINGTRANSPORTERACK', 'ACKNOWLEDGED'] as const
+      for (const from of cancellable) {
         expect(canTransition(from, 'CANCELLED', 'EXTERNAL')).toBe(true)
       }
-      for (const from of ['DRAFT', 'PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE'] as const) {
+      for (const from of ['DRAFT', 'PLANNED'] as const) {
         expect(canTransition(from, 'CANCELLED', 'INTERNAL')).toBe(true)
+      }
+    })
+
+    it('disallows cancel once the tour is underway', () => {
+      for (const mode of ['INTERNAL', 'EXTERNAL'] as const) {
+        expect(canTransition('INPROGRESS', 'CANCELLED', mode)).toBe(false)
+        expect(canTransition('CHECKPOINTACTIVE', 'CANCELLED', mode)).toBe(false)
       }
     })
 
@@ -101,8 +109,8 @@ describe('tour-machine transitions', () => {
       )
     })
 
-    it('exposes only close+cancel from CHECKPOINTACTIVE', () => {
-      expect(nextStatuses('CHECKPOINTACTIVE', 'EXTERNAL').sort()).toEqual(['CANCELLED', 'CLOSED'])
+    it('exposes close only from CHECKPOINTACTIVE', () => {
+      expect(nextStatuses('CHECKPOINTACTIVE', 'EXTERNAL')).toEqual(['CLOSED'])
     })
   })
 
@@ -120,6 +128,11 @@ describe('tour-machine transitions', () => {
     it('offers start + cancel on ACKNOWLEDGED', () => {
       const actions = tourActions(baseExternal({ status: 'ACKNOWLEDGED' }))
       expect(actions).toEqual(['cancel', 'start'])
+    })
+
+    it('offers plan + cancel on an INTERNAL DRAFT', () => {
+      const actions = tourActions(baseExternal({ execution_mode: 'INTERNAL', status: 'DRAFT' }))
+      expect(actions).toEqual(['cancel', 'plan'])
     })
 
     it('exposes no actions on terminal CLOSED', () => {
@@ -226,11 +239,11 @@ describe('tour-machine SLA', () => {
     expect(tourSlaFlags(tour, THRESHOLDS, now).transporterNoAck).toBe(false)
   })
 
-  it('flags TOURNEEUNASSIGNEDTOOLONG for PLANNED without assignment older than threshold', () => {
+  it('flags TOURNEEUNASSIGNEDTOOLONG for an EXTERNAL DRAFT without transporter older than threshold', () => {
     const tooOld = '2026-01-01T00:00:00.000Z'
     const tour = baseExternal({
       execution_mode: 'EXTERNAL',
-      status: 'PLANNED',
+      status: 'DRAFT',
       transporter_org_id: null,
       created_at: tooOld,
     })
@@ -241,7 +254,7 @@ describe('tour-machine SLA', () => {
   it('does not flag unassigned when already assigned', () => {
     const recent = '2026-01-01T00:00:00.000Z'
     const tour = baseExternal({
-      status: 'PLANNED',
+      status: 'DRAFT',
       created_at: recent,
     })
     const now = new Date('2026-01-02T02:00:00.000Z')
@@ -267,7 +280,7 @@ describe('tour-machine SLA disabled-by-zero', () => {
     const old = '2025-01-01T00:00:00.000Z'
     const tour = baseExternal({
       execution_mode: 'EXTERNAL',
-      status: 'PLANNED',
+      status: 'DRAFT',
       transporter_org_id: null,
       created_at: old,
     })
@@ -338,16 +351,30 @@ describe('tour-machine applyAction', () => {
     expect(next.transporter_assigned_at).toBe(original)
   })
 
-  it('send-to-transporter returns a status-only patch (timestamps untouched for the store to merge)', () => {
+  it('send-to-transporter stamps sent_to_transporter_at and nothing else', () => {
     const tour = baseExternal({ status: 'DRAFT', started_at: null, closed_at: null })
     const send = applyAction(tour, 'send-to-transporter', now)
     expect(send.status).toBe('PENDINGTRANSPORTERACK')
+    expect(send.sent_to_transporter_at).toBe(now.toISOString())
     // applyAction is a patch-producer: it only emits the fields a given action
-    // touches. start/close/acknowledge carry their timestamp; status-only
-    // actions leave timestamps undefined so the store merges `{...tour, ...patch}`.
+    // touches. start/close/acknowledge carry their timestamp; other fields are
+    // left undefined so the store merges `{...tour, ...patch}`.
     expect(send.started_at).toBeUndefined()
     expect(send.closed_at).toBeUndefined()
     expect(send.transporter_assigned_at).toBeUndefined()
+  })
+
+  it('send-to-transporter is idempotent for sent_to_transporter_at', () => {
+    const original = '2026-02-25T09:00:00.000Z'
+    const tour = baseExternal({ status: 'DRAFT', sent_to_transporter_at: original })
+    const send = applyAction(tour, 'send-to-transporter', now)
+    expect(send.sent_to_transporter_at).toBe(original)
+  })
+
+  it('plan transitions an INTERNAL DRAFT to PLANNED', () => {
+    const tour = baseExternal({ execution_mode: 'INTERNAL', status: 'DRAFT' })
+    const planned = applyAction(tour, 'plan', now)
+    expect(planned.status).toBe('PLANNED')
   })
 
   it('cancel returns a status-only patch', () => {
@@ -357,5 +384,12 @@ describe('tour-machine applyAction', () => {
     expect(cancel.started_at).toBeUndefined()
     expect(cancel.closed_at).toBeUndefined()
     expect(cancel.transporter_assigned_at).toBeUndefined()
+  })
+
+  it('rejects an action that is not legal for the current status', () => {
+    const underway = baseExternal({ status: 'INPROGRESS' })
+    expect(() => applyAction(underway, 'cancel', now)).toThrow(/Transition interdite/)
+    const external = baseExternal({ status: 'DRAFT' })
+    expect(() => applyAction(external, 'plan', now)).toThrow(/Transition interdite/)
   })
 })

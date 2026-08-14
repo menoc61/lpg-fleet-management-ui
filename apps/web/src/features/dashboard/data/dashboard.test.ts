@@ -6,19 +6,19 @@ describe('buildDashboardView', () => {
     const dashboard = buildDashboardView()
 
     expect(dashboard.overview).toMatchObject({
-      totalTransportedKg: 83890,
-      totalDeliveredKg: 25140,
-      totalReserveKg: 86550,
-      reserveCapacityKg: 144000,
+      totalTransportedTM: 430.45,
+      totalDeliveredTM: 221.22,
+      totalReserveTM: 86.55,
+      reserveCapacityTM: 144,
       reserveFillPercent: 60,
-      reserveCoverageDays: 3.4,
+      reserveCoverageDays: 0.4,
       activeTrips: 4,
       plannedTrips: 4,
       incidentTrips: 0,
       activeTrucks: 27,
       totalTrucks: 33,
       riskTrucks: 0,
-      abnormalLossKg: 0,
+      abnormalLossTM: 0,
       openAlerts: 4,
       criticalAlerts: 1,
     })
@@ -42,9 +42,9 @@ describe('buildDashboardView', () => {
       dashboard.trendByPeriod.daily[dashboard.trendByPeriod.daily.length - 1]
     ).toEqual({
       label: "Aujourd'hui",
-      transportedKg: 83890,
-      deliveredKg: 25140,
-      reserveKg: 86550,
+      transportedTM: 430.45,
+      delivered: 221.22,
+      reserveTM: 86.55,
       alertCount: 4,
       serviceRate: 67,
     })
@@ -66,30 +66,37 @@ describe('buildDashboardView', () => {
     expect(dashboard.fleets).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          fleetName: 'Neptune Gaz SARL',
+          transportedTM: 120,
+          delivered: 48,
+          pendingTM: 72,
+          sharePercent: 28,
+          onTimeRate: 100,
+          truckCount: 2,
+        }),
+        expect.objectContaining({
           fleetName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
-          transportedKg: 26850,
-          deliveredKg: 11620,
-          pendingKg: 15230,
-          sharePercent: 32,
+          transportedTM: 26.85,
+          delivered: 11.62,
+          pendingTM: 15.23,
+          sharePercent: 6,
           onTimeRate: 100,
           truckCount: 3,
         }),
         expect.objectContaining({
           fleetName: 'STARGAS Cameroun SARL',
-          transportedKg: 12000,
-          deliveredKg: 0,
-          pendingKg: 12000,
-          sharePercent: 14,
+          transportedTM: 12,
+          delivered: 0,
+          pendingTM: 12,
+          sharePercent: 3,
           onTimeRate: 0,
           truckCount: 2,
         }),
       ])
     )
 
-    expect(dashboard.fleets[0]!.fleetName).toBe(
-      'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures'
-    )
-    expect(dashboard.fleets[1]!.fleetName).toBe('STARGAS Cameroun SARL')
+    expect(dashboard.fleets[0]!.fleetName).toBe('Neptune Gaz SARL')
+    expect(dashboard.fleets[1]!.fleetName).toBe('AZA Afrigaz — Division GPL')
     expect(dashboard.fleets[0]).toMatchObject({ onTimeRate: 100 })
     expect(dashboard.fleets[1]).toMatchObject({ onTimeRate: 0 })
 
@@ -123,26 +130,26 @@ describe('buildDashboardView', () => {
           reference: 'TRP-2405',
           carrierName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
           plateNumber: 'LT1123UB',
-          loadedQuantityKg: 15000,
-          transportedSharePercent: 18,
+          loadedQuantity: 15,
+          transportedSharePercent: 3,
         }),
         expect.objectContaining({
           reference: 'TRP-2409',
           carrierName: 'STARGAS Cameroun SARL',
           plateNumber: 'LT0013TL',
-          loadedQuantityKg: 12000,
+          loadedQuantity: 12,
         }),
         expect.objectContaining({
           reference: 'TRP-2401',
           carrierName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
           plateNumber: 'LT1123UB',
-          deliveredQuantityKg: 11620,
+          deliveredQuantity: 11.62,
         }),
         expect.objectContaining({
           reference: 'TRP-2404',
           carrierName: 'Clinique Baptiste de Douala',
           plateNumber: 'LT9903TJ',
-          loadedQuantityKg: 3600,
+          loadedQuantity: 72,
           status: 'in-progress',
         }),
       ])

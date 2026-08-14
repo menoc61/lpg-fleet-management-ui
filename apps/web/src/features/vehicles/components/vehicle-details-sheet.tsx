@@ -66,7 +66,7 @@ export function VehicleDetailsSheet({
               />
               <MetricCard
                 label='Tare'
-                 value={vehicle.tare_weight ? `${vehicle.tare_weight} t` : '—'}
+                 value={vehicle.tare_weight ? `${(vehicle.tare_weight / 1000).toLocaleString('fr-FR')} t` : '—'}
                 detail='Poids a vide'
               />
               <MetricCard

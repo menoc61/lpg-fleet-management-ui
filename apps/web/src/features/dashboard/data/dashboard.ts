@@ -29,9 +29,9 @@ export type DashboardMetric = {
 
 export type DashboardTrendPoint = {
   label: string
-  transportedKg: number
-  deliveredKg: number
-  reserveKg: number
+  transportedTM: number
+  delivered: number
+  reserveTM: number
   alertCount: number
   serviceRate: number
 }
@@ -39,9 +39,9 @@ export type DashboardTrendPoint = {
 export type DashboardCadenceSummary = {
   period: DashboardPeriod
   label: string
-  transportedKg: number
-  deliveredKg: number
-  reserveKg: number
+  transportedTM: number
+  delivered: number
+  reserveTM: number
   alertCount: number
   serviceRate: number
   transportedDeltaPercent: number
@@ -54,9 +54,9 @@ export type DashboardFleetSummary = {
   truckCount: number
   activeTruckCount: number
   activeTripCount: number
-  transportedKg: number
-  deliveredKg: number
-  pendingKg: number
+  transportedTM: number
+  delivered: number
+  pendingTM: number
   sharePercent: number
   utilizationPercent: number
   onTimeRate: number
@@ -70,13 +70,13 @@ export type DashboardReserveSite = {
   siteName: string
   city: string
   operator: string
-  reserveKg: number
-  capacityKg: number
+  reserveTM: number
+  capacityTM: number
   fillPercent: number
   targetMinPercent: number
-  inboundKg: number
-  scheduledInboundKg: number
-  outboundKg: number
+  inboundTM: number
+  scheduledInboundTM: number
+  outboundTM: number
   activeTripCount: number
   daysOfCover: number
   status: DashboardReserveStatus
@@ -95,7 +95,7 @@ export type DashboardAlert = {
 export type DashboardBreakdownItem = {
   id: string
   label: string
-  amountKg: number
+  amountTM: number
   sharePercent: number
   color: string
 }
@@ -107,7 +107,7 @@ export type DashboardRecentActivity = {
   happenedAt: string
   owner: string
   location: string
-  volumeKg?: number
+  volumeTM?: number
   status: DashboardActivityStatus
 }
 
@@ -122,10 +122,10 @@ export type DashboardRouteContribution = {
   customerName: string
   originLabel: string
   destinationLabel: string
-  loadedQuantityKg: number
-  deliveredQuantityKg: number
-  remainingQuantityKg: number
-  unaccountedKg: number
+  loadedQuantity: number
+  deliveredQuantity: number
+  remainingQuantity: number
+  unaccounted: number
   transportedSharePercent: number
   deliveredSharePercent: number
   status: RouteTripStatus
@@ -135,10 +135,10 @@ export type DashboardRouteContribution = {
 export type DashboardOverview = {
   dateRangeLabel: string
   generatedAt: string
-  totalTransportedKg: number
-  totalDeliveredKg: number
-  totalReserveKg: number
-  reserveCapacityKg: number
+  totalTransportedTM: number
+  totalDeliveredTM: number
+  totalReserveTM: number
+  reserveCapacityTM: number
   reserveFillPercent: number
   reserveCoverageDays: number
   activeTrips: number
@@ -147,7 +147,7 @@ export type DashboardOverview = {
   activeTrucks: number
   totalTrucks: number
   riskTrucks: number
-  abnormalLossKg: number
+  abnormalLossTM: number
   openAlerts: number
   criticalAlerts: number
 }
@@ -168,33 +168,33 @@ export type DashboardView = {
 
 const reserveConfigBySiteId = {
   'site-0033-scdp-kribi': {
-    capacityKg: 52000,
-    reserveKg: 41800,
+    capacityTM: 52,
+    reserveTM: 41.8,
     targetMinPercent: 42,
   },
   'site-0028-scdp-bonaberi': {
-    capacityKg: 32000,
-    reserveKg: 17350,
+    capacityTM: 32,
+    reserveTM: 17.35,
     targetMinPercent: 40,
   },
   'site-0029-scdp-yaounde': {
-    capacityKg: 26000,
-    reserveKg: 11400,
+    capacityTM: 26,
+    reserveTM: 11.4,
     targetMinPercent: 45,
   },
   'site-0001-sctm-bonaberi': {
-    capacityKg: 20000,
-    reserveKg: 6200,
+    capacityTM: 20,
+    reserveTM: 6.2,
     targetMinPercent: 38,
   },
   'site-0003-sctm-bafoussam': {
-    capacityKg: 14000,
-    reserveKg: 9800,
+    capacityTM: 14,
+    reserveTM: 9.8,
     targetMinPercent: 40,
   },
 } as const satisfies Record<
   string,
-  { capacityKg: number; reserveKg: number; targetMinPercent: number }
+  { capacityTM: number; reserveTM: number; targetMinPercent: number }
 >
 
 const fleetColors = ['#0f766e', '#0284c7', '#ca8a04', '#7c3aed'] as const
@@ -370,26 +370,26 @@ function shiftMinutes(value: string, minutes: number) {
 }
 
 function buildTrendSeries(current: {
-  transportedKg: number
-  deliveredKg: number
-  reserveKg: number
+  transportedTM: number
+  delivered: number
+  reserveTM: number
   alertCount: number
   serviceRate: number
 }) {
   const daily = [
     ...dailyTrendOffsets.map((point) => ({
       label: point.label,
-      transportedKg: round(current.transportedKg * point.transport),
-      deliveredKg: round(current.deliveredKg * point.delivered),
-      reserveKg: round(current.reserveKg * point.reserve),
+      transportedTM: round(current.transportedTM * point.transport),
+      delivered: round(current.delivered * point.delivered),
+      reserveTM: round(current.reserveTM * point.reserve),
       alertCount: point.alerts,
       serviceRate: point.serviceRate,
     })),
     {
       label: "Aujourd'hui",
-      transportedKg: current.transportedKg,
-      deliveredKg: current.deliveredKg,
-      reserveKg: current.reserveKg,
+      transportedTM: current.transportedTM,
+      delivered: current.delivered,
+      reserveTM: current.reserveTM,
       alertCount: current.alertCount,
       serviceRate: current.serviceRate,
     },
@@ -398,17 +398,17 @@ function buildTrendSeries(current: {
   const weekly = [
     ...weeklyTrendOffsets.map((point) => ({
       label: point.label,
-      transportedKg: round(current.transportedKg * point.transport),
-      deliveredKg: round(current.deliveredKg * point.delivered),
-      reserveKg: round(current.reserveKg * point.reserve),
+      transportedTM: round(current.transportedTM * point.transport),
+      delivered: round(current.delivered * point.delivered),
+      reserveTM: round(current.reserveTM * point.reserve),
       alertCount: point.alerts,
       serviceRate: point.serviceRate,
     })),
     {
       label: 'Semaine en cours',
-      transportedKg: round(current.transportedKg * 5.92),
-      deliveredKg: round(current.deliveredKg * 5.22),
-      reserveKg: current.reserveKg,
+      transportedTM: round(current.transportedTM * 5.92),
+      delivered: round(current.delivered * 5.22),
+      reserveTM: current.reserveTM,
       alertCount: Math.max(current.alertCount + 4, 6),
       serviceRate: Math.max(current.serviceRate + 8, 72),
     },
@@ -417,17 +417,17 @@ function buildTrendSeries(current: {
   const monthly = [
     ...monthlyTrendOffsets.map((point) => ({
       label: point.label,
-      transportedKg: round(current.transportedKg * point.transport),
-      deliveredKg: round(current.deliveredKg * point.delivered),
-      reserveKg: round(current.reserveKg * point.reserve),
+      transportedTM: round(current.transportedTM * point.transport),
+      delivered: round(current.delivered * point.delivered),
+      reserveTM: round(current.reserveTM * point.reserve),
       alertCount: point.alerts,
       serviceRate: point.serviceRate,
     })),
     {
       label: 'Avr',
-      transportedKg: round(current.transportedKg * 24.8),
-      deliveredKg: round(current.deliveredKg * 22.7),
-      reserveKg: current.reserveKg,
+      transportedTM: round(current.transportedTM * 24.8),
+      delivered: round(current.delivered * 22.7),
+      reserveTM: current.reserveTM,
       alertCount: Math.max(current.alertCount * 5, 20),
       serviceRate: Math.max(current.serviceRate + 10, 77),
     },
@@ -460,18 +460,18 @@ function buildCadence(
     return {
       period,
       label,
-      transportedKg: current.transportedKg,
-      deliveredKg: current.deliveredKg,
-      reserveKg: current.reserveKg,
+      transportedTM: current.transportedTM,
+      delivered: current.delivered,
+      reserveTM: current.reserveTM,
       alertCount: current.alertCount,
       serviceRate: current.serviceRate,
       transportedDeltaPercent: getDeltaPercent(
-        current.transportedKg,
-        previous.transportedKg
+        current.transportedTM,
+        previous.transportedTM
       ),
       reserveDeltaPercent: getDeltaPercent(
-        current.reserveKg,
-        previous.reserveKg
+        current.reserveTM,
+        previous.reserveTM
       ),
       narrative,
     }
@@ -489,26 +489,26 @@ function buildReserveSites() {
         throw new Error(`Unknown reserve site "${siteId}"`)
       }
 
-      const outboundKg = routeViews
+      const outboundTM = routeViews
         .filter((trip) => trip.originSite.id === siteId)
-        .reduce((total, trip) => total + trip.loadedQuantityKg, 0)
+        .reduce((total, trip) => total + trip.loadedQuantity, 0)
 
-      const inboundKg = routeViews.reduce((total, trip) => {
+      const inboundTM = routeViews.reduce((total, trip) => {
         return (
           total +
           trip.stops.reduce((stopTotal, stop) => {
             if (stop.site.id !== siteId || !stop.completed) return stopTotal
-            return stopTotal + (stop.deliveredQuantityKg ?? 0)
+            return stopTotal + (stop.deliveredQuantity ?? 0)
           }, 0)
         )
       }, 0)
 
-      const scheduledInboundKg = routeViews.reduce((total, trip) => {
+      const scheduledInboundTM = routeViews.reduce((total, trip) => {
         return (
           total +
           trip.stops.reduce((stopTotal, stop) => {
             if (stop.site.id !== siteId || stop.completed) return stopTotal
-            return stopTotal + (stop.deliveredQuantityKg ?? 0)
+            return stopTotal + (stop.deliveredQuantity ?? 0)
           }, 0)
         )
       }, 0)
@@ -522,7 +522,7 @@ function buildReserveSites() {
         return touchesSite && isActiveRouteStatus(trip.status)
       }).length
 
-      const fillPercent = round((config.reserveKg / config.capacityKg) * 100)
+      const fillPercent = round((config.reserveTM / config.capacityTM) * 100)
       const status: DashboardReserveStatus =
         fillPercent < 35
           ? 'critical'
@@ -535,16 +535,16 @@ function buildReserveSites() {
         siteName: site.name,
         city: site.city,
         operator: site.operator,
-        reserveKg: config.reserveKg,
-        capacityKg: config.capacityKg,
+        reserveTM: config.reserveTM,
+        capacityTM: config.capacityTM,
         fillPercent,
         targetMinPercent: config.targetMinPercent,
-        inboundKg,
-        scheduledInboundKg,
-        outboundKg,
+        inboundTM,
+        scheduledInboundTM,
+        outboundTM,
         activeTripCount,
         daysOfCover: roundToOne(
-          config.reserveKg / Math.max(outboundKg - scheduledInboundKg / 2, 5500)
+          config.reserveTM / Math.max(outboundTM - scheduledInboundTM / 2, 5.5)
         ),
         status,
       } satisfies DashboardReserveSite
@@ -553,12 +553,12 @@ function buildReserveSites() {
       const statusOrder = { critical: 0, watch: 1, healthy: 2 }
       return (
         statusOrder[left.status] - statusOrder[right.status] ||
-        left.reserveKg - right.reserveKg
+        left.reserveTM - right.reserveTM
       )
     })
 }
 
-function buildFleetSummaries(totalTransportedKg: number) {
+function buildFleetSummaries(totalTransportedTM: number) {
   const routeViews = getRouteTripsView()
   const fleets = new Map<
     string,
@@ -572,9 +572,9 @@ function buildFleetSummaries(totalTransportedKg: number) {
         truckCount: 0,
         activeTruckCount: 0,
         activeTripCount: 0,
-        transportedKg: 0,
-        deliveredKg: 0,
-        pendingKg: 0,
+        transportedTM: 0,
+        delivered: 0,
+        pendingTM: 0,
         utilizationPercent: 0,
         onTimeRate: 0,
         riskTruckCount: 0,
@@ -594,9 +594,9 @@ function buildFleetSummaries(totalTransportedKg: number) {
 
     if (!entry) continue
 
-    entry.transportedKg += trip.loadedQuantityKg
-    entry.deliveredKg += trip.deliveredQuantityKg
-    entry.pendingKg += trip.remainingQuantityKg
+    entry.transportedTM += trip.loadedQuantity
+    entry.delivered += trip.deliveredQuantity
+    entry.pendingTM += trip.remainingQuantity
     entry.activeTripCount += isActiveRouteStatus(trip.status) ? 1 : 0
     entry.onTimeRate += trip.status === 'planned' ? 0 : trip.onTime ? 1 : 0
   }
@@ -613,9 +613,9 @@ function buildFleetSummaries(totalTransportedKg: number) {
       return {
         ...fleet,
         sharePercent:
-          totalTransportedKg === 0
+          totalTransportedTM === 0
             ? 0
-            : round((fleet.transportedKg / totalTransportedKg) * 100),
+            : round((fleet.transportedTM / totalTransportedTM) * 100),
         utilizationPercent:
           fleet.truckCount === 0
             ? 0
@@ -631,47 +631,47 @@ function buildFleetSummaries(totalTransportedKg: number) {
         color: fleetColors[index % fleetColors.length]!,
       } satisfies DashboardFleetSummary
     })
-    .filter((fleet) => fleet.transportedKg > 0 || fleet.activeTripCount > 0)
-    .sort((left, right) => right.transportedKg - left.transportedKg)
+    .filter((fleet) => fleet.transportedTM > 0 || fleet.activeTripCount > 0)
+    .sort((left, right) => right.transportedTM - left.transportedTM)
 }
 
 function buildFlowBreakdown(
   fleets: readonly DashboardFleetSummary[],
-  totalTransportedKg: number
+  totalTransportedTM: number
 ) {
   return fleets
-    .filter((fleet) => fleet.transportedKg > 0)
+    .filter((fleet) => fleet.transportedTM > 0)
     .map((fleet) => ({
       id: `fleet-${fleet.fleetName.toLowerCase().replace(/\s+/g, '-')}`,
       label: fleet.fleetName,
-      amountKg: fleet.transportedKg,
+      amountTM: fleet.transportedTM,
       sharePercent:
-        totalTransportedKg === 0
+        totalTransportedTM === 0
           ? 0
-          : round((fleet.transportedKg / totalTransportedKg) * 100),
+          : round((fleet.transportedTM / totalTransportedTM) * 100),
       color: fleet.color,
     }))
 }
 
 function buildReserveSummary(reserveSites: readonly DashboardReserveSite[]) {
-  const totalReserveKg = reserveSites.reduce(
-    (total, site) => total + site.reserveKg,
+  const totalReserveTM = reserveSites.reduce(
+    (total, site) => total + site.reserveTM,
     0
   )
   const rankedSites = [...reserveSites].sort(
-    (left, right) => right.reserveKg - left.reserveKg
+    (left, right) => right.reserveTM - left.reserveTM
   )
   const primarySites = rankedSites.slice(0, 4)
   const otherReserveKg = rankedSites
     .slice(4)
-    .reduce((total, site) => total + site.reserveKg, 0)
+    .reduce((total, site) => total + site.reserveTM, 0)
 
   const summary = primarySites.map((site, index) => ({
     id: `reserve-${site.siteId}`,
     label: site.city,
-    amountKg: site.reserveKg,
+    amountTM: site.reserveTM,
     sharePercent:
-      totalReserveKg === 0 ? 0 : round((site.reserveKg / totalReserveKg) * 100),
+      totalReserveTM === 0 ? 0 : round((site.reserveTM / totalReserveTM) * 100),
     color: reserveSummaryColors[index]!,
   }))
 
@@ -679,8 +679,8 @@ function buildReserveSummary(reserveSites: readonly DashboardReserveSite[]) {
     summary.push({
       id: 'reserve-autres',
       label: 'Autres',
-      amountKg: otherReserveKg,
-      sharePercent: round((otherReserveKg / totalReserveKg) * 100),
+      amountTM: otherReserveKg,
+      sharePercent: round((otherReserveKg / totalReserveTM) * 100),
       color: reserveSummaryColors[4]!,
     })
   }
@@ -690,8 +690,8 @@ function buildReserveSummary(reserveSites: readonly DashboardReserveSite[]) {
 
 function buildRouteContributions(
   routeViews: readonly RouteTripView[],
-  totalTransportedKg: number,
-  totalDeliveredKg: number
+  totalTransportedTM: number,
+  totalDeliveredTM: number
 ) {
   return routeViews
     .map((trip) => ({
@@ -705,22 +705,22 @@ function buildRouteContributions(
       customerName: trip.customerName ?? '',
       originLabel: trip.originSite.city,
       destinationLabel: trip.destinationSite.city,
-      loadedQuantityKg: trip.loadedQuantityKg,
-      deliveredQuantityKg: trip.deliveredQuantityKg,
-      remainingQuantityKg: trip.remainingQuantityKg,
-      unaccountedKg: trip.unaccountedKg,
+      loadedQuantity: trip.loadedQuantity,
+      deliveredQuantity: trip.deliveredQuantity,
+      remainingQuantity: trip.remainingQuantity,
+      unaccounted: trip.unaccounted,
       transportedSharePercent:
-        totalTransportedKg === 0
+        totalTransportedTM === 0
           ? 0
-          : round((trip.loadedQuantityKg / totalTransportedKg) * 100),
+          : round((trip.loadedQuantity / totalTransportedTM) * 100),
       deliveredSharePercent:
-        totalDeliveredKg === 0
+        totalDeliveredTM === 0
           ? 0
-          : round((trip.deliveredQuantityKg / totalDeliveredKg) * 100),
+          : round((trip.deliveredQuantity / totalDeliveredTM) * 100),
       status: trip.status,
       onTime: trip.onTime,
     }))
-    .sort((left, right) => right.loadedQuantityKg - left.loadedQuantityKg)
+    .sort((left, right) => right.loadedQuantity - left.loadedQuantity)
 }
 
 function buildAlerts(reserveSites: readonly DashboardReserveSite[]) {
@@ -754,7 +754,7 @@ function buildAlerts(reserveSites: readonly DashboardReserveSite[]) {
   }
 
   for (const trip of routeViews) {
-    if (trip.unaccountedKg > 0) {
+    if (trip.unaccounted > 0) {
       alerts.push({
         id: `${trip.id}-loss`,
         severity: 'high',
@@ -763,7 +763,7 @@ function buildAlerts(reserveSites: readonly DashboardReserveSite[]) {
           'La baisse de GPL constatée ne correspond pas aux volumes déjà tracés sur la tournée.',
         scope: `${trip.originSite.city} -> ${trip.destinationSite.city}`,
         owner: trip.missionLead,
-        metricValue: `${trip.unaccountedKg} kg à vérifier`,
+        metricValue: `${trip.unaccounted} kg à vérifier`,
       })
     }
 
@@ -816,11 +816,11 @@ function buildRecentActivities(
         site.status === 'critical'
           ? `Réserve basse à ${site.city}`
           : `Réserve à surveiller à ${site.city}`,
-      description: `${site.fillPercent}% de remplissage avec ${site.scheduledInboundKg} kg en inbound programmé.`,
+      description: `${site.fillPercent}% de remplissage avec ${site.scheduledInboundTM} kg en inbound programmé.`,
       happenedAt: shiftMinutes(generatedAt, -(index * 9 + 2)),
       owner: site.status === 'critical' ? 'Stock réseau' : 'Appro GPL',
       location: site.siteName,
-      volumeKg: site.reserveKg,
+      volumeTM: site.reserveTM,
       status: 'attention',
     }))
 
@@ -833,10 +833,10 @@ function buildRecentActivities(
         happenedAt: event.occurredAt,
         owner: trip.missionLead,
         location: `${trip.originSite.city} -> ${trip.destinationSite.city}`,
-        volumeKg:
+        volumeTM:
           event.severity === 'high'
-            ? Math.max(trip.unaccountedKg, trip.remainingQuantityKg)
-            : trip.deliveredQuantityKg,
+            ? Math.max(trip.unaccounted, trip.remainingQuantity)
+            : trip.deliveredQuantity,
         status: event.severity === 'low' ? 'completed' : 'attention',
       }))
   )
@@ -848,11 +848,11 @@ function buildRecentActivities(
         return {
           id: `activity-trip-${trip.id}`,
           title: `Livraison finalisée ${trip.reference}`,
-          description: `${trip.deliveredQuantityKg} kg livrés vers ${trip.destinationSite.name}.`,
+          description: `${trip.deliveredQuantity} kg livrés vers ${trip.destinationSite.name}.`,
           happenedAt: trip.lastUpdatedAt,
           owner: trip.missionLead,
           location: trip.destinationSite.name,
-          volumeKg: trip.deliveredQuantityKg,
+          volumeTM: trip.deliveredQuantity,
           status: 'completed',
         } satisfies DashboardRecentActivity
       }
@@ -861,11 +861,11 @@ function buildRecentActivities(
         return {
           id: `activity-trip-${trip.id}`,
           title: `Préparation de charge ${trip.reference}`,
-          description: `${trip.loadedQuantityKg} kg réservés pour ${trip.destinationSite.name}.`,
+          description: `${trip.loadedQuantity} kg réservés pour ${trip.destinationSite.name}.`,
           happenedAt: trip.lastUpdatedAt,
           owner: trip.missionLead,
           location: trip.originSite.name,
-          volumeKg: trip.loadedQuantityKg,
+          volumeTM: trip.loadedQuantity,
           status: 'planned',
         } satisfies DashboardRecentActivity
       }
@@ -873,11 +873,11 @@ function buildRecentActivities(
       return {
         id: `activity-trip-${trip.id}`,
         title: `Acheminement en cours ${trip.reference}`,
-        description: `${trip.remainingQuantityKg} kg encore à délivrer vers ${trip.destinationSite.name}.`,
+        description: `${trip.remainingQuantity} kg encore à délivrer vers ${trip.destinationSite.name}.`,
         happenedAt: trip.lastUpdatedAt,
         owner: trip.missionLead,
         location: `${trip.originSite.city} -> ${trip.destinationSite.city}`,
-        volumeKg: trip.remainingQuantityKg,
+        volumeTM: trip.remainingQuantity,
         status: 'attention',
       } satisfies DashboardRecentActivity
     })
@@ -900,34 +900,34 @@ export function buildDashboardView(): DashboardView {
   const routeSummary = buildRouteSummary(routeViews)
   const reserveSites = buildReserveSites()
   const alerts = buildAlerts(reserveSites)
-  const totalTransportedKg = routeViews.reduce(
-    (total, trip) => total + trip.loadedQuantityKg,
+  const totalTransportedTM = routeViews.reduce(
+    (total, trip) => total + trip.loadedQuantity,
     0
   )
-  const totalDeliveredKg = routeSummary.deliveredVolumeKg
-  const totalReserveKg = reserveSites.reduce(
-    (total, site) => total + site.reserveKg,
+  const totalDeliveredTM = routeSummary.deliveredVolume
+  const totalReserveTM = reserveSites.reduce(
+    (total, site) => total + site.reserveTM,
     0
   )
-  const reserveCapacityKg = reserveSites.reduce(
-    (total, site) => total + site.capacityKg,
+  const reserveCapacityTM = reserveSites.reduce(
+    (total, site) => total + site.capacityTM,
     0
   )
   const reserveCoverageDays = roundToOne(
-    totalReserveKg / Math.max(totalDeliveredKg, 1)
+    totalReserveTM / Math.max(totalDeliveredTM, 1)
   )
   const activeTrucks = trucks.filter((truck) =>
     ['PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE', 'PENDINGTRANSPORTERACK', 'ACKNOWLEDGED'].includes(truck.tournee_status)
   ).length
   const riskTrucks = trucks.filter((truck) => truck.risk_level !== 'FAIBLE').length
-  const abnormalLossKg = routeViews.reduce(
-    (total, trip) => total + trip.unaccountedKg,
+  const abnormalLossTM = routeViews.reduce(
+    (total, trip) => total + trip.unaccounted,
     0
   )
   const trendByPeriod = buildTrendSeries({
-    transportedKg: totalTransportedKg,
-    deliveredKg: totalDeliveredKg,
-    reserveKg: totalReserveKg,
+    transportedTM: totalTransportedTM,
+    delivered: totalDeliveredTM,
+    reserveTM: totalReserveTM,
     alertCount: alerts.length,
     serviceRate: routeSummary.onTimeRate,
   })
@@ -936,13 +936,13 @@ export function buildDashboardView(): DashboardView {
       ? trip.lastUpdatedAt
       : latest
   }, routeViews[0]?.lastUpdatedAt ?? new Date().toISOString())
-  const fleets = buildFleetSummaries(totalTransportedKg)
-  const flowBreakdown = buildFlowBreakdown(fleets, totalTransportedKg)
+  const fleets = buildFleetSummaries(totalTransportedTM)
+  const flowBreakdown = buildFlowBreakdown(fleets, totalTransportedTM)
   const reserveSummary = buildReserveSummary(reserveSites)
   const routeContributions = buildRouteContributions(
     routeViews,
-    totalTransportedKg,
-    totalDeliveredKg
+    totalTransportedTM,
+    totalDeliveredTM
   )
   const recentActivities = buildRecentActivities(
     routeViews,
@@ -957,11 +957,11 @@ export function buildDashboardView(): DashboardView {
     overview: {
       dateRangeLabel: '01 avr 2026 - 28 avr 2026',
       generatedAt,
-      totalTransportedKg,
-      totalDeliveredKg,
-      totalReserveKg,
-      reserveCapacityKg,
-      reserveFillPercent: round((totalReserveKg / reserveCapacityKg) * 100),
+      totalTransportedTM,
+      totalDeliveredTM,
+      totalReserveTM,
+      reserveCapacityTM,
+      reserveFillPercent: round((totalReserveTM / reserveCapacityTM) * 100),
       reserveCoverageDays,
       activeTrips: routeSummary.activeTrips,
       plannedTrips: routeSummary.plannedTrips,
@@ -969,7 +969,7 @@ export function buildDashboardView(): DashboardView {
       activeTrucks,
       totalTrucks: trucks.length,
       riskTrucks,
-      abnormalLossKg,
+      abnormalLossTM,
       openAlerts: alerts.length,
       criticalAlerts: alerts.filter((alert) => alert.severity === 'high')
         .length,
@@ -978,15 +978,15 @@ export function buildDashboardView(): DashboardView {
       {
         id: 'transported',
         title: 'Volumes transportés',
-        value: totalTransportedKg / 1000,
+        value: totalTransportedTM,
         unit: 'TM',
         tone: 'sky',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.transportedKg,
-          dailyPrevious.transportedKg
+          dailyCurrent.transportedTM,
+          dailyPrevious.transportedTM
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.transportedKg - dailyPrevious.transportedKg
+          dailyCurrent.transportedTM - dailyPrevious.transportedTM
         ),
         description: "Volume chargé sur l'ensemble des tournées visibles.",
         highlight: `${routeSummary.activeTrips} tournées actives`,
@@ -994,31 +994,31 @@ export function buildDashboardView(): DashboardView {
       {
         id: 'reserve',
         title: 'GPL en réserve',
-        value: totalReserveKg / 1000,
+        value: totalReserveTM,
         unit: 'TM',
         tone: 'emerald',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.reserveKg,
-          dailyPrevious.reserveKg
+          dailyCurrent.reserveTM,
+          dailyPrevious.reserveTM
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.reserveKg - dailyPrevious.reserveKg
+          dailyCurrent.reserveTM - dailyPrevious.reserveTM
         ),
         description: 'Stock pilotable sur les sites de charge et de reprise.',
-        highlight: `${round((totalReserveKg / reserveCapacityKg) * 100)}% de remplissage`,
+        highlight: `${round((totalReserveTM / reserveCapacityTM) * 100)}% de remplissage`,
       },
       {
         id: 'delivered',
         title: 'Flux livrés',
-        value: totalDeliveredKg / 1000,
+        value: totalDeliveredTM,
         unit: 'TM',
         tone: 'amber',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.deliveredKg,
-          dailyPrevious.deliveredKg
+          dailyCurrent.delivered,
+          dailyPrevious.delivered
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.deliveredKg - dailyPrevious.deliveredKg
+          dailyCurrent.delivered - dailyPrevious.delivered
         ),
         description: 'Volume déjà délivré ou déposé sur les étapes confirmées.',
         highlight: `${routeSummary.onTimeRate}% de service`,

@@ -85,6 +85,8 @@ export type {
 
 export * from './analytics.ts'
 
+export { getSetting, getSettingNumber } from './settings.ts'
+
 import { curated } from './curated.ts'
 
 export interface AuthFixture {

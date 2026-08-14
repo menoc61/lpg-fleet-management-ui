@@ -1,9 +1,11 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Badge, DataTableColumnHeader } from '@lpg/ui'
+import { formatTm } from '@/features/map/utils/format'
 import {
   type ReconciliationView,
   type ReconciliationStatus,
   reconciliationStatusLabels,
+  gapToleranceThreshold,
 } from '../data/reconciliations'
 import { ReconciliationRowActions } from './reconciliation-row-actions'
 
@@ -38,15 +40,15 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
     },
     {
       accessorKey: 'declared_volume',
-      header: 'Declare (TM)',
-      cell: ({ row }) => (row.original.declared_volume / 1000).toLocaleString('fr-FR'),
+      header: 'Déclaré (TM)',
+      cell: ({ row }) => formatTm(row.original.declared_volume),
       meta: { label: 'Declare (TM)' },
       enableGrouping: true,
     },
     {
       accessorKey: 'tracked_volume',
       header: 'Suivi (TM)',
-      cell: ({ row }) => (row.original.tracked_volume / 1000).toLocaleString('fr-FR'),
+      cell: ({ row }) => formatTm(row.original.tracked_volume),
       meta: { label: 'Suivi (TM)' },
       enableGrouping: true,
     },
@@ -55,7 +57,7 @@ export function getReconciliationColumns(): ColumnDef<ReconciliationView>[] {
       header: ({ column }) => <DataTableColumnHeader column={column} title='Ecart %' />,
       cell: ({ row }) => {
         const gap = row.original.gap_percentage
-        const flagged = gap > 2.5
+        const flagged = gap > gapToleranceThreshold()
         return (
           <Badge className={flagged ? 'bg-rose-100 text-rose-900' : 'bg-slate-100 text-slate-700'}>
             {gap.toLocaleString('fr-FR', { maximumFractionDigits: 2 })}%

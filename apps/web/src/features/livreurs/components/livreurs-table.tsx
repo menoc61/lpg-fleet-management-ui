@@ -51,15 +51,6 @@ export function LivreursTable({
   const columns = useMemo<ColumnDef<LivreurView>[]>(
     () => [
       {
-        accessorKey: 'id',
-        header: 'ID',
-        cell: ({ row }: { row: { original: LivreurView } }) => (
-          <span className='font-mono text-xs'>{row.original.id}</span>
-        ),
-        meta: { label: 'ID' },
-        enableHiding: false,
-      },
-      {
         accessorKey: 'fullName',
         header: ({ column }: { column: { toggleSorting: (asc?: boolean) => void; getIsSorted: () => boolean | 'asc' | 'desc' } }) => (
           <Button

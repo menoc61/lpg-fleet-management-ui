@@ -43,11 +43,14 @@ const PATH_ENTRIES: NavPathEntry[] = NAV_CATALOG.map((item) => ({
  * Routes reachable from app chrome (user menu, header, role landing) by every
  * authenticated role, regardless of any nav declaration. Kept in sync with
  * `components/layout/nav-user.tsx` and the `/settings` role hub.
+ *
+ * NOTE: `/settings/notification-groups` is intentionally NOT here — it is a
+ * full CRUD editor and is gated by `notification-groups.write` via its nav
+ * declaration (see `nav-items.ts`).
  */
 const CHROME_PATHS: readonly string[] = [
   '/settings',
   '/settings/profile',
-  '/settings/notification-groups',
 ]
 
 function normalizePath(pathname: string): string {

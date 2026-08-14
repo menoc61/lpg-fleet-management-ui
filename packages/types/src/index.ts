@@ -402,6 +402,7 @@ export interface DeliveryTour extends BaseEntity {
   livreur_user_id?: string | null
   assigned_by_transporter_user_id?: string | null
   transporter_assigned_at?: string | null
+  sent_to_transporter_at?: string | null
   type: TourneeType
   status: TourneeStatus
   requested_quantity: number

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   Button,
@@ -24,6 +24,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { useAuthStore } from '@/store/auth-store'
 import { ROLE_LABELS } from '@/config/rbac/roles'
 import type { Role } from '@/config/rbac/roles'
+import { hasPermission } from '@lpg/permissions'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import {
   useNotificationGroupsStore,
@@ -37,6 +38,12 @@ import type { NotificationGroupFormValues } from '@/features/notifications/notif
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authenticated/settings/notification-groups')({
+  beforeLoad: () => {
+    const role = useAuthStore.getState().user?.system_role as Role | undefined
+    if (!role || !hasPermission(role, 'notification-groups.write')) {
+      throw redirect({ to: '/settings' })
+    }
+  },
   component: NotificationGroupsPage,
 })
 

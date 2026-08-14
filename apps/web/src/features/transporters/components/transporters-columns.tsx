@@ -45,9 +45,9 @@ export function getTransportersColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'id',
+      accessorKey: 'name',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='ID' />
+        <DataTableColumnHeader column={column} title='Nom' />
       ),
       cell: ({ row }) => (
         <button
@@ -55,28 +55,17 @@ export function getTransportersColumns({
           onClick={() => onViewDetails(row.original)}
           className='ps-3 text-left font-medium text-primary underline-offset-4 hover:underline'
         >
-          {row.original.id}
+          {row.original.name}
         </button>
       ),
       meta: {
-        label: 'ID',
+        label: 'Name',
         className: cn(
           'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
           'inset-s-6 ps-0.5 max-md:sticky @4xl/content:table-cell @4xl/content:drop-shadow-none'
         ),
       },
       enableHiding: false,
-      enableGrouping: true,
-    },
-    {
-      accessorKey: 'name',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Nom' />
-      ),
-      cell: ({ row }) => (
-        <div className='font-medium'>{row.original.name}</div>
-      ),
-      meta: { label: 'Nom', className: 'w-48' },
       enableGrouping: true,
     },
     {

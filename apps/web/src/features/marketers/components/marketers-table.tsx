@@ -10,6 +10,7 @@ import {
   type SortingState,
   type VisibilityState,
   useReactTable,
+  GroupingState,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
@@ -45,6 +46,7 @@ export function MarketersTable({
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  const [grouping, setGrouping] = useState<GroupingState>([])
   const columns = useMemo(
     () => getMarketersColumns({ onViewDetails, onEdit, onDelete }),
     [onViewDetails, onEdit, onDelete]
@@ -103,6 +105,7 @@ export function MarketersTable({
         'flex flex-1 flex-col gap-4'
       )}
     >
+    <div className='flex flex-wrap items-center gap-3'>
       <DataTableToolbar
         table={table}
         searchPlaceholder='Rechercher marketer...'
@@ -118,6 +121,22 @@ export function MarketersTable({
           },
         ]}
       />
+      {/* Le sélecteur est maintenant correctement placé en tant qu'enfant (children) */}
+      
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) =>
+              setGrouping(e.target.value ? [e.target.value] : [])
+            }
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          >
+            <option value="">-</option>
+            <option value="site">sites</option>
+          </select>
+        </div>
+      </div>
 
       <div className='overflow-hidden rounded-md border'>
         <Table>

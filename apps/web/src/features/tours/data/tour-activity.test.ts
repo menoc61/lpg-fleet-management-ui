@@ -91,6 +91,6 @@ describe('buildRouteLpgVariation', () => {
     const trip = buildTourActivity(curated.delivery_tours[0]!, 0)
     const variation = buildRouteLpgVariation(trip)
     expect(variation.stages).toHaveLength(3)
-    expect(variation.deliveredKg).toBe(trip.deliveredQuantityKg)
+    expect(variation.delivered).toBe(trip.deliveredQuantity)
   })
 })

@@ -64,6 +64,7 @@ import {
 import { useAuthStore } from '@/store/auth-store'
 import { useRoleStore } from '@/store/role-store'
 import { ROLE_LABELS } from '@/config/rbac/roles'
+import { hasPermission } from '@lpg/permissions'
 import { usePreferencesStore, type ThemePreference, type LanguagePreference, type DigestFrequency } from '@/store/preferences-store'
 import { useTheme } from '@/context/theme-provider'
 import {
@@ -762,7 +763,8 @@ function ProfilePage() {
   const activeRole = useRoleStore((s) => s.activeRole)
   const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
   const { tab: tabParam } = Route.useSearch()
-  const canManageGroups = activeRole === 'SUPERADMIN' || activeRole === 'ADMIN'
+  const canManageGroups =
+    !!user?.system_role && hasPermission(user.system_role as Role, 'notification-groups.write')
   const allowedTabs: Array<'informations' | 'notifications' | 'preferences' | 'groups'> = canManageGroups
     ? ['informations', 'notifications', 'preferences', 'groups']
     : ['informations', 'notifications', 'preferences']

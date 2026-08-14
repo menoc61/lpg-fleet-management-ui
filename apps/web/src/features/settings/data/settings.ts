@@ -28,7 +28,7 @@ export const settingCategoryLabels: Record<string, string> = {
 export function getSettings(): SettingView[] {
   return (settings as Setting[]).map((setting) => ({
     key: setting.setting_key,
-    value: setting.setting_value,
+    value: String(setting.setting_value),
     valueType: setting.value_type,
     category: setting.category,
     categoryLabel: settingCategoryLabels[setting.category] ?? setting.category,

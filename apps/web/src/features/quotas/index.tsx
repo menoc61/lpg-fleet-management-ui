@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Gauge } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
+import { formatTm } from '@/features/map/utils/format'
 import { getMarketeurQuotas, getQuotaSummary, type MarketeurQuotaView } from './data/quotas'
 
 export function QuotasPage() {
@@ -17,8 +18,8 @@ export function QuotasPage() {
 
       <div className='grid gap-4 sm:grid-cols-4'>
         <KpiTile label='Marketeurs' value={String(summary.marketeurs)} />
-        <KpiTile label='Volume déclaré' value={`${formatVolume(summary.declared)} TM`} />
-        <KpiTile label='Volume livré' value={`${formatVolume(summary.delivered)} TM`} />
+        <KpiTile label='Volume déclaré' value={`${formatTm(summary.declared)}`} />
+        <KpiTile label='Volume livré' value={`${formatTm(summary.delivered)}`} />
         <KpiTile label='Utilisation moyenne' value={`${summary.avgUsage}%`} />
       </div>
 
@@ -33,10 +34,6 @@ export function QuotasPage() {
   )
 }
 
-function formatVolume(liters: number): string {
-  return Math.round(liters / 1000).toLocaleString('fr-FR')
-}
-
 function QuotaRow({ row }: { row: MarketeurQuotaView }) {
   return (
     <div className='flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3'>
@@ -45,7 +42,7 @@ function QuotaRow({ row }: { row: MarketeurQuotaView }) {
         <div className='min-w-0'>
           <p className='truncate text-sm font-medium'>{row.marketeurName}</p>
           <p className='truncate text-xs text-muted-foreground'>
-            {formatVolume(row.deliveredVolume)} TM livrés sur {formatVolume(row.declaredVolume)} TM déclarés
+             {formatTm(row.deliveredVolume)} livrés sur {formatTm(row.declaredVolume)} déclarés
           </p>
         </div>
       </div>

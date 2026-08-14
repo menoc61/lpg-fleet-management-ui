@@ -14,6 +14,7 @@ import {
 const ACTION_PERMISSION: Record<TourAction, PermissionCode> = {
   'send-to-transporter': 'tours.create',
   acknowledge: 'tours.assign',
+  plan: 'tours.write',
   start: 'tours.write',
   close: 'tours.write',
   cancel: 'tours.write',
@@ -22,6 +23,7 @@ const ACTION_PERMISSION: Record<TourAction, PermissionCode> = {
 const ACTION_VARIANT: Record<TourAction, 'default' | 'outline' | 'destructive'> = {
   'send-to-transporter': 'default',
   acknowledge: 'default',
+  plan: 'default',
   start: 'default',
   close: 'default',
   cancel: 'outline',

@@ -165,12 +165,11 @@ export function PickupTrackingPage() {
                   <div className='flex items-center justify-between'>
                     <span className='font-medium'>{site.site_name}</span>
                     <span className='text-xs text-muted-foreground'>
-                      {site.outbound.toLocaleString('fr-FR')} kg sortie
+                      {site.outbound.toLocaleString('fr-FR')} TM sortie
                     </span>
                   </div>
                   <div className='mt-1 flex items-center justify-between text-xs text-muted-foreground'>
-                    <span>{site.inbound.toLocaleString('fr-FR')} kg entrée</span>
-                    <span>~{(site.outbound / 1000).toLocaleString('fr-FR')} TM</span>
+                    <span>{site.inbound.toLocaleString('fr-FR')} TM entrée</span>
                   </div>
                 </div>
               ))

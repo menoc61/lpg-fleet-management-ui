@@ -7,6 +7,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  GroupingState,
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table'
@@ -49,18 +50,19 @@ export function SitesTable({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+  const [grouping, setGrouping] = useState<GroupingState>([])
 
   const thresholds: PromotionThresholds = defaultThresholds
 
   const columns = useMemo<ColumnDef<SiteRow>[]>(
     () => [
-      {
+     /* {
         accessorKey: 'id',
         header: 'ID',
         cell: ({ row }) => <span className='font-mono text-xs'>{row.original.id}</span>,
         meta: { label: 'ID' },
         enableHiding: false,
-      },
+      }, */
       {
         accessorKey: 'region',
         header: 'Région',
@@ -134,6 +136,21 @@ export function SitesTable({
           },
         ]}
       />
+       <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) =>
+              setGrouping(e.target.value ? [e.target.value] : [])
+            }
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          >
+            <option value="">-</option>
+            <option value="status">Statut</option>
+          </select>
+        </div>
+    
+      
       <div className='overflow-hidden rounded-md border'>
         <Table>
           <TableHeader>

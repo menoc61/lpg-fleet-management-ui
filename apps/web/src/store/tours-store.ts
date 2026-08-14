@@ -54,6 +54,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
       livreur_user_id: draft.livreur_user_id ?? null,
       assigned_by_transporter_user_id: null,
       transporter_assigned_at: null,
+      sent_to_transporter_at: null,
       type: draft.type,
       status: 'DRAFT',
       requested_quantity: draft.requested_quantity,

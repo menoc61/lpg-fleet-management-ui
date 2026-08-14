@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { useAuthStore } from '@/store/auth-store'
 import type { Organization } from '@lpg/types'
 import { TransportersTable } from './components/transporters-table'
 import { getTransporters } from './transporters'
@@ -15,7 +16,13 @@ export function TransportersPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const crud = useEntityCrud<Organization>('organizations', 'transporters', ['transporters'])
-  const transporters = getTransporters()
+  const allTransporters = getTransporters()
+  const user = useAuthStore((s) => s.user)
+  const role = user?.system_role ?? 'LIVREUR'
+  // FILTER: TRANSPORTEUR only sees their own org's transporters
+  const transporters = role !== 'TRANSPORTEUR'
+    ? allTransporters
+    : allTransporters.filter((t) => t.id === (user?.org_id ?? ''))
 
   const handleViewDetails = (transporter: Organization) => {
     navigate({ to: `/transporters/${transporter.id}` })

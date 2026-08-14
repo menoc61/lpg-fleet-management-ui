@@ -12,12 +12,13 @@ import { curated } from './curated.ts'
 
 export function getSetting(key: string): string | null {
   const setting = curated.settings.find((s) => s.setting_key === key)
-  return setting?.setting_value ?? null
+  const value = setting?.setting_value
+  return typeof value === 'string' ? value : value === undefined || value === null ? null : String(value)
 }
 
 export function getSettingNumber(key: string): number | null {
   const raw = getSetting(key)
-  if (raw === null || raw === '' || raw.toLowerCase() === 'null') return null
+  if (raw === null || raw === '') return null
   const parsed = Number(raw)
   return Number.isFinite(parsed) ? parsed : null
 }

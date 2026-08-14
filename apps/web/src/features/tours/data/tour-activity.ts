@@ -46,9 +46,9 @@ export type RouteTrip = {
   startedAt: string
   expectedArrivalAt: string
   lastUpdatedAt: string
-  loadedQuantityKg: number
-  deliveredQuantityKg: number
-  remainingQuantityKg: number
+  loadedQuantity: number
+  deliveredQuantity: number
+  remainingQuantity: number
   progressPercent: number
   routeDistanceKm: number
   onTime: boolean
@@ -62,7 +62,7 @@ export type RouteTripStop = {
   title: string
   completed: boolean
   windowLabel: string
-  deliveredQuantityKg?: number
+  deliveredQuantity?: number
   note: string
 }
 
@@ -74,7 +74,7 @@ export type RouteTelemetryPoint = {
   longitude: number
   lpgLevelPercent: number
   pressureBar: number
-  estimatedVolumeKg: number
+  estimatedVolume: number
 }
 
 export type RouteEvent = {
@@ -103,7 +103,7 @@ export type RouteTripView = RouteTrip & {
   remainingPercent: number
   lpgDropPercent: number
   pressureDeltaBar: number
-  unaccountedKg: number
+  unaccounted: number
   attentionLevel: RouteEventSeverity
 }
 
@@ -113,8 +113,8 @@ export type RouteSummary = {
   plannedTrips: number
   completedTrips: number
   incidentTrips: number
-  activeVolumeKg: number
-  deliveredVolumeKg: number
+  activeVolume: number
+  deliveredVolume: number
   onTimeRate: number
   attentionCount: number
 }
@@ -366,7 +366,7 @@ function buildStops(
       title: stopTitle(role, checkpoint),
       completed,
       windowLabel: windowLabel(checkpoint.expected_arrival),
-      deliveredQuantityKg: isLast ? (tour.delivered_quantity ?? 0) : undefined,
+      deliveredQuantity: isLast ? (tour.delivered_quantity ?? 0) : undefined,
       note: stopNote(checkpoint),
     }
   })
@@ -408,7 +408,7 @@ function buildTelemetry(
         longitude: Number(lng ?? 0),
         lpgLevelPercent: level,
         pressureBar: round1(12.4 - (100 - level) * 0.03),
-        estimatedVolumeKg: Math.round((loaded * level) / 100),
+        estimatedVolume: Math.round((loaded * level) / 100),
       }
     })
   }
@@ -437,7 +437,7 @@ function buildTelemetry(
       longitude: origin.longitude + legLng * index,
       lpgLevelPercent: level,
       pressureBar: round1(12.4 - (100 - level) * 0.03),
-      estimatedVolumeKg: Math.round((loaded * level) / 100),
+      estimatedVolume: Math.round((loaded * level) / 100),
     }
   })
 }
@@ -605,13 +605,13 @@ function buildView(tour: DeliveryTour, index: number, checkpointsSource?: typeof
     longitude: truck.lng,
     lpgLevelPercent: Math.round((remaining / (loaded || 1)) * 100),
     pressureBar: 0,
-    estimatedVolumeKg: remaining,
+    estimatedVolume: remaining,
   }
   const firstTelemetry = telemetry[0] ?? latestTelemetry
   const events = buildEvents(tour.id, tour, tourCheckpoints, status)
   const deliveredPercent = Math.round((delivered / (loaded || 1)) * 100)
   const remainingPercent = Math.round((remaining / (loaded || 1)) * 100)
-  const unaccountedKg = Math.max(loaded - delivered - remaining, 0)
+  const unaccounted = Math.max(loaded - delivered - remaining, 0)
 
   const stopViews = stops.map((stop) => ({ ...stop, site: requireSite(stop.siteId) }))
   const nextStop = stopViews.find((stop) => !stop.completed) ?? stopViews[stopViews.length - 1]!
@@ -627,9 +627,9 @@ function buildView(tour: DeliveryTour, index: number, checkpointsSource?: typeof
     startedAt: tour.started_at ?? tour.created_at ?? '',
     expectedArrivalAt,
     lastUpdatedAt: tour.updated_at ?? '',
-    loadedQuantityKg: loaded,
-    deliveredQuantityKg: delivered,
-    remainingQuantityKg: remaining,
+    loadedQuantity: loaded,
+    deliveredQuantity: delivered,
+    remainingQuantity: remaining,
     progressPercent:
       status === 'completed'
         ? 100
@@ -656,7 +656,7 @@ function buildView(tour: DeliveryTour, index: number, checkpointsSource?: typeof
     pressureDeltaBar: Number(
       Math.max(firstTelemetry.pressureBar - latestTelemetry.pressureBar, 0).toFixed(1),
     ),
-    unaccountedKg,
+    unaccounted,
     attentionLevel: getHighestSeverity(events),
     tourneeStatus: tour.status,
     tourneeType: tour.type,
@@ -797,11 +797,11 @@ export function buildRouteSummary(
     plannedTrips: trips.filter((trip) => trip.status === 'planned').length,
     completedTrips: trips.filter((trip) => trip.status === 'completed').length,
     incidentTrips: trips.filter((trip) => trip.status === 'incident').length,
-    activeVolumeKg: trips
+    activeVolume: trips
       .filter((trip) => ['in-progress', 'incident'].includes(trip.status))
-      .reduce((total, trip) => total + trip.loadedQuantityKg, 0),
-    deliveredVolumeKg: trips.reduce(
-      (total, trip) => total + trip.deliveredQuantityKg,
+      .reduce((total, trip) => total + trip.loadedQuantity, 0),
+    deliveredVolume: trips.reduce(
+      (total, trip) => total + trip.deliveredQuantity,
       0,
     ),
     onTimeRate:
@@ -831,49 +831,49 @@ export type RouteLpgVariationStageTone = 'emerald' | 'sky' | 'amber'
 export type RouteLpgVariationStage = {
   id: RouteLpgVariationStageId
   label: string
-  quantityKg: number
+  quantity: number
   percent: number
-  deltaKg: number
+  delta: number
   deltaPercent: number
   tone: RouteLpgVariationStageTone
 }
 
 export type RouteLpgVariation = {
   stages: RouteLpgVariationStage[]
-  deliveredKg: number
+  delivered: number
   deliveredPercent: number
-  nextDropKg: number
-  telemetryGapKg: number
+  nextDrop: number
+  telemetryGap: number
 }
 
 export function buildRouteLpgVariation(
   trip: RouteTripView
 ): RouteLpgVariation {
-  const loadingKg = trip.loadedQuantityKg
-  const liveKg = trip.latestTelemetry.estimatedVolumeKg
-  const nextDropKg =
-    trip.status === 'completed' ? 0 : (trip.nextStop.deliveredQuantityKg ?? 0)
-  const projectedKg =
-    trip.status === 'completed' ? liveKg : Math.max(liveKg - nextDropKg, 0)
+  const loading = trip.loadedQuantity
+  const live = trip.latestTelemetry.estimatedVolume
+  const nextDrop =
+    trip.status === 'completed' ? 0 : (trip.nextStop.deliveredQuantity ?? 0)
+  const projected =
+    trip.status === 'completed' ? live : Math.max(live - nextDrop, 0)
 
   return {
     stages: [
       {
         id: 'loading',
         label: 'Au chargement',
-        quantityKg: loadingKg,
+        quantity: loading,
         percent: 100,
-        deltaKg: 0,
+        delta: 0,
         deltaPercent: 0,
         tone: 'emerald',
       },
       {
         id: 'live',
         label: 'Dernier releve',
-        quantityKg: liveKg,
-        percent: toPercent(liveKg, loadingKg),
-        deltaKg: liveKg - loadingKg,
-        deltaPercent: toPercent(liveKg, loadingKg) - 100,
+        quantity: live,
+        percent: toPercent(live, loading),
+        delta: live - loading,
+        deltaPercent: toPercent(live, loading) - 100,
         tone: 'sky',
       },
       {
@@ -882,25 +882,25 @@ export function buildRouteLpgVariation(
           trip.status === 'completed'
             ? 'Niveau final'
             : 'Apres prochaine livraison',
-        quantityKg: projectedKg,
-        percent: toPercent(projectedKg, loadingKg),
-        deltaKg: projectedKg - liveKg,
+        quantity: projected,
+        percent: toPercent(projected, loading),
+        delta: projected - live,
         deltaPercent:
-          toPercent(projectedKg, loadingKg) - toPercent(liveKg, loadingKg),
+          toPercent(projected, loading) - toPercent(live, loading),
         tone: 'amber',
       },
     ],
-    deliveredKg: trip.deliveredQuantityKg,
+    delivered: trip.deliveredQuantity,
     deliveredPercent: trip.deliveredPercent,
-    nextDropKg,
-    telemetryGapKg: Math.abs(liveKg - trip.remainingQuantityKg),
+    nextDrop,
+    telemetryGap: Math.abs(live - trip.remainingQuantity),
   }
 }
 
-function toPercent(quantityKg: number, loadedQuantityKg: number) {
-  if (loadedQuantityKg <= 0) return 0
+function toPercent(quantity: number, loadedQuantity: number) {
+  if (loadedQuantity <= 0) return 0
 
-  return Math.max(Math.round((quantityKg / loadedQuantityKg) * 100), 0)
+  return Math.max(Math.round((quantity / loadedQuantity) * 100), 0)
 }
 
 export const buildTourLpgVariation = buildRouteLpgVariation

@@ -85,11 +85,11 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
             <div className='grid gap-3 sm:grid-cols-3'>
               <HeroMetric
                 label='Charge initiale'
-                value={formatKg(trip.loadedQuantityKg, trip.tourneeType)}
+                value={formatQuantity(trip.loadedQuantity, trip.tourneeType)}
               />
               <HeroMetric
                 label='Volume livre'
-                value={formatKg(trip.deliveredQuantityKg, trip.tourneeType)}
+                value={formatQuantity(trip.deliveredQuantity, trip.tourneeType)}
               />
               <HeroMetric
                 label='ETA'
@@ -136,9 +136,9 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
               <DetailSignal
                 icon={AlertTriangle}
                 label='Écart non justifié'
-                value={trip.unaccountedKg > 0 ? formatKg(trip.unaccountedKg, trip.tourneeType) : trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'}
+                value={trip.unaccounted > 0 ? formatQuantity(trip.unaccounted, trip.tourneeType) : trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'}
                 hint={
-                  trip.unaccountedKg > 0
+                  trip.unaccounted > 0
                     ? 'À expliquer avant clôture'
                     : 'Bilan de charge cohérent'
                 }
@@ -162,13 +162,13 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
               <DetailSignal
                 icon={Package}
                 label='Volume restant'
-                value={formatKg(trip.remainingQuantityKg, trip.tourneeType)}
+                value={formatQuantity(trip.remainingQuantity, trip.tourneeType)}
                 hint={`${trip.remainingPercent}% de la charge initiale`}
               />
               <DetailSignal
                 icon={CheckCircle2}
                 label='Livraison comptabilisée'
-                value={formatKg(trip.deliveredQuantityKg, trip.tourneeType)}
+                value={formatQuantity(trip.deliveredQuantity, trip.tourneeType)}
                 hint={`${trip.deliveredPercent}% déjà affectés`}
               />
             </div>
@@ -202,13 +202,13 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
         </CardContent>
       </Card>
 
-       <TourLpgVariationPanel trip={trip} formatKg={(v) => formatKg(v, trip.tourneeType)} zeroUnit={trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'} />
+       <TourLpgVariationPanel trip={trip} formatQuantity={(v) => formatQuantity(v, trip.tourneeType)} zeroUnit={trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'} />
 
       <section className='grid gap-4 2xl:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]'>
-        <TourCorridorMap trip={trip} formatDateTime={formatDateTime} formatQuantity={(v) => formatKg(v, trip.tourneeType)} />
+        <TourCorridorMap trip={trip} formatDateTime={formatDateTime} formatQuantity={(v) => formatQuantity(v, trip.tourneeType)} />
         <TourTelemetryChart
           trip={trip}
-          formatKg={(v) => formatKg(v, trip.tourneeType)}
+          formatQuantity={(v) => formatQuantity(v, trip.tourneeType)}
           formatShortTime={formatShortTime}
         />
       </section>
@@ -287,8 +287,8 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
                       <TripListMetric
                         label='Volume'
                         value={
-                          stop.deliveredQuantityKg
-                            ? formatKg(stop.deliveredQuantityKg, trip.tourneeType)
+                          stop.deliveredQuantity
+                            ? formatQuantity(stop.deliveredQuantity, trip.tourneeType)
                             : '--'
                         }
                       />
@@ -434,8 +434,8 @@ function TripListMetric({ label, value }: { label: string; value: string }) {
   )
 }
 
-function formatKg(value: number, type: TourActivity['tourneeType'] = 'VRAC'): string {
-  if (type === 'VRAC') return formatTm(value / 1000)
+function formatQuantity(value: number, type: TourActivity['tourneeType'] = 'VRAC'): string {
+  if (type === 'VRAC') return formatTm(value)
   return formatBtl(value)
 }
 

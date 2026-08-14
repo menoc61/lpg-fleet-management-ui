@@ -74,10 +74,13 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'lpg-auth',
+      // Persist only the session identity, never the credentials. Access and
+      // refresh tokens live in memory for the duration of the session; they
+      // must not survive in localStorage where any script on the origin
+      // (or an XSS) could read them. Token refresh-on-reload is out of scope
+      // for the mock adapter — the user re-authenticates via the demo login.
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         status: state.status,
       }),
     },

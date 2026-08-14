@@ -453,10 +453,10 @@ export function can(role: Role, action: Action, resource: Resource): boolean {
   return ROLE_GRANTS[role].some((code) => {
     const { resource: grantedResource, action: grantedAction } = parseCode(code)
     if (grantedResource !== resource) return false
-    return (
-      ACTION_IMPLICATIONS[grantedAction].includes(action) ||
-      ACTION_IMPLICATIONS[action].includes(grantedAction)
-    )
+    // Forward implication only: a granted action is at least as powerful as
+    // the actions it implies. Checking the reverse direction would let a
+    // weak grant (e.g. `read`) satisfy a strong check (e.g. `manage`).
+    return ACTION_IMPLICATIONS[grantedAction].includes(action)
   })
 }
 

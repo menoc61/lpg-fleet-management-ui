@@ -2,7 +2,7 @@ import {
   redressementStatusLabels,
   type RedressementStatus,
 } from '@/features/redressements/data/redressements'
-import { getReconciliations } from '@/features/reconciliations/data/reconciliations'
+import { getReconciliations, gapToleranceThreshold } from '@/features/reconciliations/data/reconciliations'
 import { getRedressements } from '@/features/redressements/data/redressements'
 
 export type { RedressementStatus }
@@ -26,7 +26,9 @@ export function getFinanceSummary() {
   const collected = redressements
     .filter((r) => r.status === 'PAID')
     .reduce((acc, r) => acc + r.amount, 0)
-  const flagged = reconciliations.filter((r) => r.gap_percentage > 2.5).length
+  const flagged = reconciliations.filter(
+    (r) => r.gap_percentage > gapToleranceThreshold()
+  ).length
 
   return {
     declaredVolume,

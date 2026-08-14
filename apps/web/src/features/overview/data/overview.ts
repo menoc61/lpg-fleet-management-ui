@@ -10,6 +10,7 @@
 
 import { buildAnalytics, type Analytics } from '@lpg/mock-data'
 import type { Role } from '@lpg/permissions'
+import { formatTm } from '@/features/map/utils/format'
 
 export type OverviewCard = {
   id: string
@@ -71,7 +72,7 @@ function adminCards(a: Analytics): OverviewCard[] {
       id: 'reconciliations',
       label: 'Réconciliations',
       value: a.reconciliations.total,
-      detail: `écart cumulé ${formatVolume(a.reconciliations.totalGap)}`,
+      detail: `écart cumulé ${formatTm(a.reconciliations.totalGap)}`,
     },
   ]
 }
@@ -100,7 +101,7 @@ function transportCards(a: Analytics): OverviewCard[] {
       id: 'traceability',
       label: 'Taux de traçabilité',
       value: `${Math.round(a.traceability.traceabilityRate * 100)}%`,
-      detail: `volume tracé vs ${formatVolume(a.traceability.declaredVolume)} déclaré`,
+      detail: `volume tracé vs ${formatTm(a.traceability.declaredVolume)} déclaré`,
     },
   ]
 }
@@ -151,14 +152,14 @@ function agentCards(a: Analytics): OverviewCard[] {
     {
       id: 'reconciliations-gap',
       label: 'Écart de réconciliation',
-      value: formatVolume(a.reconciliations.totalGap),
+      value: formatTm(a.reconciliations.totalGap),
       detail: `${a.reconciliations.total} réconciliations à traiter`,
     },
     {
       id: 'declared-vs-tracked',
       label: 'Déclaré vs tracé',
       value: `${Math.round(a.traceability.traceabilityRate * 100)}%`,
-      detail: `tracé · écart ${formatVolume(
+      detail: `tracé · écart ${formatTm(
         a.traceability.declaredVolume - a.traceability.trackedVolume
       )}`,
     },
@@ -186,12 +187,6 @@ function defaultCards(a: Analytics): OverviewCard[] {
       detail: 'volume tracé vs déclaré',
     },
   ]
-}
-
-function formatVolume(value: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  }).format(value) + ' TM'
 }
 
 export function getOverviewCards(role: Role): OverviewCard[] {

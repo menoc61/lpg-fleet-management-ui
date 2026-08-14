@@ -8,7 +8,8 @@ export const truckStatusLabels: Record<string, string> = {
   INACTIVE: 'Inactif',
 }
 
-export function getTransporterTrucks(_orgId?: string): CuratedVehicle[] {
+export function getTransporterTrucks(orgId?: string): CuratedVehicle[] {
   const vehicles = curated.vehicles as CuratedVehicle[]
-  return vehicles.slice(0, 8)
+  if (!orgId) return vehicles.filter((v) => v.is_active)
+  return vehicles.filter((v) => v.org_id === orgId && v.is_active)
 }

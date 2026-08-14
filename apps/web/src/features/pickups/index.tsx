@@ -10,8 +10,9 @@ import { PickupsCreateWizard } from './components/pickups-create-wizard'
 import { PickupsValidateDialog } from './components/pickups-validate-dialog'
 import { getPickups, getPickupSummary, orgName, siteName, type Pickup, type PickupStatus } from './data/pickups'
 import type { PickupRequest } from '@lpg/types'
+import type { Role } from '@/config/rbac/roles'
 
-export function PickupsPage({ role }: { role: 'MARKETEUR' | 'ADMIN' | 'SUPERADMIN' }) {
+export function PickupsPage({ role }: { role: Role }) {
   const [rows, setRows] = useState<Pickup[]>(() => getPickups())
   const [createOpen, setCreateOpen] = useState(false)
   const [assignedVehicles, setAssignedVehicles] = useState<Record<string, string[]>>({})
@@ -52,7 +53,7 @@ export function PickupsPage({ role }: { role: 'MARKETEUR' | 'ADMIN' | 'SUPERADMI
           : r
       )
     )
-    toast.success(`${row.reference} validée pour ${qty.toLocaleString('fr-FR')} kg`)
+    toast.success(`${row.reference} validée pour ${qty.toLocaleString('fr-FR')} TM`)
   }
 
   const handleCancel = (row: Pickup) => {
@@ -116,7 +117,7 @@ export function PickupsPage({ role }: { role: 'MARKETEUR' | 'ADMIN' | 'SUPERADMI
               <p>Marketeur: {detailOpen.marketeur_name}</p>
               <p>Source: {detailOpen.source_name}</p>
               <p>Destination: {detailOpen.destination_name}</p>
-              <p>Quantité demandée: {detailOpen.requested_quantity.toLocaleString('fr-FR')} kg</p>
+              <p>Quantité demandée: {detailOpen.requested_quantity.toLocaleString('fr-FR')} TM</p>
               <p>Quantité approuvée: {detailOpen.approved_quantity?.toLocaleString('fr-FR') ?? '—'}</p>
               <p>Statut: {detailOpen.pickup_status}</p>
               {detailVehicleIds.length > 0 && (

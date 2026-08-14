@@ -46,9 +46,9 @@ export function getMarketersColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'id',
+      accessorKey: 'name',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='ID Marketer' />
+        <DataTableColumnHeader column={column} title='Name Marketer' />
       ),
       cell: ({ row }) => (
         <button
@@ -56,11 +56,11 @@ export function getMarketersColumns({
           onClick={() => onViewDetails(row.original)}
           className='ps-3 text-left font-medium text-primary underline-offset-4 hover:underline'
         >
-          {row.original.id}
+          {row.original.name}
         </button>
       ),
       meta: {
-        label: 'ID Marketer',
+        label: 'Name Marketer',
         className: cn(
           'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
           'inset-s-6 ps-0.5 max-md:sticky @4xl/content:table-cell @4xl/content:drop-shadow-none'
@@ -69,7 +69,7 @@ export function getMarketersColumns({
       enableHiding: false,
       enableGrouping: true,
     },
-    {
+    /*{
       accessorKey: 'name',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Nom' />
@@ -79,7 +79,7 @@ export function getMarketersColumns({
       ),
       meta: { label: 'Nom', className: 'w-48' },
       enableGrouping: true,
-    },
+    },*/
     {
       accessorKey: 'is_active',
       header: ({ column }) => (
@@ -100,12 +100,12 @@ export function getMarketersColumns({
     {
       accessorKey: 'user_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Utilisateurs' />
+        <DataTableColumnHeader column={column} title='Personnels' />
       ),
       cell: ({ row }) => (
         <span className='font-medium'>{row.original.user_count ?? 0}</span>
       ),
-      meta: { label: 'Utilisateurs' },
+      meta: { label: 'Personnels' },
       enableGrouping: true,
     },
     {
@@ -117,6 +117,17 @@ export function getMarketersColumns({
         <span className='font-medium'>{row.original.vehicle_count ?? 0}</span>
       ),
       meta: { label: 'Véhicules' },
+      enableGrouping: true,
+    },
+    {
+      accessorKey: 'operational_site_count',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title='Sites' />
+      ),
+      cell: ({ row }) => (
+        <span className='font-medium'>{row.original.operational_site_count ?? 0}</span>
+      ),
+      meta: { label: 'Sites' },
       enableGrouping: true,
     },
     {

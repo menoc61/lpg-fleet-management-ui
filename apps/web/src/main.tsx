@@ -51,8 +51,9 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast.error('Session expired.')
-          router.navigate({ to: '/trucks' })
+          toast.error('Session expirée. Veuillez vous reconnecter.')
+          queryClient.clear()
+          router.navigate({ to: '/login' })
         }
         if (error.response?.status === 500) {
           toast.error('Internal server error.')

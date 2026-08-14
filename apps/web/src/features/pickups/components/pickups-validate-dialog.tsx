@@ -24,10 +24,10 @@ export function PickupsValidateDialog({
         </DialogHeader>
         <div className='space-y-3 py-2'>
           <p className='text-sm text-muted-foreground'>
-            Quantité demandée: <strong>{pickup.requested_quantity.toLocaleString('fr-FR')} kg</strong>
+            Quantité demandée: <strong>{pickup.requested_quantity.toLocaleString('fr-FR')} TM</strong>
           </p>
           <label className='block text-sm'>
-            <span>Quantité approuvée (kg)</span>
+            <span>Quantité approuvée (TM)</span>
             <input
               type='number'
               min={0}

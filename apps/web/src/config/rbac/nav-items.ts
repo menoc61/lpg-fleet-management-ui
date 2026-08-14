@@ -119,6 +119,50 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     requires: ['overview.read'],
   },
 
+  /* ----------- Dashboards ----------- */
+  {
+    id: 'dashboard',
+    label: 'Tableau de bord national',
+    icon: LayoutDashboard,
+    path: 'dashboard',
+    requires: ['dashboard.read'],
+  },
+  {
+    id: 'dashboard-admin',
+    label: 'Tableau de bord région',
+    icon: LayoutDashboard,
+    path: 'dashboard-admin',
+    requires: ['dashboard.read'],
+  },
+  {
+    id: 'dashboard-supervisor',
+    label: 'Tableau de bord technique',
+    icon: LayoutDashboard,
+    path: 'dashboard-supervisor',
+    requires: ['dashboard.read'],
+  },
+  {
+    id: 'dashboard-marketeur',
+    label: 'Tableau de bord marketeur',
+    icon: LayoutDashboard,
+    path: 'dashboard-marketeur',
+    requires: ['dashboard.read'],
+  },
+  {
+    id: 'dashboard-transporteur',
+    label: 'Tableau de bord transporteur',
+    icon: LayoutDashboard,
+    path: 'dashboard-transporteur',
+    requires: ['dashboard.read'],
+  },
+  {
+    id: 'super-admin',
+    label: 'Tours nationales (Super Admin)',
+    icon: LayoutDashboard,
+    path: 'super-admin/tours',
+    requires: ['dashboard.read'],
+  },
+
   /* ----------- Cartography ----------- */
   {
     id: 'map',
@@ -480,7 +524,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     id: 'notification-groups',
     label: 'Groupes de notification',
     icon: UserCog,
-    path: 'notification-groups',
+    path: 'settings/notification-groups',
     requires: ['notification-groups.write'],
   },
 

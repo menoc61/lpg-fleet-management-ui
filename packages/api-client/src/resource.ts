@@ -10,19 +10,19 @@ export function createResourceService<T extends { id: string }>(adapter: ApiAdap
             .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
             .join('&')
         : ''
-      return adapter.requestList<T>(`/${name}${qs}`)
+      return adapter.requestList<T>(`/${encodeURIComponent(name)}${qs}`)
     },
     getById(id: string): Promise<T> {
-      return adapter.request<T>(`/${name}/${id}`)
+      return adapter.request<T>(`/${encodeURIComponent(name)}/${encodeURIComponent(id)}`)
     },
     create(body: Omit<T, 'id'>): Promise<T> {
-      return adapter.request<T>(`/${name}`, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+      return adapter.request<T>(`/${encodeURIComponent(name)}`, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
     },
     patch(id: string, body: Partial<T>): Promise<T> {
-      return adapter.request<T>(`/${name}/${id}`, { method: 'PATCH', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+      return adapter.request<T>(`/${encodeURIComponent(name)}/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
     },
     remove(id: string): Promise<void> {
-      return adapter.request<void>(`/${name}/${id}`, { method: 'DELETE' })
+      return adapter.request<void>(`/${encodeURIComponent(name)}/${encodeURIComponent(id)}`, { method: 'DELETE' })
     },
   }
 }

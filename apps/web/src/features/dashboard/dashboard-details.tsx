@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
+import { formatTm } from '@/features/map/utils/format'
 import { buildDashboardView } from './data/dashboard'
 
 export function FleetDetailPage() {
@@ -31,9 +32,9 @@ export function FleetDetailPage() {
           <div className='grid gap-3 sm:grid-cols-2'>
             <MiniStat label='Camions actifs' value={`${fleet.activeTruckCount}/${fleet.truckCount}`} />
             <MiniStat label='Part du volume' value={`${fleet.sharePercent}%`} />
-            <MiniStat label='Transporté' value={`${fleet.transportedKg.toLocaleString('fr-FR')} kg`} />
-            <MiniStat label='Livré' value={`${fleet.deliveredKg.toLocaleString('fr-FR')} kg`} />
-            <MiniStat label='En attente' value={`${fleet.pendingKg.toLocaleString('fr-FR')} kg`} />
+            <MiniStat label='Transporté' value={formatTm(fleet.transportedTM)} />
+            <MiniStat label='Livré' value={formatTm(fleet.delivered)} />
+            <MiniStat label='En attente' value={formatTm(fleet.pendingTM)} />
             <MiniStat label='Mobilisation' value={`${fleet.utilizationPercent}%`} />
             <MiniStat label='Service' value={`${fleet.onTimeRate}%`} />
             <MiniStat label='Risque' value={`${fleet.riskTruckCount} camion${fleet.riskTruckCount > 1 ? 's' : ''}`} />
@@ -57,7 +58,7 @@ export function FleetDetailPage() {
                       </p>
                     </div>
                     <Badge variant='outline' className='border-transparent bg-muted/40 text-foreground'>
-                      {contribution.loadedQuantityKg.toLocaleString('fr-FR')} kg
+                      {formatTm(contribution.loadedQuantity)}
                     </Badge>
                   </div>
                 ))}
@@ -91,12 +92,12 @@ export function ReserveSiteDetailPage() {
         <section className='max-w-3xl space-y-4'>
           <PageHeader title={site.siteName} description={`${site.city} — ${site.operator}`} />
           <div className='grid gap-3 sm:grid-cols-2'>
-            <MiniStat label='Réserve' value={`${site.reserveKg.toLocaleString('fr-FR')} kg`} />
-            <MiniStat label='Capacité' value={`${site.capacityKg.toLocaleString('fr-FR')} kg`} />
+            <MiniStat label='Réserve' value={formatTm(site.reserveTM)} />
+            <MiniStat label='Capacité' value={formatTm(site.capacityTM)} />
             <MiniStat label='Remplissage' value={`${site.fillPercent}%`} />
             <MiniStat label='Couverture' value={`${site.daysOfCover.toFixed(1)} jours`} />
-            <MiniStat label='Inbound prévu' value={`${site.scheduledInboundKg.toLocaleString('fr-FR')} kg`} />
-            <MiniStat label='Sorties' value={`${site.outboundKg.toLocaleString('fr-FR')} kg`} />
+            <MiniStat label='Inbound prévu' value={formatTm(site.scheduledInboundTM)} />
+            <MiniStat label='Sorties' value={formatTm(site.outboundTM)} />
           </div>
           <Card className='rounded-2xl border-border/60 shadow-none'>
             <CardHeader>

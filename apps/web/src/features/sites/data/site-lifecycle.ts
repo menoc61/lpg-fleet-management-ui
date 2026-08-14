@@ -1,12 +1,22 @@
-import { sites as curatedSites, client_sites as curatedClientSites } from '@lpg/mock-data'
+import { sites as curatedSites, client_sites as curatedClientSites, getSettingNumber } from '@lpg/mock-data'
 import type { ClientSite, SiteStatus } from '@lpg/types'
 import type { PromotionThresholds } from '../lib/auto-promotion'
 import type { SiteRow } from '../lib/site-status-machine'
 
-export const defaultThresholds: PromotionThresholds = {
+const FALLBACK_THRESHOLDS: PromotionThresholds = {
   auto: 80,
   flag: 30,
 }
+
+/** Settings-driven geo confidence thresholds (AGENTS.md §4). */
+export function getPromotionThresholds(): PromotionThresholds {
+  return {
+    auto: getSettingNumber('geo.confidence_auto_verify_threshold') ?? FALLBACK_THRESHOLDS.auto,
+    flag: getSettingNumber('geo.confidence_flag_threshold') ?? FALLBACK_THRESHOLDS.flag,
+  }
+}
+
+export const defaultThresholds: PromotionThresholds = getPromotionThresholds()
 
 function clientSiteStatus(site: ClientSite): SiteStatus {
   if (!site.is_verified) return 'ASSIGNED'

@@ -28,7 +28,7 @@ type TourCorridorMapProps = {
   formatQuantity?: (value: number) => string
 }
 
-const formatTmDefault = (value: number) => formatTm(value / 1000)
+const formatTmDefault = (value: number) => formatTm(value)
 
 type MapTheme = 'light' | 'dark'
 
@@ -398,7 +398,7 @@ function createRouteGraphics(trip: RouteTripView, mapTheme: MapTheme, formatQuan
         },
         popupTemplate: {
           title: `Trace GPS ${trip.reference}`,
-          content: createTelemetryPopupContent(trip, point.recordedAt, point.lpgLevelPercent, point.estimatedVolumeKg, formatQuantity ?? formatTmDefault),
+          content: createTelemetryPopupContent(trip, point.recordedAt, point.lpgLevelPercent, point.estimatedVolume, formatQuantity ?? formatTmDefault),
         },
       })
   )
@@ -459,9 +459,9 @@ function createRoutePopupContent(trip: RouteTripView, formatQuantity: (value: nu
     <div class="fleet-truck-popup">
       ${popupLine('Client', trip.customerName)}
       ${popupLine('Corridor', `${trip.originSite.city} -> ${trip.destinationSite.city}`)}
-      ${popupLine('Charge initiale', formatQuantity(trip.loadedQuantityKg))}
-      ${popupLine('Volume livré', formatQuantity(trip.deliveredQuantityKg))}
-      ${popupLine('Volume restant', formatQuantity(trip.remainingQuantityKg))}
+      ${popupLine('Charge initiale', formatQuantity(trip.loadedQuantity))}
+      ${popupLine('Volume livré', formatQuantity(trip.deliveredQuantity))}
+      ${popupLine('Volume restant', formatQuantity(trip.remainingQuantity))}
       ${popupLine('Prochaine étape', trip.nextStop.site.name)}
     </div>
   `
@@ -489,8 +489,8 @@ function createCurrentTruckPopupContent(trip: RouteTripView, formatQuantity: (va
       ${popupLine('Camion', trip.truck.license_plate)}
       ${popupLine('Position', trip.truck.current_location ?? '')}
       ${popupLine('GPL', `${trip.latestTelemetry.lpgLevelPercent}%`)}
-      ${popupLine('Volume estime', formatQuantity(trip.latestTelemetry.estimatedVolumeKg))}
-      ${popupLine('Écart', trip.unaccountedKg > 0 ? formatQuantity(trip.unaccountedKg) : formatQuantity(0))}
+      ${popupLine('Volume estime', formatQuantity(trip.latestTelemetry.estimatedVolume))}
+      ${popupLine('Écart', trip.unaccounted > 0 ? formatQuantity(trip.unaccounted) : formatQuantity(0))}
       ${popupLine('Dernier releve', new Intl.DateTimeFormat('fr-FR', {
         hour: '2-digit',
         minute: '2-digit',
@@ -505,7 +505,7 @@ function createTelemetryPopupContent(
   trip: RouteTripView,
   recordedAt: string,
   lpgLevelPercent: number,
-  estimatedVolumeKg: number,
+  estimatedVolume: number,
   formatQuantity: (value: number) => string,
 ) {
   return `
@@ -518,7 +518,7 @@ function createTelemetryPopupContent(
         month: 'short',
       }).format(new Date(recordedAt)))}
       ${popupLine('GPL', `${lpgLevelPercent}%`)}
-      ${popupLine('Volume estime', formatQuantity(estimatedVolumeKg))}
+      ${popupLine('Volume estime', formatQuantity(estimatedVolume))}
     </div>
   `
 }

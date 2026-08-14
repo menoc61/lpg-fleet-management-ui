@@ -1,4 +1,4 @@
-import { reconciliations, declarations, organizations } from '@lpg/mock-data'
+import { reconciliations, declarations, organizations, getSettingNumber } from '@lpg/mock-data'
 import type { ReconciliationStatus } from '@lpg/types'
 
 export type { ReconciliationStatus }
@@ -61,13 +61,17 @@ export function getReconciliations(): ReconciliationView[] {
     .sort((a, b) => b.gap_percentage - a.gap_percentage)
 }
 
+export function gapToleranceThreshold(): number {
+  return getSettingNumber('reconciliation.volume_gap_tolerance_percent') ?? 2.5
+}
+
 export function getReconciliationSummary(rows: ReconciliationView[]) {
   return {
     total: rows.length,
     pending: rows.filter((r) => r.status === 'PENDING').length,
     verified: rows.filter((r) => r.status === 'VERIFIED').length,
     redressement: rows.filter((r) => r.status === 'REDRESSEMENTAPPLIED').length,
-    flagged: rows.filter((r) => r.gap_percentage > 2.5).length,
+    flagged: rows.filter((r) => r.gap_percentage > gapToleranceThreshold()).length,
     totalGap: rows.reduce((acc, r) => acc + Math.abs(r.volume_gap), 0),
     totalSubsidy: rows.reduce((acc, r) => acc + r.subsidy_impact, 0),
   }

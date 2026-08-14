@@ -205,7 +205,7 @@ describe('tours store', () => {
         assigned_by_transporter_user_id: null,
         transporter_assigned_at: null,
         type: 'VRAC',
-        status: 'CHECKPOINTACTIVE',
+        status: 'ACKNOWLEDGED',
         requested_quantity: 1000,
         loaded_quantity: null,
         delivered_quantity: null,
