@@ -122,14 +122,25 @@ export interface FakeProfile {
   system_role: string
   org_id: string
   org_name: string
+  org_type?: string
+  site_ids: string[]
 }
 
-export const fakeProfiles: FakeProfile[] = AUTH_FIXTURES.map((f) => ({
-  id: f.id,
-  email: f.email,
-  first_name: f.first_name,
-  last_name: f.last_name,
-  system_role: f.system_role,
-  org_id: f.org_id,
-  org_name: f.org_name,
-}))
+export const fakeProfiles: FakeProfile[] = AUTH_FIXTURES.map((f) => {
+  const org = (curated.organizations as any[]).find((o) => o.id === f.org_id)
+  const assignments = (curated as any).user_site_assignments ?? []
+  const site_ids = assignments
+    .filter((a: any) => a.user_id === f.id)
+    .map((a: any) => a.site_id)
+  return {
+    id: f.id,
+    email: f.email,
+    first_name: f.first_name,
+    last_name: f.last_name,
+    system_role: f.system_role,
+    org_id: f.org_id,
+    org_name: f.org_name,
+    org_type: org?.type,
+    site_ids,
+  }
+})
