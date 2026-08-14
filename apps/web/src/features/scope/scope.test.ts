@@ -1,5 +1,17 @@
+import type { AuthUser } from '@lpg/api-client'
 import { describe, expect, it } from 'vitest'
 import { getScope, scopeFilter, type UserScope } from './scope'
+
+function authUser(overrides: Partial<AuthUser>): AuthUser {
+  return {
+    id: 'u1',
+    email: 'user@example.com',
+    first_name: 'Test',
+    last_name: 'User',
+    system_role: 'SUPERADMIN',
+    ...overrides,
+  }
+}
 
 const rows = [
   { id: 'a', org_id: 'org-2', created_by: 'user-7' },
@@ -9,16 +21,16 @@ const rows = [
 
 describe('getScope', () => {
   it('regulateur-org staff get the org view', () => {
-    const scope = getScope({ id: 'u1', system_role: 'SUPERADMIN', org_type: 'REGULATEUR' } as any)
+    const scope = getScope(authUser({ id: 'u1', system_role: 'SUPERADMIN', org_type: 'REGULATEUR' }))
     expect(scope.view).toBe('org')
   })
   it('marketeur with one site gets the site view', () => {
-    const scope = getScope({ id: 'u7', system_role: 'MARKETEUR', org_type: 'MARKETEUR', site_ids: ['site-1'] } as any)
+    const scope = getScope(authUser({ id: 'u7', system_role: 'MARKETEUR', org_type: 'MARKETEUR', site_ids: ['site-1'] }))
     expect(scope.view).toBe('site')
     expect(scope.siteIds).toEqual(['site-1'])
   })
   it('transporter gets transporter view', () => {
-    const scope = getScope({ id: 'u9', system_role: 'TRANSPORTEUR', org_type: 'TRANSPORTEUR' } as any)
+    const scope = getScope(authUser({ id: 'u9', system_role: 'TRANSPORTEUR', org_type: 'TRANSPORTEUR' }))
     expect(scope.view).toBe('transporter')
   })
   it('null user is safe', () => {
