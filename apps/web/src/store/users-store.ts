@@ -52,6 +52,16 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
   },
 
   updateUser(id, patch) {
+    const authUser = useAuthStore.getState().user
+    const role = (authUser?.system_role ?? 'LIVREUR') as Role
+    const creatable = getCreatableRoles(role)
+    if (patch.system_role && !creatable.includes(patch.system_role)) {
+      throw new Error('Impossible de créer ce rôle depuis le rôle courant.')
+    }
+    const scope = getScope(authUser)
+    if (scope.view !== 'org' && patch.org_id && patch.org_id !== scope.orgId) {
+      throw new Error('Accès refusé.')
+    }
     set((s) => ({
       users: s.users.map((u) =>
         u.id === id ? { ...u, ...patch } : u,

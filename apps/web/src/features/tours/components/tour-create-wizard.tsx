@@ -47,6 +47,7 @@ import type { ExecutionMode, TourneeType } from '@lpg/types'
 import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
 import { useToursStore } from '@/store/tours-store'
+import { extractErrorMessage } from '@/hooks/use-toast-feedback'
 import type { TourActivity } from '../data/tour-activity'
 import {
   step1Schema,
@@ -313,7 +314,7 @@ export function TourCreateWizard({
       form.reset(buildDefaults())
       setStep(1)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Impossible de créer la tournée'
+      const message = extractErrorMessage(err)
       setSubmitError(message)
       toast.error(message)
     } finally {

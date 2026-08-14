@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
@@ -7,10 +8,13 @@ import { SectionCard } from '@/components/layout/page'
 import { getTourActivityById } from '@/features/tours/data/tour-activity'
 import { TourActiveHeader } from '@/features/tours/components/tour-active-header'
 import { TourDetailView } from '@/features/tours/components/tour-detail-view'
+import { useAuthStore } from '@/store/auth-store'
+import { getScope } from '@/features/scope/scope'
 
 function TourTrackingDetailPage() {
   const { tourId } = Route.useParams()
-  const trip = getTourActivityById(tourId)
+  const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
+  const trip = getTourActivityById(tourId, scope)
 
   if (!trip) {
     return (

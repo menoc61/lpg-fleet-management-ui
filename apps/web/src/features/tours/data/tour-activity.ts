@@ -731,10 +731,24 @@ export function getTourActivity(slice: TourSlice = 'ALL', scope?: UserScope): To
   ).map((tour, index) => buildView(tour, index))
 }
 
-export function getTourActivityById(id: string): TourActivity | undefined {
+export function getTourActivityById(id: string, scope?: UserScope): TourActivity | undefined {
   const index = delivery_tours.findIndex((tour) => tour.id === id)
   if (index === -1) return undefined
-  return buildView(delivery_tours[index]!, index)
+  const tour = delivery_tours[index]!
+  if (scope && scope.view !== 'org') {
+    const siteKey =
+      scope.view === 'transporter'
+        ? (t: DeliveryTour) => t.transporter_org_id ?? undefined
+        : (t: DeliveryTour) => t.marketeur_org_id
+    const visible = scopeBySiteOrCreator(
+      [tour],
+      scopeWithOrgId(scope),
+      siteKey,
+      (t) => t.created_by ?? undefined,
+    )
+    if (visible.length === 0) return undefined
+  }
+  return buildView(tour, index)
 }
 
 export function toTourActivities(

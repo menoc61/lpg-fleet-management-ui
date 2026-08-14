@@ -2,6 +2,7 @@ import { Outlet } from '@tanstack/react-router'
 import { SidebarInset, SidebarProvider } from '@lpg/ui'
 import { AppHeader } from '@/components/layout/app-header'
 import { AppSidebar } from '@/components/layout/app-sidebar'
+import { MfaGate } from '@/components/security/mfa-gate'
 import { SkipToMain } from '@/components/skip-to-main'
 import { getCookie } from '@/lib/cookies'
 
@@ -16,6 +17,7 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
       <SkipToMain />
       <AppSidebar />
       <SidebarInset className='@container/content bg-muted/20'>
+        <MfaGate />
         <AppHeader />
         {children ?? <Outlet />}
       </SidebarInset>

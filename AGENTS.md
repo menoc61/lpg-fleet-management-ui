@@ -81,8 +81,10 @@ Rules:
   (`user_site_assignments`). Only REGULATEUR-org staff (SUPERADMIN/ADMIN,
   plus SUPERVISOR/INTEGRATEUR) get the organizational view. There is **no**
   org-level view for non-regulateurs. Implemented via `features/scope`
-  (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`); every feature data
-  builder applies the scope of the authenticated user.
+  (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`); the pickups, tours,
+  declarations, vehicles, trucks and dashboard data builders apply the
+  authenticated user's scope. (Other builders — sites, users, anomalies —
+  are organization-level screens; scope them when per-site semantics land.)
 - **Defense-in-depth RBAC:** every mutation is gated at three layers — the UI
   button (`hasPermission`), the store (`lib/security/guards`), and the form
   (site-scoped fields). No store writes may bypass the guards.

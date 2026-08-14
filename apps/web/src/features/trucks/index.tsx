@@ -19,6 +19,8 @@ import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { vehicleFields, vehicleFromForm, vehicleToForm } from '@/features/vehicles/data/vehicles-crud'
 import type { Vehicle } from '@lpg/types'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/store/auth-store'
+import { getScope } from '@/features/scope/scope'
 
 export const getTruckTelemetry = _getTruckTelemetry
 export type { Truck, TruckStatus }
@@ -36,7 +38,8 @@ export function TrucksPage() {
   const [statusFilter, setStatusFilter] = useState<TruckFilter>('all')
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
   const [, setVersion] = useState(0)
-  const trucks = getTrucks()
+  const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
+  const trucks = getTrucks(scope)
   const [activeTruckId] = useState<string>(trucks[0]?.id ?? '')
   const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['trucks'])
 

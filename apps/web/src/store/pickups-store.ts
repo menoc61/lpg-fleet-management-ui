@@ -4,7 +4,6 @@ import type { PickupRequest, PickupStatus } from '@lpg/types'
 import { type Role } from '@lpg/permissions'
 import { assertPermission, assertSiteAccess } from '@/lib/security/guards'
 import { getScope } from '@/features/scope/scope'
-import { emitWs } from '@/lib/ws/mock-ws'
 import { useAuthStore } from '@/store/auth-store'
 
 /**
@@ -92,7 +91,6 @@ export const usePickupsStore = create<PickupsState>()((set, get) => ({
     const previous = get().pickups.map((p) => ({ ...p }))
     try {
       set({ pickups: [pickup, ...previous] })
-      emitWs('tour:update', {})
       return pickup
     } catch (error) {
       set({ pickups: previous })
