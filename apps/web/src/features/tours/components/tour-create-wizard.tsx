@@ -253,6 +253,15 @@ export function TourCreateWizard({
   const scopeView = useMemo(() => getScope(useAuthStore.getState().user).view, [])
   const canChooseOrg = scopeView === 'org'
 
+  function handleExecutionModeChange(mode: ExecutionMode) {
+    form.setValue('execution_mode', mode)
+    // Switching INTERNAL ↔ EXTERNAL invalidates the crew picked for the other
+    // mode; clear it so a stale vehicle/driver/livreur is never submitted.
+    form.setValue('vehicle_id', undefined)
+    form.setValue('driver_id', undefined)
+    form.setValue('livreur_user_id', undefined)
+  }
+
   function applyStepSchema(
     schema: typeof step1Schema | typeof step2Schema | typeof step3Schema,
     fields: FieldPath<TourDraftValues>[],
@@ -398,7 +407,7 @@ export function TourCreateWizard({
                             <button
                               key={option.value}
                               type='button'
-                              onClick={() => field.onChange(option.value)}
+                              onClick={() => handleExecutionModeChange(option.value)}
                               className={cn(
                                 'rounded-lg border p-3 text-left transition-colors',
                                 active
