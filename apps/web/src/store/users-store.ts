@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { curated } from '@lpg/mock-data'
+import { getCreatableRoles } from '@lpg/permissions'
 import type { Role, User as CuratedUser } from '@lpg/types'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 
 export type UserPatch = Partial<Pick<CuratedUser,
   | 'first_name'
@@ -26,6 +29,21 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
   users: (curated.users as CuratedUser[]).map((u) => ({ ...u })),
 
   createUser(user) {
+    // Defense in depth: the sheet already restricts the role select via
+    // getCreatableRoles, but a direct store call must be gated too. A creator
+    // may only create roles at or below their own hierarchy level, and a
+    // non-REGULATEUR (MARKETEUR/TRANSPORTEUR/AGENT/LIVREUR) may only create
+    // users inside their own org.
+    const authUser = useAuthStore.getState().user
+    const role = (authUser?.system_role ?? 'LIVREUR') as Role
+    const creatable = getCreatableRoles(role)
+    if (!creatable.includes(user.system_role)) {
+      throw new Error('Impossible de créer ce rôle depuis le rôle courant.')
+    }
+    const scope = getScope(authUser)
+    if (scope.view !== 'org' && user.org_id && user.org_id !== scope.orgId) {
+      throw new Error('Accès refusé.')
+    }
     const id = `user-${crypto.randomUUID().slice(0, 8)}`
     const now = new Date().toISOString()
     set((s) => ({
