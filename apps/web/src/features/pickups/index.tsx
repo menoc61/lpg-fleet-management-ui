@@ -9,11 +9,13 @@ import { PickupsTable } from './components/pickups-table'
 import { PickupsCreateWizard } from './components/pickups-create-wizard'
 import { PickupsValidateDialog } from './components/pickups-validate-dialog'
 import { getPickups, getPickupSummary, orgName, siteName, type Pickup, type PickupStatus } from './data/pickups'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 import type { PickupRequest } from '@lpg/types'
 import type { Role } from '@/config/rbac/roles'
 
 export function PickupsPage({ role }: { role: Role }) {
-  const [rows, setRows] = useState<Pickup[]>(() => getPickups())
+  const [rows, setRows] = useState<Pickup[]>(() => getPickups(getScope(useAuthStore.getState().user)))
   const [createOpen, setCreateOpen] = useState(false)
   const [assignedVehicles, setAssignedVehicles] = useState<Record<string, string[]>>({})
   const [validateOpen, setValidateOpen] = useState<Pickup | null>(null)
@@ -26,6 +28,8 @@ export function PickupsPage({ role }: { role: Role }) {
     const row: Pickup = {
       id: created.id,
       reference,
+      marketeur_org_id: created.marketeur_org_id,
+      created_by: created.created_by ?? null,
       source_name: siteName(created.source_site_id),
       destination_name: siteName(created.destination_site_id),
       marketeur_name: orgName(created.marketeur_org_id),

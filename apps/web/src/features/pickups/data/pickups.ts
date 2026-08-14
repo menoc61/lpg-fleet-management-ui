@@ -1,11 +1,15 @@
 import { pickup_requests, sites, client_sites, organizations } from '@lpg/mock-data'
 import type { PickupStatus } from '@lpg/types'
+import type { UserScope } from '@/features/scope/scope'
+import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
 
 export type { PickupStatus }
 
 export interface Pickup {
   id: string
   reference: string
+  marketeur_org_id: string
+  created_by: string | null
   source_name: string
   destination_name: string
   marketeur_name: string
@@ -54,10 +58,12 @@ const EXTRA_TIMES: readonly [string, string | null, string | null, string | null
   ['2024-09-20T08:00:00Z', null, null, null],
 ]
 
-export function getPickups(): Pickup[] {
+export function getPickups(scope?: UserScope): Pickup[] {
   const base = pickup_requests.map((p, i) => ({
     id: p.id,
     reference: `PU-${1001 + i}`,
+    marketeur_org_id: p.marketeur_org_id,
+    created_by: p.created_by ?? null,
     source_name: siteName(p.source_site_id),
     destination_name: siteName(p.destination_site_id),
     marketeur_name: orgName(p.marketeur_org_id),
@@ -79,6 +85,8 @@ export function getPickups(): Pickup[] {
     return {
       id: `pickup-extra-${idx}`,
       reference: `PU-${2001 + idx}`,
+      marketeur_org_id: marketeur.id,
+      created_by: null,
       source_name: source.name,
       destination_name: destination.name,
       marketeur_name: marketeur.name,
@@ -93,7 +101,14 @@ export function getPickups(): Pickup[] {
     }
   })
 
-  return [...base, ...extras]
+  const rows = [...base, ...extras]
+  if (!scope) return rows
+  return scopeBySiteOrCreator(
+    rows,
+    scopeWithOrgId(scope),
+    (row) => row.marketeur_org_id,
+    (row) => row.created_by ?? undefined,
+  )
 }
 
 export function getPickupSummary(rows: Pickup[]) {

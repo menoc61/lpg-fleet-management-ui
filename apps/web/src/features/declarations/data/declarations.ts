@@ -1,5 +1,7 @@
 import { declarations, organizations } from '@lpg/mock-data'
 import type { DeclarationStatus } from '@lpg/types'
+import type { UserScope } from '@/features/scope/scope'
+import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
 
 export type { DeclarationStatus }
 
@@ -31,8 +33,16 @@ function orgName(id: string): string {
   return organizations.find((o) => o.id === id)?.name ?? id
 }
 
-export function getDeclarations(): DeclarationView[] {
-  return declarations
+export function getDeclarations(scope?: UserScope): DeclarationView[] {
+  const source = scope
+    ? scopeBySiteOrCreator(
+        declarations,
+        scopeWithOrgId(scope),
+        (d) => d.marketeur_org_id,
+        (d) => d.created_by ?? undefined,
+      )
+    : declarations
+  return source
     .map((d, i) => ({
       id: d.id,
       reference: `DEC-${String(i + 1).padStart(3, '0')}`,

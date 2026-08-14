@@ -22,6 +22,8 @@ import type {
 import { sites, type Site } from '@/features/sites/data/sites'
 import { trucks, type Truck } from '@/features/trucks/data/trucks'
 import { resolveSlaThresholds, tourSlaFlags } from './tour-machine'
+import type { UserScope } from '@/features/scope/scope'
+import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
 
 export type { ExecutionMode, TourneeStatus }
 
@@ -714,10 +716,19 @@ function slicePredicate(slice: TourSlice): (tour: DeliveryTour) => boolean {
   }
 }
 
-export function getTourActivity(slice: TourSlice = 'ALL'): TourActivity[] {
-  return delivery_tours
-    .filter(slicePredicate(slice))
-    .map((tour, index) => buildView(tour, index))
+export function getTourActivity(slice: TourSlice = 'ALL', scope?: UserScope): TourActivity[] {
+  const sliced = delivery_tours.filter(slicePredicate(slice))
+  if (!scope) return sliced.map((tour, index) => buildView(tour, index))
+  const siteKey =
+    scope.view === 'transporter'
+      ? (tour: DeliveryTour) => tour.transporter_org_id ?? undefined
+      : (tour: DeliveryTour) => tour.marketeur_org_id
+  return scopeBySiteOrCreator(
+    sliced,
+    scopeWithOrgId(scope),
+    siteKey,
+    (tour) => tour.created_by ?? undefined,
+  ).map((tour, index) => buildView(tour, index))
 }
 
 export function getTourActivityById(id: string): TourActivity | undefined {

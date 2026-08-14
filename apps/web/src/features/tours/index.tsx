@@ -5,6 +5,8 @@ import { PageShell, SectionCard } from '@/components/layout/page'
 import { TourActiveHeader } from './components/tour-active-header'
 import { ToursTable } from './components/tours-table'
 import { getTourActivity, type TourSlice } from './data/tour-activity'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 
 const SLICES: { value: TourSlice; label: string }[] = [
   { value: 'ALL', label: 'Toutes' },
@@ -18,7 +20,7 @@ const SLICES: { value: TourSlice; label: string }[] = [
 export function ToursPage() {
   const navigate = useNavigate()
   const [slice, setSlice] = useState<TourSlice>('ALL')
-  const tours = getTourActivity(slice)
+  const tours = getTourActivity(slice, getScope(useAuthStore.getState().user))
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
   const selectedTrip = tours.find((t) => t.id === selectedId) ?? tours[0]
 

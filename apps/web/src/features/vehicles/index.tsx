@@ -15,6 +15,8 @@ import { activeTourForVehicle, vehicleActiveTourLink } from '@/features/tours/da
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { vehicleFields, vehicleFromForm, vehicleToForm } from './data/vehicles-crud'
 import { useAuthStore } from '@/store/auth-store'
+import { getScope } from '@/features/scope/scope'
+import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
 import type { Vehicle } from '@lpg/types'
 import { toast } from 'sonner'
 
@@ -57,9 +59,14 @@ export function VehiclesPage() {
   const scopeOrgId = authUser?.org_id
   const allVehicles = getVehiclesView()
   const scopedVehicles = useMemo(() => {
-    if (!scopeOrgId) return allVehicles
-    return allVehicles.filter((v) => v.org_id === scopeOrgId)
-  }, [scopeOrgId, allVehicles])
+    const scope = getScope(authUser)
+    return scopeBySiteOrCreator(
+      allVehicles,
+      scopeWithOrgId(scope),
+      (v) => v.org_id,
+      (v) => v.created_by ?? undefined,
+    )
+  }, [authUser, allVehicles])
 
   const handleViewDetails = useCallback((vehicle: VehicleView) => {
     setDetailsVehicle(vehicle)

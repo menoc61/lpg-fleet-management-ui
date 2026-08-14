@@ -4,11 +4,13 @@ import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
 import { formatTm } from '@/features/map/utils/format'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 import { buildDashboardView } from './data/dashboard'
 
 export function FleetDetailPage() {
   const { fleetName } = useParams({ from: '/_authenticated/dashboard/fleets/$fleetName' })
-  const dashboard = buildDashboardView()
+  const dashboard = buildDashboardView(getScope(useAuthStore.getState().user))
   const fleet = dashboard.fleets.find(
     (candidate) => candidate.fleetName === decodeURIComponent(fleetName)
   )
@@ -72,7 +74,7 @@ export function FleetDetailPage() {
 
 export function ReserveSiteDetailPage() {
   const { siteId } = useParams({ from: '/_authenticated/dashboard/sites/$siteId' })
-  const dashboard = buildDashboardView()
+  const dashboard = buildDashboardView(getScope(useAuthStore.getState().user))
   const site = dashboard.reserveSites.find((candidate) => candidate.siteId === siteId)
 
   return (

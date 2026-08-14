@@ -23,6 +23,7 @@ export interface VehicleView {
   license_plate: string
   type: VehicleType
   org_id: string
+  created_by?: string | null
   tenant_name: string
   tenant_type: OrgType
   region: Region
@@ -208,6 +209,7 @@ function buildView(vehicle: CuratedVehicle): VehicleView {
     license_plate: vehicle.license_plate,
     type: vehicle.type,
     org_id: vehicle.org_id,
+    created_by: vehicle.created_by ?? null,
     tenant_name: org?.name ?? '—',
     tenant_type: org?.type ?? 'TRANSPORTEUR',
     region,
