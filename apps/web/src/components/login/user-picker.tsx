@@ -167,6 +167,10 @@ export function UserPicker({
                         <span className='truncate text-xs text-muted-foreground'>
                           {u.email}
                         </span>
+                        <span className='flex items-center gap-1 truncate text-xs text-muted-foreground/80'>
+                          <Building2 className='h-3 w-3 shrink-0' />
+                          {u.org_name || '—'}
+                        </span>
                       </div>
                       <Badge variant='outline' className='ml-auto text-[10px]'>
                         {ROLE_LABELS[u.system_role as keyof typeof ROLE_LABELS] ??
