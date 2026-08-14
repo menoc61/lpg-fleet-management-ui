@@ -12,9 +12,19 @@ import { Main } from '@/components/layout/main'
 import { ROLE_LABELS } from '@/config/rbac/roles'
 import { useRoleStore } from '@/store/role-store'
 import { getOverviewCards, type OverviewCard } from './data/overview'
+import { formatTm } from '@/features/map/utils/format'
+import type { Role } from '@/config/rbac/roles'
+import type { DashboardView } from '@/features/dashboard/data/dashboard'
 
-export function OverviewPage() {
-  const activeRole = useRoleStore((s) => s.activeRole)
+export function OverviewPage({
+  role,
+  dashboard,
+}: {
+  role?: Role
+  dashboard?: DashboardView
+}) {
+  const storeRole = useRoleStore((s) => s.activeRole)
+  const activeRole = role ?? storeRole
   const cards = useMemo(() => getOverviewCards(activeRole), [activeRole])
   const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
 
@@ -43,12 +53,35 @@ export function OverviewPage() {
         </Badge>
       </section>
 
+      {dashboard ? (
+        <section className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <Metric value={formatTm(dashboard.overview.totalTransportedTM)} label='Transporté' />
+          <Metric value={formatTm(dashboard.overview.totalDeliveredTM)} label='Livré' />
+          <Metric
+            value={String(dashboard.overview.activeTrips + dashboard.overview.plannedTrips)}
+            label='Tournées'
+          />
+          <Metric value={String(dashboard.overview.openAlerts)} label='Alertes ouvertes' />
+        </section>
+      ) : null}
+
       <section className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {cards.map((card) => (
           <OverviewCardItem key={card.id} card={card} />
         ))}
       </section>
     </Main>
+  )
+}
+
+function Metric({ value, label }: { value: string; label: string }) {
+  return (
+    <Card className='rounded-2xl border-border/60 shadow-none'>
+      <CardContent className='p-4'>
+        <p className='text-xl font-semibold tracking-tight'>{value}</p>
+        <p className='mt-1 text-xs text-muted-foreground'>{label}</p>
+      </CardContent>
+    </Card>
   )
 }
 

@@ -9,6 +9,7 @@ import { sites } from '@/features/sites/data/sites'
 import { trucks } from '@/features/trucks/data/trucks'
 import { quantityInfo } from '@/features/trucks/lib/quantity'
 import type { UserScope } from '@/features/scope/scope'
+import type { Role } from '@/config/rbac/roles'
 
 export type DashboardPeriod = 'daily' | 'weekly' | 'monthly'
 export type DashboardMetricTone = 'sky' | 'emerald' | 'amber' | 'rose'
@@ -154,6 +155,7 @@ export type DashboardOverview = {
 }
 
 export type DashboardView = {
+  viewRole?: Role
   overview: DashboardOverview
   metrics: DashboardMetric[]
   trendByPeriod: Record<DashboardPeriod, DashboardTrendPoint[]>
@@ -896,7 +898,10 @@ function buildRecentActivities(
     .slice(0, 6)
 }
 
-export function buildDashboardView(scope?: UserScope): DashboardView {
+export function buildDashboardView(
+  role?: Role,
+  scope?: UserScope
+): DashboardView {
   const routeViews = getRouteTripsView('ALL', scope)
   const routeSummary = buildRouteSummary(routeViews)
   const reserveSites = buildReserveSites(scope)
@@ -955,6 +960,7 @@ export function buildDashboardView(scope?: UserScope): DashboardView {
   const dailyPrevious = trendByPeriod.daily[trendByPeriod.daily.length - 2]!
 
   return {
+    viewRole: role,
     overview: {
       dateRangeLabel: '01 avr 2026 - 28 avr 2026',
       generatedAt,

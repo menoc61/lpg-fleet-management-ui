@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { Plus } from 'lucide-react'
+import { Button } from '@lpg/ui'
+import { hasPermission } from '@lpg/permissions'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { TourActiveHeader } from './components/tour-active-header'
+import { TourCreateWizard } from './components/tour-create-wizard'
 import { ToursTable } from './components/tours-table'
 import { getTourActivity, type TourSlice } from './data/tour-activity'
 import { getScope } from '@/features/scope/scope'
+import { useRoleStore } from '@/store/role-store'
 import { useAuthStore } from '@/store/auth-store'
 
 const SLICES: { value: TourSlice; label: string }[] = [
@@ -19,7 +24,10 @@ const SLICES: { value: TourSlice; label: string }[] = [
 
 export function ToursPage() {
   const navigate = useNavigate()
+  const activeRole = useRoleStore((s) => s.activeRole)
+  const canCreate = hasPermission(activeRole, 'tours.create')
   const [slice, setSlice] = useState<TourSlice>('ALL')
+  const [wizardOpen, setWizardOpen] = useState(false)
   const tours = getTourActivity(slice, getScope(useAuthStore.getState().user))
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
   const selectedTrip = tours.find((t) => t.id === selectedId) ?? tours[0]
@@ -33,6 +41,21 @@ export function ToursPage() {
       <PageHeader
         title='Tournées de livraison'
         description='Flux 2 — livraisons creees par les marketeurs et executees en interne ou par un transporteur.'
+        actions={
+          canCreate ? (
+            <Button onClick={() => setWizardOpen(true)} className='gap-1'>
+              <Plus className='size-4' /> Nouvelle tournée
+            </Button>
+          ) : undefined
+        }
+      />
+      <TourCreateWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onCreated={() => {
+          /* La tournée est écrite dans le store (tours-store) ; les vues
+             statiques de la page restent alimentées par les fixtures. */
+        }}
       />
       {selectedTrip && (
         <TourActiveHeader

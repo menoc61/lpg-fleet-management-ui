@@ -20,6 +20,35 @@ export const TOUR_ACTION_LABELS: Record<TourAction, string> = {
 }
 
 /**
+ * Crew the transporter assigns at acknowledgement time. Every id must belong
+ * to the transporter's org (`transporter_org_id`); the machine validates this
+ * before returning the patch.
+ */
+export interface TourCrewPatch {
+  vehicle_id?: string
+  driver_id?: string
+  livreur_user_id?: string
+  assigned_by_transporter_user_id?: string
+}
+
+/**
+ * Patch produced by `applyAction`: only the fields an action touches. The
+ * store merges it with `{...tour, ...patch}` so untouched fields stay intact.
+ */
+export type ApplyActionResult = Pick<
+  DeliveryTour,
+  | 'status'
+  | 'started_at'
+  | 'closed_at'
+  | 'transporter_assigned_at'
+  | 'sent_to_transporter_at'
+  | 'vehicle_id'
+  | 'driver_id'
+  | 'livreur_user_id'
+  | 'assigned_by_transporter_user_id'
+>
+
+/**
  * Action → permission code. Consumed by the UI (button gating) and by the
  * store-level guard (`performAction`) so direct calls are permission-gated too.
  */
@@ -118,15 +147,49 @@ export interface TourValidationResult {
   errors: string[]
 }
 
+/**
+ * Checkpoint destinations as carried by a draft (site XOR client site, per
+ * schema `chk_checkpoint_exclusive`). Consumed by `validateTour` via options.
+ */
+export interface TourDraftCheckpoint {
+  site_id?: string
+  client_site_id?: string
+  sequence: number
+  expected_quantity: number
+}
+
 export function validateTour(
   tour: DeliveryTour,
-  options?: { now?: Date; vehicles?: typeof curated.vehicles },
+  options?: {
+    now?: Date
+    vehicles?: typeof curated.vehicles
+    checkpoints?: TourDraftCheckpoint[]
+  },
 ): TourValidationResult {
   const errors: string[] = []
   const { execution_mode, vehicle_id, driver_id, livreur_user_id, assigned_by_transporter_user_id,
     transporter_org_id, started_at, closed_at } = tour
   const now = options?.now ?? new Date()
   const vehicles = options?.vehicles ?? curated.vehicles
+  const checkpoints = options?.checkpoints
+
+  if (checkpoints?.length) {
+    for (const checkpoint of checkpoints) {
+      const hasSite = Boolean(checkpoint.site_id)
+      const hasClientSite = Boolean(checkpoint.client_site_id)
+      if (hasSite === hasClientSite) {
+        errors.push(
+          `chk_checkpoint_exclusive: un checkpoint doit référencer exactement un site (site_id ou client_site_id)`,
+        )
+      }
+      if (!Number.isInteger(checkpoint.sequence) || checkpoint.sequence < 1) {
+        errors.push(`chk_checkpoint_sequence: la séquence d'un checkpoint doit être >= 1`)
+      }
+      if (!Number.isFinite(checkpoint.expected_quantity) || checkpoint.expected_quantity <= 0) {
+        errors.push(`chk_checkpoint_quantity: la quantité attendue d'un checkpoint doit être > 0`)
+      }
+    }
+  }
 
   if (
     execution_mode === 'INTERNAL' &&
@@ -139,6 +202,16 @@ export function validateTour(
 
   if (execution_mode === 'EXTERNAL' && !transporter_org_id) {
     errors.push(`chk_tournee_external: an EXTERNAL tournee must be assigned to a transporter_org_id`)
+  } else if (execution_mode === 'EXTERNAL') {
+    const contract = curated.transporter_contracts.find(
+      (c) =>
+        c.marketeur_org_id === tour.marketeur_org_id &&
+        c.transporter_org_id === transporter_org_id &&
+        c.is_active,
+    )
+    if (!contract) {
+      errors.push('Aucun contrat actif avec ce transporteur.')
+    }
   }
 
   if (execution_mode === 'INTERNAL' && assigned_by_transporter_user_id) {
@@ -239,11 +312,54 @@ export function tourSlaFlags(
   return { transporterNoAck, unassignedTooLong }
 }
 
+function assertCrewInTransporterOrg(
+  transporterOrgId: DeliveryTour['transporter_org_id'],
+  patch: TourCrewPatch,
+): void {
+  if (!transporterOrgId) {
+    throw new Error(`Aucune organisation transporteur sur cette tournée`)
+  }
+  if (patch.vehicle_id) {
+    const vehicle = curated.vehicles.find((v) => v.id === patch.vehicle_id)
+    if (!vehicle) {
+      throw new Error(`Véhicule introuvable : ${patch.vehicle_id}`)
+    }
+    if (vehicle.org_id !== transporterOrgId) {
+      throw new Error(
+        `Le véhicule ${patch.vehicle_id} n'appartient pas à l'organisation du transporteur`,
+      )
+    }
+  }
+  if (patch.driver_id) {
+    const driver = curated.drivers.find((d) => d.id === patch.driver_id)
+    if (!driver) {
+      throw new Error(`Chauffeur introuvable : ${patch.driver_id}`)
+    }
+    if (driver.org_id !== transporterOrgId) {
+      throw new Error(
+        `Le chauffeur ${patch.driver_id} n'appartient pas à l'organisation du transporteur`,
+      )
+    }
+  }
+  if (patch.livreur_user_id) {
+    const livreur = curated.users.find((u) => u.id === patch.livreur_user_id)
+    if (!livreur) {
+      throw new Error(`Livreur introuvable : ${patch.livreur_user_id}`)
+    }
+    if (livreur.org_id !== transporterOrgId) {
+      throw new Error(
+        `Le livreur ${patch.livreur_user_id} n'appartient pas à l'organisation du transporteur`,
+      )
+    }
+  }
+}
+
 export function applyAction(
   tour: DeliveryTour,
   action: TourAction,
   now: Date = new Date(),
-): Pick<DeliveryTour, 'status' | 'started_at' | 'closed_at' | 'transporter_assigned_at' | 'sent_to_transporter_at'> {
+  patch?: TourCrewPatch,
+): ApplyActionResult {
   const spec = ACTION_TARGET[action]
   if (!spec.modes.includes(tour.execution_mode) || !canTransition(tour.status, spec.target, tour.execution_mode)) {
     throw new Error(`Transition interdite à l'état ${tour.status}`)
@@ -260,9 +376,22 @@ export function applyAction(
   }
   if (action === 'acknowledge') {
     next.transporter_assigned_at = tour.transporter_assigned_at ?? now.toISOString()
+    // The transporter assigns their own crew+vehicle at acknowledgement time.
+    // Only fields actually provided are set, so the store merge `{...tour,
+    // ...patch}` cannot clobber existing values with undefined. Without a
+    // patch this stays a pure timestamp stamp (backward compatible).
+    if (patch) {
+      assertCrewInTransporterOrg(tour.transporter_org_id, patch)
+      if (patch.vehicle_id) next.vehicle_id = patch.vehicle_id
+      if (patch.driver_id) next.driver_id = patch.driver_id
+      if (patch.livreur_user_id) next.livreur_user_id = patch.livreur_user_id
+      if (patch.assigned_by_transporter_user_id) {
+        next.assigned_by_transporter_user_id = patch.assigned_by_transporter_user_id
+      }
+    }
   }
   if (action === 'send-to-transporter') {
     next.sent_to_transporter_at = tour.sent_to_transporter_at ?? now.toISOString()
   }
-  return next as Pick<DeliveryTour, 'status' | 'started_at' | 'closed_at' | 'transporter_assigned_at' | 'sent_to_transporter_at'>
+  return next as ApplyActionResult
 }

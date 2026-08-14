@@ -46,6 +46,7 @@ import { EmptyState } from '@/components/layout/page'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useNotificationCenter } from '@/hooks/use-notification-center'
 import { useNotificationGroupsStore } from './notification-groups-store'
 
 const LEVEL_ICON: Record<NotificationLevel, typeof Info> = {
@@ -255,10 +256,12 @@ export function NotificationCenter() {
   const markRead = useNotificationsStore((s) => s.markRead)
   const markAllRead = useNotificationsStore((s) => s.markAllRead)
   const [sendOpen, setSendOpen] = useState(false)
+  const ws = useNotificationCenter()
+  const totalUnread = unread + ws.unread
 
   return (
     <>
-      <Popover>
+      <Popover open={ws.open} onOpenChange={ws.setOpen}>
         <PopoverTrigger asChild>
           <Button
             type='button'
@@ -266,11 +269,12 @@ export function NotificationCenter() {
             size='icon'
             className='relative rounded-full text-muted-foreground'
             aria-label='Notifications'
+            onClick={ws.openCenter}
           >
             <Bell className='size-4' />
-            {unread > 0 && (
+            {totalUnread > 0 && (
               <span className='absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-semibold text-white'>
-                {unread > 9 ? '9+' : unread}
+                {totalUnread > 9 ? '9+' : totalUnread}
               </span>
             )}
           </Button>

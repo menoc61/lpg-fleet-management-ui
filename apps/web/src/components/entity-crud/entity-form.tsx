@@ -3,11 +3,14 @@
  * and reports a validated value map on submit. No per-entity sheet duplication.
  *
  * Convention (matches `features/users/components/user-edit-sheet.tsx`):
- * `useState` form state, `@lpg/ui` primitives, `sonner` toasts, `Sheet`.
+ * react-hook-form + zod (schema built by `zodSchemaFromFields`), `@lpg/ui`
+ * primitives wrapped in `Controller`s, inline per-field errors. Success/error
+ * toasts live in the callers, not here.
  */
 
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { useMemo } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,
   Checkbox,
@@ -27,8 +30,9 @@ import {
   Switch,
   Textarea,
 } from '@lpg/ui'
-import { isHttpUrl } from '@/lib/save-link'
+import { zodSchemaFromFields } from './field-schema'
 import type { FieldConfig } from './field-config'
+import { FormSection, SubmitButton } from './form-ui'
 
 export type FormValues = Record<string, unknown>
 
@@ -53,22 +57,21 @@ function buildInitial(fields: FieldConfig[], initial?: FormValues | null): FormV
   return out
 }
 
-function validate(fields: FieldConfig[], values: FormValues): string | null {
+/** Apply per-field `transform` and merge the entity `id` in edit mode. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function applyTransforms(
+  fields: FieldConfig[],
+  values: FormValues,
+  isEdit: boolean,
+  initial?: FormValues | null,
+): FormValues {
+  const out: FormValues = {}
   for (const f of fields) {
     const raw = values[f.name]
-    if (f.required) {
-      const empty =
-        raw === '' || raw === null || raw === undefined || (f.type === 'switch' && raw === false)
-      if (empty) return `${f.label} est obligatoire.`
-    }
-    if (f.type === 'email' && raw && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(raw))) {
-      return `${f.label} doit être une adresse e-mail valide.`
-    }
-    if (f.type === 'url' && raw && !isHttpUrl(String(raw))) {
-      return `${f.label} doit être une URL valide (http/https).`
-    }
+    out[f.name] = f.transform ? f.transform(raw) : raw
   }
-  return null
+  if (isEdit && initial?.id) out.id = initial.id
+  return out
 }
 
 export function EntityForm({
@@ -81,27 +84,26 @@ export function EntityForm({
   submitting,
   submitLabel = 'Enregistrer',
 }: EntityFormProps) {
-  const [values, setValues] = useState<FormValues>(() => buildInitial(fields, initial))
   const isEdit = Boolean(initial && initial.id)
+  const form = useForm<FormValues>({
+    resolver: zodResolver(zodSchemaFromFields(fields)),
+    defaultValues: buildInitial(fields, initial),
+  })
 
-  function set(name: string, value: unknown) {
-    setValues((v) => ({ ...v, [name]: value }))
-  }
+  const submit = form.handleSubmit(async (values) => {
+    await onSubmit(applyTransforms(fields, values, isEdit, initial))
+  })
 
-  async function handleSubmit() {
-    const error = validate(fields, values)
-    if (error) {
-      toast.error(error)
-      return
-    }
-    const out: FormValues = {}
+  const sections = useMemo(() => {
+    const map = new Map<string, FieldConfig[]>()
     for (const f of fields) {
-      const raw = values[f.name]
-      out[f.name] = f.transform ? f.transform(raw) : raw
+      const key = f.section ?? 'Informations'
+      const group = map.get(key) ?? []
+      group.push(f)
+      map.set(key, group)
     }
-    if (isEdit && initial?.id) out.id = initial.id
-    await onSubmit(out)
-  }
+    return Array.from(map.entries())
+  }, [fields])
 
   return (
     <SheetContent className='flex w-full flex-col sm:max-w-xl'>
@@ -111,8 +113,24 @@ export function EntityForm({
       </SheetHeader>
 
       <div className='flex-1 space-y-4 overflow-y-auto px-4 pb-2'>
-        {fields.map((f) => (
-          <Field key={f.name} config={f} value={values[f.name]} onChange={(v) => set(f.name, v)} />
+        {sections.map(([title, sectionFields]) => (
+          <FormSection key={title} title={title}>
+            {sectionFields.map((f) => (
+              <Controller
+                key={f.name}
+                control={form.control}
+                name={f.name}
+                render={({ field: rf, fieldState }) => (
+                  <Field
+                    config={f}
+                    value={rf.value}
+                    onChange={rf.onChange}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            ))}
+          </FormSection>
         ))}
       </div>
 
@@ -120,9 +138,9 @@ export function EntityForm({
         <Button variant='outline' onClick={onCancel} disabled={submitting}>
           Annuler
         </Button>
-        <Button onClick={handleSubmit} disabled={submitting}>
-          {submitting ? 'Enregistrement…' : submitLabel}
-        </Button>
+        <SubmitButton pending={submitting} onClick={submit}>
+          {submitLabel}
+        </SubmitButton>
       </SheetFooter>
     </SheetContent>
   )
@@ -132,29 +150,34 @@ function Field({
   config,
   value,
   onChange,
+  error,
 }: {
   config: FieldConfig
   value: unknown
   onChange: (v: unknown) => void
+  error?: string
 }) {
   const id = `field-${config.name}`
 
   if (config.type === 'switch') {
     return (
-      <div className='flex items-center justify-between rounded-md border p-3'>
-        <div>
-          <Label htmlFor={id} className='cursor-pointer'>
-            {config.label}
-          </Label>
-          {config.help ? (
-            <p className='text-xs text-muted-foreground'>{config.help}</p>
-          ) : null}
+      <div>
+        <div className='flex items-center justify-between rounded-md border p-3'>
+          <div>
+            <Label htmlFor={id} className='cursor-pointer'>
+              {config.label}
+            </Label>
+            {config.help ? (
+              <p className='text-xs text-muted-foreground'>{config.help}</p>
+            ) : null}
+          </div>
+          <Switch
+            id={id}
+            checked={Boolean(value)}
+            onCheckedChange={(v) => onChange(v)}
+          />
         </div>
-        <Switch
-          id={id}
-          checked={Boolean(value)}
-          onCheckedChange={(v) => onChange(v)}
-        />
+        {error ? <p className='text-sm text-destructive'>{error}</p> : null}
       </div>
     )
   }
@@ -176,6 +199,7 @@ function Field({
           </SelectContent>
         </Select>
         {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
+        {error ? <p className='text-sm text-destructive'>{error}</p> : null}
       </div>
     )
   }
@@ -203,6 +227,7 @@ function Field({
           ))}
         </div>
         {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
+        {error ? <p className='text-sm text-destructive'>{error}</p> : null}
       </div>
     )
   }
@@ -227,6 +252,7 @@ function Field({
         />
       )}
       {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
+      {error ? <p className='text-sm text-destructive'>{error}</p> : null}
     </div>
   )
 }

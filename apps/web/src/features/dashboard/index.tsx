@@ -46,13 +46,14 @@ import {
 
 export function DashboardPage({ role }: { role?: Role } = {}) {
   const dashboard = useMemo(
-    () => buildDashboardView(getScope(useAuthStore.getState().user)),
-    []
+    () => buildDashboardView(role, getScope(useAuthStore.getState().user)),
+    [role]
   )
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')
   const monthlySeries = dashboard.trendByPeriod.monthly
   const dailyAlerts = dashboard.trendByPeriod.daily
+  const panels = rolePanelVisibility(role)
 
   const heading =
     role === 'SUPERADMIN'
@@ -139,34 +140,62 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
         alerts={dashboard.alerts}
       />
 
-      <section className='grid gap-4 xl:grid-cols-[1.05fr_1fr_0.95fr]'>
-        <FlowBreakdownCard
-          totalTransportedTM={dashboard.overview.totalTransportedTM}
-          breakdown={dashboard.flowBreakdown}
-          deltaPercent={dashboard.metrics[0]?.deltaPercent ?? 0}
-        />
+      {panels.flow ? (
+        <section className='grid gap-4 xl:grid-cols-[1.05fr_1fr_0.95fr]'>
+          <FlowBreakdownCard
+            totalTransportedTM={dashboard.overview.totalTransportedTM}
+            breakdown={dashboard.flowBreakdown}
+            deltaPercent={dashboard.metrics[0]?.deltaPercent ?? 0}
+          />
 
-        <MonthlyVolumesCard series={monthlySeries} />
+          <MonthlyVolumesCard series={monthlySeries} />
 
-        <ReserveSummaryCard
-          totalReserveTM={dashboard.overview.totalReserveTM}
-          summary={dashboard.reserveSummary}
-        />
-      </section>
+          <ReserveSummaryCard
+            totalReserveTM={dashboard.overview.totalReserveTM}
+            summary={dashboard.reserveSummary}
+          />
+        </section>
+      ) : null}
 
-      <section className='grid gap-4 xl:grid-cols-[1.15fr_0.85fr]'>
-        <RecentActivitiesCard activities={dashboard.recentActivities} />
-        <ReserveSitesCard sites={dashboard.reserveSites} />
-      </section>
+      {panels.recent ? (
+        <section className='grid gap-4 xl:grid-cols-[1.15fr_0.85fr]'>
+          <RecentActivitiesCard activities={dashboard.recentActivities} />
+          <ReserveSitesCard sites={dashboard.reserveSites} />
+        </section>
+      ) : null}
 
-      <section>
-        <FleetPerformanceCard fleets={dashboard.fleets} />
-      </section>
+      {panels.fleet ? (
+        <section>
+          <FleetPerformanceCard fleets={dashboard.fleets} />
+        </section>
+      ) : null}
     </Main>
   )
 }
 
 type DashboardDetailId = 'transported' | 'reserve' | 'delivered' | 'alerts'
+
+/**
+ * Which dashboard panels are relevant to a role. SUPERADMIN/ADMIN see the full
+ * national view; operational roles see only the panels that concern them.
+ */
+function rolePanelVisibility(role?: Role) {
+  switch (role) {
+    case 'SUPERADMIN':
+    case 'ADMIN':
+      return { flow: true, recent: true, fleet: true }
+    case 'SUPERVISOR':
+    case 'INTEGRATEUR':
+      return { flow: false, recent: true, fleet: false }
+    case 'MARKETEUR':
+    case 'TRANSPORTEUR':
+    case 'AGENT':
+    case 'LIVREUR':
+      return { flow: true, recent: true, fleet: true }
+    default:
+      return { flow: true, recent: true, fleet: true }
+  }
+}
 
 const activityStatusClasses: Record<DashboardActivityStatus, string> = {
   completed:

@@ -92,6 +92,27 @@ Rules:
   string in the setting) gates the MFA setup prompt; never hardcode the role list.
 - **File storage:** all images, certificates, and proofs live in MinIO
   (S3-compatible); only URL references are kept in the database.
+- **Cache invalidation:** every mutation invalidates its API-resource query
+  key via `lib/api/invalidation`; WebSocket events (`tour:update`,
+  `anomaly:new`, `device:telemetry`) invalidate the matching keys.
+- **Async resources:** reports and risk recompute are polled to a terminal
+  state (`READY`/`FAILED`/`EXPIRED`); the UI shows a spinner and freshness.
+- **Optimistic updates:** low-risk status toggles use optimistic UI with
+  rollback on error; mutating buttons are disabled while pending.
+- **Forms:** every create/edit form uses react-hook-form + zod + shadcn Form
+  with inline per-field `FormMessage` errors (never toast validation errors).
+  Submitting buttons show a spinner and are disabled while pending.
+  Auto-collected fields (org_id from auth, status defaults, created_by,
+  timestamps) are hidden from the user.
+- **Toasts:** exactly one toast per outcome; inline validation errors are
+  never toasted. Use `hooks/use-toast-feedback` (`runMutation` /
+  `extractErrorMessage`).
+- **Notifications:** the center is driven by WS events + anomalies; unread
+  badge increments on `anomaly:new`/`tour:update` (`ws:notify`); a short
+  notification sound plays when enabled (`hooks/use-notification-sound`).
+- **Route UX:** data-heavy routes have a `pendingComponent` skeleton
+  (`components/layout/route-skeleton`) and an `errorComponent` reusing
+  `GeneralError`.
 - **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
 - **Soft delete:** DELETE on any table with `deleted_at` sets `deleted_at =
   now()` (never a hard row removal). Reads exclude rows where
@@ -99,6 +120,12 @@ Rules:
   restore endpoint is documented.
 - **Status lifecycles** come from the schema (device, RFID, pickup, tour, site) —
   never invent new status strings.
+- **Tournee workflow:** a MARKETEUR creates a tour via the step wizard —
+  INTERNAL requires the marketeur's crew (→ PLANNED); EXTERNAL requires a
+  transporter with an active contract (→ PENDINGTRANSPORTERACK). The
+  TRANSPORTEUR acknowledges by assigning **their own org's** vehicle/driver/
+  livreur (→ ACKNOWLEDGED). LIVREUR starts/closes. Transitions follow
+  `features/tours/data/tour-machine.ts`; no step is skipped.
 - **Workflows** resolve against TODO.md §5 (onboarding, geo-verification, certificates,
   device lifecycle, flux 1 / 2a / 2b, reconciliation, anomalies, risk, reporting);
   **monitoring/security** against TODO.md §6–§7.
@@ -113,8 +140,14 @@ Rules:
 - The active actor determines which nav links show (actor point-of-view). Respect the
   role hierarchy: SUPERADMIN > ADMIN > SUPERVISOR/AGENT/INTEGRATEUR >
   MARKETEUR/TRANSPORTEUR > LIVREUR.
-- Post-login landing is per-role. Only SUPERADMIN lands on `/dashboard`; other roles land on
-  their own home feature (e.g. TRANSPORTEUR → `/transporters`, MARKETEUR → `/overview`).
+- Post-login landing is **`/overview` for every role** (personalized). `/dashboard`
+  is SUPERADMIN's national view (gated by `dashboard.read`). The `dashboard-${role}`
+  routes (`/dashboard-admin`, `/dashboard-supervisor`, `/dashboard-marketeur`,
+  `/dashboard-transporteur`) remain sidebar destinations only for roles with that
+  data, each showing a role-appropriate subset of graphs/cards.
+- **Dashboard data:** `buildDashboardView(role, scope)` is always role + scope
+  aware; the role never changes the data source, only the visibility of panels
+  (`rolePanelVisibility`).
 
 ## 6. Code naming & units
 

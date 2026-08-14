@@ -418,6 +418,7 @@ export interface Checkpoint extends BaseEntity {
   site_id?: string | null
   client_site_id?: string | null
   sequence: number
+  expected_quantity?: number | null
   expected_arrival?: string | null
   actual_arrival?: string | null
   status: CheckpointStatus

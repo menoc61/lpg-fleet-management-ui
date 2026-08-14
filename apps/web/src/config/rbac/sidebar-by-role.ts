@@ -14,11 +14,11 @@
  * active role. The role only governs *which* items are visible, never the
  * URL shape. Link labels, icons, and permission codes live in `nav-items.ts`.
  *
- * All web roles now land on `/overview` after login. The `/dashboard` route
- * remains SUperADMIN-only (gated by `dashboard.read`). Per-role dashboards
- * for ADMIN, SUPERVISOR, MARKETEUR, TRANSPORTEUR are available at
- * `/dashboard-admin`, `/dashboard-supervisor`, `/dashboard-marketeur`,
- * `/dashboard-transporteur` respectively.
+ * All web roles land on `/overview` after login. `/dashboard` is reserved
+ * for SUPERADMIN's national view (gated by `dashboard.read`). Per-role
+ * dashboards for ADMIN, SUPERVISOR, MARKETEUR, TRANSPORTEUR remain available
+ * at `/dashboard-admin`, `/dashboard-supervisor`, `/dashboard-marketeur`,
+ * `/dashboard-transporteur` respectively, reachable from the sidebar.
  */
 
 import type { Role } from '@lpg/permissions'
@@ -26,22 +26,17 @@ import type { SidebarData } from '@/components/layout/types'
 import { buildSidebarFor } from './nav-items'
 
 /**
- * Post-login / post-switch landing path per role. Bare feature routes only
- * (AGENTS.md §5). Each role lands on its own home feature — a route that
- * actually exists. `/dashboard` is reserved for roles with no dedicated home
- * feature yet (SUPERADMIN per §5; SUPERVISOR & LIVREUR until built).
- *
- * GAP: the `overview` nav item still resolves to `/overview`, which has no
- * route — see TODO: give SUPERVISOR/ADMIN/AGENT a real technical home.
+ * Post-login / post-switch landing path per role. Every role lands on the
+ * personalized `/overview` (AGENTS.md §5). Bare feature routes only.
  */
 export const LANDING_BY_ROLE: Record<Role, string> = {
-  SUPERADMIN: '/dashboard',
-  ADMIN: '/dashboard-admin',
-  SUPERVISOR: '/dashboard-supervisor',
+  SUPERADMIN: '/overview',
+  ADMIN: '/overview',
+  SUPERVISOR: '/overview',
   INTEGRATEUR: '/overview',
   AGENT: '/overview',
   MARKETEUR: '/overview',
-  TRANSPORTEUR: '/transporters',
+  TRANSPORTEUR: '/overview',
   LIVREUR: '/overview',
 }
 

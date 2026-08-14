@@ -11,7 +11,11 @@ describe('route-access', () => {
       expect(canAccessPath('MARKETEUR', '/overview')).toBe(true)
     })
 
-    it('SUPERADMIN landing /dashboard is allowed', () => {
+    it('SUPERADMIN landing /overview is allowed', () => {
+      expect(canAccessPath('SUPERADMIN', '/overview')).toBe(true)
+    })
+
+    it('SUPERADMIN can reach the national /dashboard via dashboard.read', () => {
       expect(canAccessPath('SUPERADMIN', '/dashboard')).toBe(true)
     })
   })
@@ -92,12 +96,12 @@ describe('route-access', () => {
       expect(deniedPathRedirect('MARKETEUR', '/marketers')).toBe('/overview')
     })
 
-    it('returns /transporters when the path is denied for TRANSPORTEUR', () => {
-      expect(deniedPathRedirect('TRANSPORTEUR', '/audit-logs')).toBe('/transporters')
+    it('returns /overview when the path is denied for TRANSPORTEUR', () => {
+      expect(deniedPathRedirect('TRANSPORTEUR', '/audit-logs')).toBe('/overview')
     })
 
     it('never redirects a role off its own landing (AGENTS.md §5)', () => {
-      expect(deniedPathRedirect('TRANSPORTEUR', '/transporters')).toBeNull()
+      expect(deniedPathRedirect('TRANSPORTEUR', '/overview')).toBeNull()
       expect(deniedPathRedirect('MARKETEUR', '/overview')).toBeNull()
     })
   })

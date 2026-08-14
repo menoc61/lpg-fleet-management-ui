@@ -1,14 +1,58 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Search, Filter, X } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
+import { drivers, users, vehicles } from '@lpg/mock-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { DataTable } from '@lpg/ui'
 import type { ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { getToursForTransporter } from '../data/transporter-tours'
 import type { TransporterTourWithDetails } from '../data/transporter-tours'
-import { Input } from '@/components/ui/input'
+import { useAuthStore } from '@/store/auth-store'
+import { useToursStore } from '@/store/tours-store'
+
+const crewAssignmentSchema = z.object({
+  vehicle_id: z.string().min(1, 'Véhicule requis'),
+  driver_id: z.string().min(1, 'Chauffeur requis'),
+  livreur_user_id: z.string().min(1, 'Livreur requis'),
+})
+
+type CrewAssignmentValues = z.infer<typeof crewAssignmentSchema>
+
+const CREW_DEFAULTS: CrewAssignmentValues = {
+  vehicle_id: '',
+  driver_id: '',
+  livreur_user_id: '',
+}
 
 function getDriverName(tour: TransporterTourWithDetails): string {
   if (!tour.driver) return '—'
@@ -19,7 +63,7 @@ function getDriverName(tour: TransporterTourWithDetails): string {
 }
 
 function PendingToursColumns(
-  onViewDetails: (tour: TransporterTourWithDetails) => void
+  onAcknowledge: (tour: TransporterTourWithDetails) => void
 ): ColumnDef<TransporterTourWithDetails>[] {
   return [
     {
@@ -103,12 +147,13 @@ function PendingToursColumns(
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => (
-        <button
-          onClick={() => onViewDetails(row.original)}
-          className='text-primary hover:underline text-sm'
+        <Button
+          variant='link'
+          className='h-auto p-0 text-sm'
+          onClick={() => onAcknowledge(row.original)}
         >
-          Voir détails
-        </button>
+          Accuser réception
+        </Button>
       ),
     },
   ]
@@ -117,9 +162,31 @@ function PendingToursColumns(
 export function TransporterPendingTours({ transporter }: { transporter: { id: string; name: string } }) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('PENDINGTRANSPORTERACK')
+  const [ackTour, setAckTour] = useState<TransporterTourWithDetails | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const form = useForm<CrewAssignmentValues>({
+    resolver: zodResolver(crewAssignmentSchema),
+    defaultValues: CREW_DEFAULTS,
+  })
+
+  const orgVehicles = useMemo(
+    () => vehicles.filter((v) => v.org_id === transporter.id && v.is_active),
+    [transporter.id],
+  )
+
+  const orgDrivers = useMemo(
+    () => drivers.filter((d) => d.org_id === transporter.id && d.is_active),
+    [transporter.id],
+  )
+
+  const orgLivreurs = useMemo(() => {
+    const candidates = users.filter((u) => u.org_id === transporter.id && u.is_active)
+    const livreurs = candidates.filter((u) => u.system_role === 'LIVREUR')
+    return livreurs.length > 0 ? livreurs : candidates
+  }, [transporter.id])
 
   const allTours = useMemo(() => getToursForTransporter(transporter.id), [transporter.id])
-
   // Filter only pending acknowledgment tours
   const pendingTours = useMemo(() => {
     return allTours.filter((tour) => tour.status === 'PENDINGTRANSPORTERACK')
@@ -142,9 +209,36 @@ export function TransporterPendingTours({ transporter }: { transporter: { id: st
     return result
   }, [pendingTours, search])
 
-  const handleViewDetails = (tour: TransporterTourWithDetails) => {
-    // Navigate to tour details
-    console.log('View tour details', tour)
+  const handleAcknowledge = (tour: TransporterTourWithDetails) => {
+    form.reset(CREW_DEFAULTS)
+    setAckTour(tour)
+  }
+
+  function submitAcknowledge(values: CrewAssignmentValues) {
+    if (!ackTour) return
+    const user = useAuthStore.getState().user
+    if (!user?.id) {
+      toast.error('Aucun utilisateur connecté')
+      return
+    }
+    setSubmitting(true)
+    try {
+      useToursStore.getState().performAction(ackTour.id, 'acknowledge', {
+        vehicle_id: values.vehicle_id,
+        driver_id: values.driver_id,
+        livreur_user_id: values.livreur_user_id,
+        assigned_by_transporter_user_id: user.id,
+      })
+      toast.success(`Tournée ${ackTour.id} acceptée`)
+      setAckTour(null)
+      form.reset(CREW_DEFAULTS)
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Impossible d'accuser réception de la tournée"
+      toast.error(message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const pendingCount = pendingTours.length
@@ -204,7 +298,7 @@ export function TransporterPendingTours({ transporter }: { transporter: { id: st
         <CardContent className='p-0'>
           <DataTable
             data={filteredTours}
-            columns={PendingToursColumns(handleViewDetails)}
+            columns={PendingToursColumns(handleAcknowledge)}
             search={{ placeholder: '', searchKey: 'q' }}
           />
         </CardContent>
@@ -225,6 +319,110 @@ export function TransporterPendingTours({ transporter }: { transporter: { id: st
             )}
           </div>
         )}
+
+        <Dialog
+          open={ackTour !== null}
+          onOpenChange={(open) => {
+            if (!open) setAckTour(null)
+          }}
+        >
+          <DialogContent className='sm:max-w-md'>
+            <DialogHeader>
+              <DialogTitle>Accuser réception — {ackTour?.id}</DialogTitle>
+              <DialogDescription>
+                Affectez le véhicule, le chauffeur et le livreur de {transporter.name} à la tournée
+                {ackTour ? ` ${ackTour.id}` : ''}.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(submitAcknowledge)} className='space-y-4'>
+                <FormField
+                  control={form.control}
+                  name='vehicle_id'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Véhicule</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='— Sélectionner —' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {orgVehicles.map((vehicle) => (
+                            <SelectItem key={vehicle.id} value={vehicle.id}>
+                              {vehicle.license_plate}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='driver_id'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Chauffeur</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='— Sélectionner —' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {orgDrivers.map((driver) => (
+                            <SelectItem key={driver.id} value={driver.id}>
+                              {`${driver.first_name} ${driver.last_name}`.trim()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='livreur_user_id'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Livreur</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='— Sélectionner —' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {orgLivreurs.map((livreur) => (
+                            <SelectItem key={livreur.id} value={livreur.id}>
+                              {`${livreur.first_name} ${livreur.last_name}`.trim()}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className='gap-2'>
+                  <Button type='button' variant='outline' onClick={() => setAckTour(null)}>
+                    Annuler
+                  </Button>
+                  <Button type='submit' disabled={submitting}>
+                    {submitting ? "Envoi de l'accusé…" : "Confirmer l'accusé"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
   )
 }

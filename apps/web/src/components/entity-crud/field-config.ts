@@ -32,6 +32,8 @@ export interface FieldConfig {
   help?: string
   /** Select options (value must be string for the原生 Select). */
   options?: FieldOption[]
+  /** Optional group title; fields without one fall back to "Informations". */
+  section?: string
   /** Initial value when creating. */
   defaultValue?: unknown
   /** Coerce/transform the raw form value before submit (e.g. number). */

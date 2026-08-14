@@ -4,6 +4,7 @@ import type { PickupRequest, PickupStatus } from '@lpg/types'
 import { type Role } from '@lpg/permissions'
 import { assertPermission, assertSiteAccess } from '@/lib/security/guards'
 import { getScope } from '@/features/scope/scope'
+import { emitWs } from '@/lib/ws/mock-ws'
 import { useAuthStore } from '@/store/auth-store'
 
 /**
@@ -84,8 +85,18 @@ export const usePickupsStore = create<PickupsState>()((set, get) => ({
       created_by: null,
       updated_by: null,
     }
-    set({ pickups: [pickup, ...get().pickups] })
-    return pickup
+    // Optimistic apply with rollback: snapshot the rows before the write, and
+    // on any failure restore the prior state and rethrow. The WS emit stays on
+    // the success path only.
+    const previous = get().pickups.map((p) => ({ ...p }))
+    try {
+      set({ pickups: [pickup, ...previous] })
+      emitWs('tour:update', {})
+      return pickup
+    } catch (error) {
+      set({ pickups: previous })
+      throw error
+    }
   },
 
   all() {

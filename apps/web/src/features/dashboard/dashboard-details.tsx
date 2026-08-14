@@ -10,7 +10,7 @@ import { buildDashboardView } from './data/dashboard'
 
 export function FleetDetailPage() {
   const { fleetName } = useParams({ from: '/_authenticated/dashboard/fleets/$fleetName' })
-  const dashboard = buildDashboardView(getScope(useAuthStore.getState().user))
+  const dashboard = buildDashboardView(undefined, getScope(useAuthStore.getState().user))
   const fleet = dashboard.fleets.find(
     (candidate) => candidate.fleetName === decodeURIComponent(fleetName)
   )
@@ -74,7 +74,7 @@ export function FleetDetailPage() {
 
 export function ReserveSiteDetailPage() {
   const { siteId } = useParams({ from: '/_authenticated/dashboard/sites/$siteId' })
-  const dashboard = buildDashboardView(getScope(useAuthStore.getState().user))
+  const dashboard = buildDashboardView(undefined, getScope(useAuthStore.getState().user))
   const site = dashboard.reserveSites.find((candidate) => candidate.siteId === siteId)
 
   return (

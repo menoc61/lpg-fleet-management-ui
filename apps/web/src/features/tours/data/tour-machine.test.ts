@@ -16,9 +16,9 @@ const THRESHOLDS = { transporterAckTimeoutHours: 4, unassignedAlertHours: 12 }
 function baseExternal(over: Partial<DeliveryTour> = {}): DeliveryTour {
   return {
     id: 't-1',
-    marketeur_org_id: 'org-m1',
+    marketeur_org_id: 'org-0002-sctm-0000-000000000001',
     execution_mode: 'EXTERNAL',
-    transporter_org_id: 'org-t1',
+    transporter_org_id: 'org-0010-translog----000000000001',
     vehicle_id: null,
     driver_id: null,
     livreur_user_id: null,
@@ -181,6 +181,21 @@ describe('tour-machine validation', () => {
     expect(res.errors.some((e) => e.includes('chk_tournee_external'))).toBe(true)
   })
 
+  it('rejects EXTERNAL without an active contract', () => {
+    const tour = baseExternal({ transporter_org_id: 'org-none' })
+    const res = validateTour(tour)
+    expect(res.valid).toBe(false)
+    expect(res.errors.some((e) => e.includes('Aucun contrat actif'))).toBe(true)
+  })
+
+  it('accepts EXTERNAL with an active contract', () => {
+    const tour = baseExternal({
+      marketeur_org_id: 'org-0002-sctm-0000-000000000001',
+      transporter_org_id: 'org-0010-translog----000000000001',
+    })
+    expect(validateTour(tour).valid).toBe(true)
+  })
+
   it('flags chk_tournee_no_double_assign when INTERNAL has assigned_by_transporter_user_id', () => {
     const tour = baseExternal({
       execution_mode: 'INTERNAL',
@@ -202,6 +217,53 @@ describe('tour-machine validation', () => {
     const res = validateTour(tour)
     expect(res.valid).toBe(false)
     expect(res.errors.some((e) => e.includes('chk_tournee_dates'))).toBe(true)
+  })
+
+  it('passes draft checkpoints with exactly one destination per stop', () => {
+    const tour = baseExternal()
+    const res = validateTour(tour, {
+      checkpoints: [
+        { site_id: 'site-a', sequence: 1, expected_quantity: 3000 },
+        { client_site_id: 'csite-a', sequence: 2, expected_quantity: 2000 },
+      ],
+    })
+    expect(res.valid).toBe(true)
+  })
+
+  it('flags chk_checkpoint_exclusive when a stop has both site_ids', () => {
+    const tour = baseExternal()
+    const res = validateTour(tour, {
+      checkpoints: [{ site_id: 'site-a', client_site_id: 'csite-a', sequence: 1, expected_quantity: 3000 }],
+    })
+    expect(res.valid).toBe(false)
+    expect(res.errors.some((e) => e.includes('chk_checkpoint_exclusive'))).toBe(true)
+  })
+
+  it('flags chk_checkpoint_exclusive when a stop has no destination', () => {
+    const tour = baseExternal()
+    const res = validateTour(tour, {
+      checkpoints: [{ sequence: 1, expected_quantity: 3000 }],
+    })
+    expect(res.valid).toBe(false)
+    expect(res.errors.some((e) => e.includes('chk_checkpoint_exclusive'))).toBe(true)
+  })
+
+  it('flags chk_checkpoint_sequence for a sequence < 1', () => {
+    const tour = baseExternal()
+    const res = validateTour(tour, {
+      checkpoints: [{ site_id: 'site-a', sequence: 0, expected_quantity: 3000 }],
+    })
+    expect(res.valid).toBe(false)
+    expect(res.errors.some((e) => e.includes('chk_checkpoint_sequence'))).toBe(true)
+  })
+
+  it('flags chk_checkpoint_quantity for a non-positive quantity', () => {
+    const tour = baseExternal()
+    const res = validateTour(tour, {
+      checkpoints: [{ site_id: 'site-a', sequence: 1, expected_quantity: 0 }],
+    })
+    expect(res.valid).toBe(false)
+    expect(res.errors.some((e) => e.includes('chk_checkpoint_quantity'))).toBe(true)
   })
 })
 
@@ -391,5 +453,59 @@ describe('tour-machine applyAction', () => {
     expect(() => applyAction(underway, 'cancel', now)).toThrow(/Transition interdite/)
     const external = baseExternal({ status: 'DRAFT' })
     expect(() => applyAction(external, 'plan', now)).toThrow(/Transition interdite/)
+  })
+
+  it('acknowledge with a transporter-org crew patch assigns the crew', () => {
+    const tour = baseExternal({
+      status: 'PENDINGTRANSPORTERACK',
+      transporter_org_id: 'org-0010-translog----000000000001',
+    })
+    const next = applyAction(tour, 'acknowledge', now, {
+      vehicle_id: 'veh-0022-lt9902tl',
+      driver_id: 'driver-0001-samuel-abanda',
+      livreur_user_id: 'user-0025-translog-dispatcher',
+      assigned_by_transporter_user_id: 'user-0024-translog-admin',
+    })
+    expect(next.status).toBe('ACKNOWLEDGED')
+    expect(next.transporter_assigned_at).toBe(now.toISOString())
+    expect(next.vehicle_id).toBe('veh-0022-lt9902tl')
+    expect(next.driver_id).toBe('driver-0001-samuel-abanda')
+    expect(next.livreur_user_id).toBe('user-0025-translog-dispatcher')
+    expect(next.assigned_by_transporter_user_id).toBe('user-0024-translog-admin')
+  })
+
+  it('acknowledge rejects a vehicle outside the transporter org', () => {
+    const tour = baseExternal({
+      status: 'PENDINGTRANSPORTERACK',
+      transporter_org_id: 'org-0010-translog----000000000001',
+    })
+    // veh-0001-lt1123ub belongs to org-0002 (marketeur), not org-10.
+    expect(() =>
+      applyAction(tour, 'acknowledge', now, {
+        vehicle_id: 'veh-0001-lt1123ub',
+        driver_id: 'driver-0001-samuel-abanda',
+        livreur_user_id: 'user-0025-translog-dispatcher',
+      }),
+    ).toThrow(/n'appartient pas à l'organisation du transporteur/)
+  })
+
+  it('acknowledge rejects a missing crew id', () => {
+    const tour = baseExternal({ status: 'PENDINGTRANSPORTERACK' })
+    expect(() =>
+      applyAction(tour, 'acknowledge', now, {
+        vehicle_id: 'veh-does-not-exist',
+        driver_id: 'driver-0001-samuel-abanda',
+        livreur_user_id: 'user-0025-translog-dispatcher',
+      }),
+    ).toThrow(/Véhicule introuvable/)
+  })
+
+  it('acknowledge with a patch only sets the provided crew fields', () => {
+    const tour = baseExternal({ status: 'PENDINGTRANSPORTERACK' })
+    const next = applyAction(tour, 'acknowledge', now, { vehicle_id: 'veh-0022-lt9902tl' })
+    expect(next.vehicle_id).toBe('veh-0022-lt9902tl')
+    expect(next.driver_id).toBeUndefined()
+    expect(next.livreur_user_id).toBeUndefined()
+    expect(next.assigned_by_transporter_user_id).toBeUndefined()
   })
 })

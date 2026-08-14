@@ -1,4 +1,4 @@
-import { type ElementType } from 'react'
+import { type ElementType, useState } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
@@ -25,6 +25,7 @@ import {
   routeStatusLabels,
   type TourActivity,
 } from '../data/tour-activity'
+import { TourActions } from './tour-actions'
 import { TourCorridorMap } from './tour-corridor-map'
 import { TourLpgVariationPanel } from './tour-lpg-variation-panel'
 import { TourTelemetryChart } from './tour-telemetry-chart'
@@ -34,7 +35,14 @@ type TourDetailViewProps = {
   trip: TourActivity | null
 }
 
-export function TourDetailView({ trip }: TourDetailViewProps) {
+export function TourDetailView({ trip: propTrip }: TourDetailViewProps) {
+  const [trip, setTrip] = useState(propTrip)
+  const [seenTripId, setSeenTripId] = useState(propTrip?.id ?? null)
+  if ((seenTripId ?? null) !== (propTrip?.id ?? null)) {
+    setSeenTripId(propTrip?.id ?? null)
+    setTrip(propTrip)
+  }
+
   if (!trip) {
     return (
       <Card>
@@ -200,6 +208,10 @@ export function TourDetailView({ trip }: TourDetailViewProps) {
             </div>
           </div>
         </CardContent>
+
+        <div className='px-6 pb-4'>
+          <TourActions tour={trip} onPerformed={setTrip} />
+        </div>
       </Card>
 
        <TourLpgVariationPanel trip={trip} formatQuantity={(v) => formatQuantity(v, trip.tourneeType)} zeroUnit={trip.tourneeType === 'VRAC' ? '0 TM' : '0 btl'} />

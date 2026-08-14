@@ -1,7 +1,28 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { ArrowLeft, ArrowRight, Check, Truck } from 'lucide-react'
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@lpg/ui'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@lpg/ui'
 import { curated, organizations, sites } from '@lpg/mock-data'
 import { useAuthStore } from '@/store/auth-store'
 import { usePickupsStore } from '@/store/pickups-store'
@@ -22,6 +43,18 @@ const TYPE_LABELS: Record<VehicleType, string> = {
   BOUTEILLES50KG: 'Bouteilles 50 kg (btl)',
 }
 
+const DEFAULT_VALUES: PickupWizardValues = {
+  marketeur_org_id: '',
+  source_site_id: '',
+  destination_site_id: '',
+  requested_quantity: 0,
+  type: 'VRAC',
+}
+
+function defaultValues(): PickupWizardValues {
+  return { ...DEFAULT_VALUES, marketeur_org_id: defaultMarketeurOrg() }
+}
+
 export function PickupsCreateWizard({
   open,
   onOpenChange,
@@ -31,50 +64,37 @@ export function PickupsCreateWizard({
   onOpenChange: (open: boolean) => void
   onCreated: (pickup: PickupRequest, vehicleIds: string[]) => void
 }) {
-  const [step, setStep] = useState(1)
-  const [values, setValues] = useState<PickupWizardValues>({
-    marketeur_org_id: defaultMarketeurOrg(),
-    source_site_id: '',
-    destination_site_id: '',
-    requested_quantity: 0,
-    type: 'VRAC',
+  const form = useForm<PickupWizardValues>({
+    resolver: zodResolver(pickupWizardSchema),
+    defaultValues: defaultValues(),
   })
-  const [errors, setErrors] = useState<string[]>([])
+  const [step, setStep] = useState(1)
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
+
+  const sourceSiteId = form.watch('source_site_id')
+  const type = form.watch('type')
+  const requestedQuantity = form.watch('requested_quantity')
+  const marketeurOrgId = form.watch('marketeur_org_id')
 
   const sourceOptions = useMemo(
     () => sites.filter((s) => s.is_active !== false),
     [],
   )
   const destOptions = useMemo(
-    () => sites.filter((s) => s.is_active !== false && s.id !== values.source_site_id),
-    [values.source_site_id],
+    () => sites.filter((s) => s.is_active !== false && s.id !== sourceSiteId),
+    [sourceSiteId],
   )
 
   const recommendations = useMemo<VehicleRecommendation[]>(() => {
-    if (step !== 2 || values.requested_quantity <= 0) return []
+    if (step !== 2 || requestedQuantity <= 0) return []
     return recommendVehicles({
-      quantity: values.requested_quantity,
-      type: values.type,
-      org_id: values.marketeur_org_id,
+      quantity: requestedQuantity,
+      type,
+      org_id: marketeurOrgId,
       vehicles: curated.vehicles,
     })
-  }, [step, values.requested_quantity, values.type, values.marketeur_org_id])
-
-  function validateStep1(): boolean {
-    const res = pickupWizardSchema.safeParse(values)
-    if (res.success) {
-      setErrors([])
-      return true
-    }
-    setErrors(res.error.issues.map((i) => i.message))
-    return false
-  }
-
-  function set<K extends keyof PickupWizardValues>(key: K, value: PickupWizardValues[K]) {
-    setValues((v) => ({ ...v, [key]: value }))
-  }
+  }, [step, requestedQuantity, type, marketeurOrgId])
 
   function toggleVehicle(id: string) {
     setSelectedVehicles((prev) =>
@@ -84,17 +104,19 @@ export function PickupsCreateWizard({
 
   async function submit() {
     if (step === 1) {
-      if (!validateStep1()) return
+      const valid = await form.trigger()
+      if (!valid) return
       setStep(2)
       return
     }
     setSubmitting(true)
     try {
+      const data = form.getValues()
       const created = usePickupsStore.getState().createPickup({
-        marketeur_org_id: values.marketeur_org_id,
-        source_site_id: values.source_site_id,
-        destination_site_id: values.destination_site_id,
-        requested_quantity: values.requested_quantity,
+        marketeur_org_id: data.marketeur_org_id,
+        source_site_id: data.source_site_id,
+        destination_site_id: data.destination_site_id,
+        requested_quantity: data.requested_quantity,
       })
       onCreated(created, selectedVehicles)
       toast.success(`Requête ${created.id} créée en brouillon`)
@@ -109,19 +131,9 @@ export function PickupsCreateWizard({
 
   function reset() {
     setStep(1)
-    setValues({
-      marketeur_org_id: defaultMarketeurOrg(),
-      source_site_id: '',
-      destination_site_id: '',
-      requested_quantity: 0,
-      type: 'VRAC',
-    })
-    setErrors([])
+    form.reset(defaultValues())
     setSelectedVehicles([])
   }
-
-  const inputClass =
-    'mt-1 w-full rounded-md border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onOpenChange(false) }}>
@@ -133,92 +145,144 @@ export function PickupsCreateWizard({
         </DialogHeader>
 
         {step === 1 ? (
-          <div className='space-y-4 py-2'>
-            <div className='flex gap-3'>
-              <label className='block flex-1 text-sm'>
-                <span>Type de cargaison</span>
-                <select
-                  className={inputClass}
-                  value={values.type}
-                  onChange={(e) => set('type', e.target.value as VehicleType)}
-                >
-                  {Object.entries(TYPE_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </label>
-              <label className='block flex-1 text-sm'>
-                <span>Quantité</span>
-                <input
-                  type='number'
-                  min={0}
-                  step={values.type === 'VRAC' ? 0.5 : 1}
-                  value={values.requested_quantity || ''}
-                  onChange={(e) => set('requested_quantity', Number(e.target.value))}
-                  placeholder={values.type === 'VRAC' ? 'TM' : 'btl'}
-                  className={inputClass}
+          <Form {...form}>
+            <div className='space-y-4 py-2'>
+              <div className='flex gap-3'>
+                <FormField
+                  control={form.control}
+                  name='type'
+                  render={({ field }) => (
+                    <FormItem className='flex-1'>
+                      <FormLabel>Type de cargaison</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={(v) => field.onChange(v as VehicleType)}
+                        >
+                          <SelectTrigger className='w-full'>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </label>
+
+                <FormField
+                  control={form.control}
+                  name='requested_quantity'
+                  render={({ field }) => (
+                    <FormItem className='flex-1'>
+                      <FormLabel>Quantité</FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min={0}
+                          step={type === 'VRAC' ? 0.5 : 1}
+                          value={field.value === 0 ? '' : field.value}
+                          placeholder={type === 'VRAC' ? 'TM' : 'btl'}
+                          onChange={(e) =>
+                            field.onChange(e.target.value === '' ? 0 : Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name='marketeur_org_id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Marketeur</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MARKET_EUR_ORGS.map((o) => (
+                            <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='source_site_id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site source</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={(v) => {
+                          field.onChange(v)
+                          form.setValue('destination_site_id', '')
+                        }}
+                      >
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='— Sélectionner —' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sourceOptions.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='destination_site_id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site destination</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='— Sélectionner —' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {destOptions.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-
-            <label className='block text-sm'>
-              <span>Marketeur</span>
-              <select
-                className={inputClass}
-                value={values.marketeur_org_id}
-                onChange={(e) => set('marketeur_org_id', e.target.value)}
-              >
-                {MARKET_EUR_ORGS.map((o) => (
-                  <option key={o.id} value={o.id}>{o.name}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className='block text-sm'>
-              <span>Site source</span>
-              <select
-                className={inputClass}
-                value={values.source_site_id}
-                onChange={(e) => {
-                  set('source_site_id', e.target.value)
-                  set('destination_site_id', '')
-                }}
-              >
-                <option value=''>— Sélectionner —</option>
-                {sourceOptions.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className='block text-sm'>
-              <span>Site destination</span>
-              <select
-                className={inputClass}
-                value={values.destination_site_id}
-                onChange={(e) => set('destination_site_id', e.target.value)}
-              >
-                <option value=''>— Sélectionner —</option>
-                {destOptions.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </label>
-
-            {errors.length > 0 && (
-              <ul className='space-y-1 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200'>
-                {errors.map((e, i) => (
-                  <li key={i}>{e}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+          </Form>
         ) : (
           <div className='space-y-4 py-2'>
             <p className='text-sm text-muted-foreground'>
-              Véhicules <strong>{TYPE_LABELS[values.type]}</strong> du marketeur capables de
-              transporter <strong>{values.requested_quantity}</strong>{' '}
-              {values.type === 'VRAC' ? 'TM' : 'btl'}.
+              Véhicules <strong>{TYPE_LABELS[type]}</strong> du marketeur capables de
+              transporter <strong>{requestedQuantity}</strong>{' '}
+              {type === 'VRAC' ? 'TM' : 'btl'}.
             </p>
 
             {recommendations.length === 0 ? (
@@ -244,11 +308,11 @@ export function PickupsCreateWizard({
                       </span>
                       <span className='flex items-center gap-3 text-xs text-muted-foreground'>
                         <span>
-                          Capacité {values.type === 'VRAC'
+                          Capacité {type === 'VRAC'
                             ? `${vehicle.max_volume} TM`
                             : `${vehicle.max_bottle_count} btl`}
                         </span>
-                        <span>Reste {values.type === 'VRAC' ? `${spareCapacity} TM` : `${spareCapacity} btl`}</span>
+                        <span>Reste {type === 'VRAC' ? `${spareCapacity} TM` : `${spareCapacity} btl`}</span>
                         <span>{Math.round(fitRatio * 100)}%</span>
                         <span
                           className={`flex size-5 items-center justify-center rounded-full border ${

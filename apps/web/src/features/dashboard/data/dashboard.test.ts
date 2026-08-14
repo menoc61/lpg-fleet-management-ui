@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { UserScope } from '@/features/scope/scope'
 import { buildDashboardView } from './dashboard'
 
 describe('buildDashboardView', () => {
@@ -153,6 +154,20 @@ describe('buildDashboardView', () => {
           status: 'in-progress',
         }),
       ])
+    )
+  })
+
+  it('scopes transported TM to the user site', () => {
+    const scope: UserScope = {
+      view: 'site',
+      siteIds: ['site-0001-sctm-bonaberi'],
+      userId: 'user-0007-sctm-marketeur',
+    }
+    const dash = buildDashboardView('MARKETEUR', scope)
+    expect(dash.overview.totalTransportedTM).toBeGreaterThan(0)
+    const orgDash = buildDashboardView('SUPERADMIN')
+    expect(orgDash.overview.totalTransportedTM).toBeGreaterThanOrEqual(
+      dash.overview.totalTransportedTM
     )
   })
 })
