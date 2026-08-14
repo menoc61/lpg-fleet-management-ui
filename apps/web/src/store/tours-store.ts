@@ -12,7 +12,8 @@ import {
   type TourCrewPatch,
   type TourDraftCheckpoint,
 } from '@/features/tours/data/tour-machine'
-import { assertPermission } from '@/lib/security/guards'
+import { assertPermission, PERMISSION_DENIED } from '@/lib/security/guards'
+import { getScope, isRegulateurView } from '@/features/scope/scope'
 import { emitWs } from '@/lib/ws/mock-ws'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -57,8 +58,14 @@ export const useToursStore = create<ToursState>()((set, get) => ({
     // call must be permission-gated too. An unauthenticated caller defaults to
     // LIVREUR. Site-level access (assertSiteAccess) is intentionally not wired
     // here yet — it lands with a later Plan 5 step.
-    const role: Role = useAuthStore.getState().user?.system_role ?? 'LIVREUR'
+    const user = useAuthStore.getState().user
+    const role: Role = user?.system_role ?? 'LIVREUR'
     assertPermission(role, 'tours.create')
+    // Spec §8.1: a non-REGULATEUR user may only create tours for their own org.
+    const scope = getScope(user)
+    if (!isRegulateurView(scope) && draft.marketeur_org_id !== scope.orgId) {
+      throw new Error(PERMISSION_DENIED)
+    }
     const now = new Date().toISOString()
     // Initial status follows the schema §3.1 entry point per mode: INTERNAL is
     // created already crewed → PLANNED; EXTERNAL is created awaiting the

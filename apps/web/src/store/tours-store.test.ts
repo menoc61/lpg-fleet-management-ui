@@ -96,6 +96,59 @@ describe('tours store', () => {
         PERMISSION_DENIED,
       )
     })
+
+    it('throws PERMISSION_DENIED when a MARKETEUR creates a tour for another org', () => {
+      // MARKETEUR holds tours.create, so the permission guard passes; the site
+      // scope guard (spec §8.1) must reject the cross-org draft.
+      useAuthStore.setState({
+        user: {
+          id: 'u-marketeur',
+          email: 'm@total.cm',
+          first_name: 'M',
+          last_name: 'K',
+          system_role: 'MARKETEUR',
+          org_type: 'MARKETEUR',
+          org_id: 'org-0003-total-0000-000000000001',
+          site_ids: ['site-0009-total-bonaberi'],
+        },
+      })
+      expect(() =>
+        useToursStore.getState().createTour({
+          marketeur_org_id: MARKETEUR_ORG,
+          execution_mode: 'INTERNAL',
+          type: 'VRAC',
+          requested_quantity: 5000,
+          vehicle_id: VEHICLE_ID,
+          driver_id: DRIVER_ID,
+          livreur_user_id: LIVREUR_ID,
+        }),
+      ).toThrow(PERMISSION_DENIED)
+    })
+
+    it('allows a MARKETEUR to create a tour for their own org', () => {
+      useAuthStore.setState({
+        user: {
+          id: 'u-marketeur',
+          email: 'm@sctm.cm',
+          first_name: 'M',
+          last_name: 'K',
+          system_role: 'MARKETEUR',
+          org_type: 'MARKETEUR',
+          org_id: MARKETEUR_ORG,
+          site_ids: ['site-0001-sctm-bonaberi'],
+        },
+      })
+      const view = useToursStore.getState().createTour({
+        marketeur_org_id: MARKETEUR_ORG,
+        execution_mode: 'INTERNAL',
+        type: 'VRAC',
+        requested_quantity: 5000,
+        vehicle_id: VEHICLE_ID,
+        driver_id: DRIVER_ID,
+        livreur_user_id: LIVREUR_ID,
+      })
+      expect(view.tourneeStatus).toBe('PLANNED')
+    })
   })
 
   describe('createTour', () => {
