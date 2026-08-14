@@ -78,6 +78,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
       id: newTourId(),
       marketeur_org_id: draft.marketeur_org_id,
       execution_mode: draft.execution_mode,
+      source_site_id: draft.sourceSiteId ?? null,
       transporter_org_id: draft.transporter_org_id ?? null,
       vehicle_id: draft.vehicle_id ?? null,
       driver_id: draft.driver_id ?? null,
@@ -95,7 +96,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
       created_at: now,
       updated_at: now,
       deleted_at: null,
-      created_by: null,
+      created_by: user?.id ?? null,
       updated_by: null,
     }
     // Validate the tour AND its planned checkpoints (route stops) before any

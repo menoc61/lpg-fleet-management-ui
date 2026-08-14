@@ -396,6 +396,7 @@ export interface DeliveryTour extends BaseEntity {
   id: string
   marketeur_org_id: string
   execution_mode: ExecutionMode
+  source_site_id?: string | null
   transporter_org_id?: string | null
   vehicle_id?: string | null
   driver_id?: string | null
