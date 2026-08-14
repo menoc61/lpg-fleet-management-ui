@@ -83,6 +83,13 @@ Rules:
   org-level view for non-regulateurs. Implemented via `features/scope`
   (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`); every feature data
   builder applies the scope of the authenticated user.
+- **Defense-in-depth RBAC:** every mutation is gated at three layers — the UI
+  button (`hasPermission`), the store (`lib/security/guards`), and the form
+  (site-scoped fields). No store writes may bypass the guards.
+- **Site-scoped writes:** MARKETEUR creates only for their site; TRANSPORTEUR
+  acknowledges with only their org's crew.
+- **MFA awareness:** `mfa.enforced_for_roles` (comma-separated) gates the MFA
+  setup prompt; never hardcode the role list.
 - **File storage:** all images, certificates, and proofs live in MinIO
   (S3-compatible); only URL references are kept in the database.
 - **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
