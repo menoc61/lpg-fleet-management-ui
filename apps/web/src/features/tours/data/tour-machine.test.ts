@@ -196,6 +196,29 @@ describe('tour-machine validation', () => {
     expect(validateTour(tour).valid).toBe(true)
   })
 
+  it('rejects EXTERNAL carrying a crew before acknowledge', () => {
+    const tour = baseExternal({
+      vehicle_id: 'veh-0001-lt1123ub',
+      driver_id: 'driver-0003-youssouf-hamadou',
+      livreur_user_id: 'user-0010-sctm-livreur1',
+    })
+    const res = validateTour(tour)
+    expect(res.valid).toBe(false)
+    expect(res.errors.some((e) => e.includes('chk_tournee_external_crew'))).toBe(true)
+  })
+
+  it('allows transporter-assigned crew once acknowledged', () => {
+    const tour = baseExternal({
+      status: 'ACKNOWLEDGED',
+      type: 'BOUTEILLES50KG',
+      vehicle_id: 'veh-0022-lt9902tl',
+      driver_id: 'driver-0001-samuel-abanda',
+      assigned_by_transporter_user_id: 'user-0025-translog-dispatcher',
+      transporter_assigned_at: '2024-11-25T08:00:00Z',
+    })
+    expect(validateTour(tour).valid).toBe(true)
+  })
+
   it('flags chk_tournee_no_double_assign when INTERNAL has assigned_by_transporter_user_id', () => {
     const tour = baseExternal({
       execution_mode: 'INTERNAL',

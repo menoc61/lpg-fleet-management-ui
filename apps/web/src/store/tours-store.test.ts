@@ -305,14 +305,28 @@ describe('tours store', () => {
   })
 
   describe('performAction', () => {
-    it('acknowledges an EXTERNAL PENDINGTRANSPORTERACK tour and stamps the assignment time', () => {
-      const view = useToursStore.getState().performAction('tour-005', 'acknowledge')
+    it('acknowledges an EXTERNAL PENDINGTRANSPORTERACK tour with the transporter crew and stamps the assignment time', () => {
+      const view = useToursStore.getState().performAction('tour-005', 'acknowledge', {
+        vehicle_id: 'veh-0026-lt3346eg',
+        driver_id: 'driver-0002-anastlere-mousso',
+        livreur_user_id: 'user-0028-express-chauffeur',
+        assigned_by_transporter_user_id: 'user-0028-express-chauffeur',
+      })
       expect(view.tourneeStatus).toBe('ACKNOWLEDGED')
       expect(tourStatusLabels[view.tourneeStatus]).toBe('Accusée')
       const stored = useToursStore.getState().tours.find((t) => t.id === 'tour-005')!
       expect(stored.status).toBe('ACKNOWLEDGED')
       expect(typeof stored.transporter_assigned_at).toBe('string')
       expect(stored.transporter_assigned_at).toBeTruthy()
+      expect(stored.vehicle_id).toBe('veh-0026-lt3346eg')
+      expect(stored.driver_id).toBe('driver-0002-anastlere-mousso')
+      expect(stored.livreur_user_id).toBe('user-0028-express-chauffeur')
+    })
+
+    it('rejects an acknowledge without a transporter crew (no bare status flip)', () => {
+      expect(() =>
+        useToursStore.getState().performAction('tour-005', 'acknowledge'),
+      ).toThrow(/équipage/)
     })
 
     it('starts an ACKNOWLEDGED tour and stamps started_at', () => {
@@ -486,7 +500,12 @@ describe('tours store', () => {
 
     it('reflects subsequent store mutations', () => {
       expect(useToursStore.getState().viewById('tour-005')!.tourneeStatus).toBe('PENDINGTRANSPORTERACK')
-      useToursStore.getState().performAction('tour-005', 'acknowledge')
+      useToursStore.getState().performAction('tour-005', 'acknowledge', {
+        vehicle_id: 'veh-0026-lt3346eg',
+        driver_id: 'driver-0002-anastlere-mousso',
+        livreur_user_id: 'user-0028-express-chauffeur',
+        assigned_by_transporter_user_id: 'user-0028-express-chauffeur',
+      })
       expect(useToursStore.getState().viewById('tour-005')!.tourneeStatus).toBe('ACKNOWLEDGED')
     })
   })
@@ -506,7 +525,12 @@ describe('tours store', () => {
       expect(created.tourneeStatus).toBe('PENDINGTRANSPORTERACK')
 
       // 1. TRANSPORTEUR acknowledges, assigning their own crew+vehicle.
-      const ack = useToursStore.getState().performAction(id, 'acknowledge')
+      const ack = useToursStore.getState().performAction(id, 'acknowledge', {
+        vehicle_id: 'veh-0026-lt3346eg',
+        driver_id: 'driver-0002-anastlere-mousso',
+        livreur_user_id: 'user-0028-express-chauffeur',
+        assigned_by_transporter_user_id: 'user-0028-express-chauffeur',
+      })
       expect(ack.tourneeStatus).toBe('ACKNOWLEDGED')
 
       // 2. LIVREUR starts the mission on the PDA.

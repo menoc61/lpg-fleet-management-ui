@@ -212,6 +212,15 @@ export function validateTour(
     if (!contract) {
       errors.push('Aucun contrat actif avec ce transporteur.')
     }
+    // The transporter assigns their own crew at acknowledge time; before that
+    // an EXTERNAL tour must not carry a marketeur-selected crew (schema flux 2b).
+    // From ACKNOWLEDGED onward the transporter-assigned crew is expected.
+    const preAck = tour.status === 'DRAFT' || tour.status === 'PENDINGTRANSPORTERACK'
+    if (preAck && (vehicle_id || driver_id || livreur_user_id)) {
+      errors.push(
+        `chk_tournee_external_crew: an EXTERNAL tournee must have a NULL crew (vehicle/driver/livreur) until the transporter acknowledges`,
+      )
+    }
   }
 
   if (execution_mode === 'INTERNAL' && assigned_by_transporter_user_id) {

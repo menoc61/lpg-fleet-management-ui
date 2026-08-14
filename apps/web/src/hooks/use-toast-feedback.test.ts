@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeFeedback, extractErrorMessage } from './use-toast-feedback'
+import { extractErrorMessage } from './use-toast-feedback'
 
 describe('extractErrorMessage', () => {
   it('returns a thrown message', () => {
@@ -37,11 +37,5 @@ describe('extractErrorMessage', () => {
     expect(extractErrorMessage(new Error('Transition interdite'))).toBe(
       'Transition interdite',
     )
-  })
-})
-
-describe('describeFeedback', () => {
-  it('composes verb + entity', () => {
-    expect(describeFeedback('créée', 'Requête')).toBe('Requête créée.')
   })
 })

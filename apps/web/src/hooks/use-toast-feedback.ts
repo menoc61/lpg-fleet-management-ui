@@ -1,11 +1,9 @@
 import { isAxiosError } from 'axios'
-import { toast } from 'sonner'
 
 /**
  * Standardized mutation feedback (AGENTS.md §4 "Toasts"): exactly one toast
- * per outcome. `runMutation` fires the success toast on resolve and a single
- * error toast on reject (via `extractErrorMessage`), then rethrows so the
- * caller can still branch on the failure.
+ * per outcome. `extractErrorMessage` maps a thrown error to a French,
+ * user-friendly message (no toast here — callers decide where to surface it).
  */
 
 /** French, user-friendly message for a thrown error (no toast here). */
@@ -29,23 +27,4 @@ export function extractErrorMessage(error: unknown): string {
     return 'Réseau indisponible.'
   }
   return 'Une erreur est survenue. Réessayez.'
-}
-
-export function describeFeedback(verb: string, entity: string): string {
-  return `${entity} ${verb}.`
-}
-
-export async function runMutation<T>(
-  fn: () => Promise<T>,
-  opts: { success?: string; error?: string } = {},
-): Promise<T> {
-  try {
-    const result = await fn()
-    toast.success(opts.success ?? 'Opération effectuée.')
-    return result
-  } catch (err) {
-    const message = opts.error ?? extractErrorMessage(err)
-    toast.error(message)
-    throw err
-  }
 }

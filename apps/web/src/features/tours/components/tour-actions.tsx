@@ -47,9 +47,14 @@ export function TourActions({
   const activeRole = useRoleStore((s) => s.activeRole)
   const actions = useMemo(
     () =>
-      tourActions({ status: tour.tourneeStatus, execution_mode: tour.execution_mode }).filter(
-        (action) => hasPermission(activeRole, ACTION_PERMISSION[action]),
-      ),
+      tourActions({ status: tour.tourneeStatus, execution_mode: tour.execution_mode })
+        .filter(
+          (action) => hasPermission(activeRole, ACTION_PERMISSION[action]),
+        )
+        // acknowledge requires the transporter's crew, captured via the
+        // transporter crew-assignment dialog (features/transporters), not a
+        // bare status button.
+        .filter((action) => action !== 'acknowledge'),
     [tour, activeRole],
   )
 

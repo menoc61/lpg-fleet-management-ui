@@ -20,7 +20,7 @@ export function useWsClient(enabled = false): void {
     if (!enabled) return
     // In dev/mock, a MockWsService (see Task 4) dispatches window CustomEvents.
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ event: string; payload?: unknown }>).detail
+      const detail = (e as CustomEvent<{ event: string; payload?: unknown; actorId?: string }>).detail
       if (!detail?.event) return
       for (const resource of mapWsEventToInvalidation(detail.event)) {
         invalidateResource(qc, resource)

@@ -138,7 +138,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
     const allCheckpoints = [...previousCheckpoints, ...checkpointsToAdd]
     try {
       set({ tours: [tour, ...previousTours], checkpoints: allCheckpoints })
-      emitWs('tour:update', { id: tour.id })
+      emitWs('tour:update', { id: tour.id }, user?.id)
       return toTourActivities([tour], { checkpoints: allCheckpoints })[0]!
     } catch (error) {
       set({ tours: previousTours, checkpoints: previousCheckpoints })
@@ -147,8 +147,14 @@ export const useToursStore = create<ToursState>()((set, get) => ({
   },
 
   performAction(id: string, action: TourAction, patch?: TourCrewPatch) {
-    const role: Role = useAuthStore.getState().user?.system_role ?? 'LIVREUR'
+    const actor = useAuthStore.getState().user
+    const role: Role = actor?.system_role ?? 'LIVREUR'
     assertPermission(role, ACTION_PERMISSION[action])
+    if (action === 'acknowledge' && !(patch?.vehicle_id && patch.driver_id && patch.livreur_user_id)) {
+      throw new Error(
+        "L'accusé de réception exige l'équipage du transporteur (véhicule, chauffeur, livreur).",
+      )
+    }
     const tours = get().tours
     const index = tours.findIndex((t) => t.id === id)
     if (index === -1) {
@@ -175,7 +181,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
       const nextTours = [...previous]
       nextTours[index] = next
       set({ tours: nextTours })
-      emitWs('tour:update', { id: next.id })
+      emitWs('tour:update', { id: next.id }, actor?.id)
       return toTourActivities([next], { checkpoints: get().checkpoints })[0]!
     } catch (error) {
       set({ tours: previous })
