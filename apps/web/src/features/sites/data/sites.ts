@@ -1,3 +1,6 @@
+import { curated, organizations } from '@lpg/mock-data'
+import type { Site as CuratedSite, ClientSite } from '@lpg/types'
+
 export type SiteType =
   | 'depot'
   | 'scdp'
@@ -43,116 +46,93 @@ export const siteTypeOptions = [
   { label: 'Points de livraison', value: 'delivery-point' },
 ] as const satisfies ReadonlyArray<{ label: string; value: SiteType }>
 
-export const sites: Site[] = [
-  {
-    id: 'site-bipaga',
-    name: 'Dépôt GPL de Bipaga',
-    type: 'depot',
-    city: 'Kribi',
-    region: 'Sud',
-    operator: 'SNH',
-    latitude: 3.09783,
-    longitude: 9.98989,
-    description:
-      'Point de chargement GPL dans la zone de Bipaga, alimente les tournées vers les marketers et centres emplisseurs.',
-    status: 'active',
-    isKeySite: true,
-  },
-  {
-    id: 'site-scdp-douala',
-    name: 'SCDP Douala',
-    type: 'scdp',
-    city: 'Douala',
-    region: 'Littoral',
-    operator: 'SCDP',
-    latitude: 4.04902,
-    longitude: 9.7198,
-    description:
-      'Complexe logistique de Douala, noeud majeur pour la distribution et le stockage des produits hydrocarbures.',
-    status: 'active',
-    isKeySite: true,
-  },
-  {
-    id: 'site-scdp-yaounde',
-    name: 'SCDP Yaounde - Nsam',
-    type: 'scdp',
-    city: 'Yaounde',
-    region: 'Centre',
-    operator: 'SCDP',
-    latitude: 3.8398,
-    longitude: 11.51372,
-    description:
-      'Site logistique de Nsam pour les operations de stockage et de redistribution sur Yaounde et le Centre.',
-    status: 'active',
-    isKeySite: true,
-  },
-  {
-    id: 'site-bonaberi-center',
-    name: 'Centre emplisseur Gaz de Bonaberi',
-    type: 'filling-center',
-    city: 'Douala',
-    region: 'Littoral',
-    operator: 'SCDP',
-    latitude: 4.07142,
-    longitude: 9.68177,
-    description:
-      "Centre d'enfutage et de redistribution GPL pour l'aire de Douala et une partie du reseau national.",
-    status: 'active',
-    isKeySite: true,
-  },
-  {
-    id: 'site-bafoussam-center',
-    name: 'Centre emplisseur Bafoussam',
-    type: 'filling-center',
-    city: 'Bafoussam',
-    region: 'Ouest',
-    operator: 'Hub Ouest',
-    latitude: 5.4781,
-    longitude: 10.4178,
-    description:
-      'Site de reception et de redistribution pour la zone Ouest, utile pour les releves de variation GPL.',
-    status: 'active',
-  },
-  {
-    id: 'site-tradex-akwa',
-    name: 'Tradex Akwa',
-    type: 'marketer',
-    city: 'Douala',
-    region: 'Littoral',
-    operator: 'Tradex',
-    latitude: 4.0498,
-    longitude: 9.7679,
-    description:
-      'Point marketer de reference pour les livraisons urbaines sur Douala.',
-    status: 'active',
-  },
-  {
-    id: 'site-total-bonamoussadi',
-    name: 'Total Bonamoussadi',
-    type: 'marketer',
-    city: 'Douala',
-    region: 'Littoral',
-    operator: 'Total Cameroun',
-    latitude: 4.0912,
-    longitude: 9.7411,
-    description:
-      'Point marketer de distribution pour le nord de Douala et les tournées de proximite.',
-    status: 'active',
-  },
-  {
-    id: 'site-total-ebolowa',
-    name: 'Total Ebolowa',
-    type: 'delivery-point',
-    city: 'Ebolowa',
-    region: 'Sud',
-    operator: 'Total Cameroun',
-    latitude: 2.9167,
-    longitude: 11.15,
-    description:
-      'Point de livraison seed pour illustrer les tournées entre zone de chargement et destinations de distribution.',
-    status: 'active',
-  },
+const REGION_LABELS: Record<string, string> = {
+  ADAMAOUA: 'Adamaoua',
+  CENTRE: 'Centre',
+  EST: 'Est',
+  EXTREMENORD: 'Extrême-Nord',
+  LITTORAL: 'Littoral',
+  NORD: 'Nord',
+  NORDOUEST: 'Nord-Ouest',
+  OUEST: 'Ouest',
+  SUD: 'Sud',
+  SUDOUEST: 'Sud-Ouest',
+}
+
+function viewTypeFromSeed(
+  site: CuratedSite | ClientSite,
+  orgName: string,
+): SiteType {
+  const functions = 'functions' in site ? (site.functions ?? []) : []
+  if (orgName.includes('SCDP')) return 'scdp'
+  if (functions.includes('CENTREEMPLISSEUR')) return 'filling-center'
+  if (functions.includes('POINTAPPROVISIONABLE')) return 'delivery-point'
+  if (functions.includes('ENTREPOT')) return 'depot'
+  return 'marketer'
+}
+
+function viewStatusFromSeed(
+  status: string | undefined,
+  isActive: boolean,
+): SiteStatus {
+  if (status === 'ACTIVE' || status === 'VERIFIED') return 'active'
+  if (status === 'SUSPENDED' || status === 'REJECTED') return 'inactive'
+  return isActive ? 'active' : 'planned'
+}
+
+function cityFromAddress(address: string | undefined): string {
+  if (!address) return '—'
+  const parts = address.split(',').map((p) => p.trim()).filter(Boolean)
+  const beforeCam = parts.filter((p) => !/cameroun/i.test(p))
+  if (beforeCam.length === 0) return '—'
+  const last = beforeCam[beforeCam.length - 1]!
+  const tokens = last.split(/\s+/)
+  return tokens[tokens.length - 1] ?? '—'
+}
+
+function descriptionFor(
+  orgName: string,
+  type: SiteType,
+  region: string,
+): string {
+  const typeLabel = siteTypeLabels[type]
+  return `${orgName} — ${typeLabel}, région ${REGION_LABELS[region] ?? region}.`
+}
+
+const orgByName = new Map(organizations.map((o) => [o.id, o.name]))
+
+const seedSites: readonly (CuratedSite | ClientSite)[] = [
+  ...curated.sites,
+  ...curated.client_sites,
 ]
+
+function orgId(site: CuratedSite | ClientSite): string {
+  return 'org_id' in site ? (site as CuratedSite).org_id : (site as ClientSite).client_org_id
+}
+
+export const sites: Site[] = seedSites.map((site) => {
+  const orgId_ = orgId(site)
+  const orgName = orgByName.get(orgId_) ?? orgId_
+  const type = viewTypeFromSeed(site, orgName)
+  const status = viewStatusFromSeed(
+    'status' in site ? (site as CuratedSite).status : undefined,
+    'is_active' in site ? (site as ClientSite).is_active : true,
+  )
+  const region = site.region
+  return {
+    id: site.id,
+    name: site.name,
+    type,
+    city: cityFromAddress('address' in site ? (site as CuratedSite | ClientSite).address : undefined),
+    region: REGION_LABELS[region] ?? region,
+    operator: orgName,
+    latitude: 'geo_point' in site ? ((site as CuratedSite).geo_point as [number, number])?.[1] ?? 0 : 0,
+    longitude: 'geo_point' in site ? ((site as CuratedSite).geo_point as [number, number])?.[0] ?? 0 : 0,
+    description: descriptionFor(orgName, type, region),
+    status,
+    isKeySite: type === 'filling-center' || type === 'scdp',
+  }
+})
 
 export function getKeySites() {
   return sites.filter((site) => site.isKeySite)

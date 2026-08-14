@@ -1,383 +1,182 @@
-export type TruckStatus =
-  | 'available'
-  | 'in_transit'
-  | 'maintenance'
-  | 'inactive'
+import {
+  curated,
+  organizations,
+  drivers,
+  delivery_tours,
+  checkpoints,
+  risk_scores,
+} from '@lpg/mock-data'
+import type {
+  Vehicle as CuratedVehicle,
+  Organization as CuratedOrganization,
+  Driver as CuratedDriver,
+  DeliveryTour,
+  VehicleType,
+  TourneeStatus,
+  Region,
+  RiskLevel,
+} from '@lpg/types'
 
-export type ContractTier = 'Starter' | 'Growth' | 'Enterprise'
+export type TruckStatus = TourneeStatus
 
-export type TruckRiskLevel = 'low' | 'medium' | 'high'
-
-export type Truck = {
+export interface Truck {
   id: string
-  plateNumber: string
-  tenantName: string
-  marketer: string
-  status: TruckStatus
-  tankCapacityLiters: number
-  compartments: number
-  fuelType: 'GPL'
-  makeModel: string
-  year: number
-  gpsImei: string
-  assignedDriver: string
-  driverPhone: string
-  fleetManager: string
-  operatingRegion: string
-  homeDepot: string
-  currentLocation: string
-  latitude: number
-  longitude: number
-  destination: string
-  destinationLatitude: number
-  destinationLongitude: number
-  assignedRoute: string
-  odometerKm: number
-  nextServiceKm: number
-  lastServiceDate: string
-  insuranceExpiry: string
-  technicalVisitExpiry: string
-  permitExpiry: string
-  lastPing: string
-  contractTier: ContractTier
-  riskLevel: TruckRiskLevel
+  license_plate: string
+  type: VehicleType
+  tournee_status: TourneeStatus
+  max_volume?: number | null
+  max_bottle_count?: number | null
+  certificate_number?: string
+  certificate_expiry_at?: string | null
+  org_id: string
+  tenant_name: string
+  region: Region
+  assigned_driver?: string
+  requested_quantity: number
+  loaded_quantity?: number | null
+  delivered_quantity?: number | null
+  risk_level: RiskLevel
+  current_location?: string
+  lat: number
+  lng: number
 }
 
-export type TruckTelemetry = {
-  speedKmh: number
-  lpgLevelPercent: number
-  etaText: string
-  distanceKm: number
-  routeProgress: number
-  pressureBar: number
-  temperatureCelsius: number
+export interface TruckTelemetry {
+  loaded_quantity?: number
+  expected_arrival?: string
+  actual_arrival?: string
 }
 
 export const statusLabels: Record<TruckStatus, string> = {
-  available: 'Disponible',
-  in_transit: 'En livraison',
-  maintenance: 'Maintenance',
-  inactive: 'Inactif',
+  DRAFT: 'Brouillon',
+  PLANNED: 'Planifiée',
+  PENDINGTRANSPORTERACK: 'Attente transporteur',
+  ACKNOWLEDGED: 'Confirmée',
+  INPROGRESS: 'En cours',
+  CHECKPOINTACTIVE: 'Étape atteinte',
+  CLOSED: 'Clôturée',
+  CANCELLED: 'Annulée',
 }
 
 export const statusClasses: Record<TruckStatus, string> = {
-  available:
-    'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  in_transit:
-    'bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  maintenance:
-    'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  inactive: 'bg-muted text-muted-foreground',
+  DRAFT: 'bg-muted text-muted-foreground',
+  PLANNED: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  PENDINGTRANSPORTERACK: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  ACKNOWLEDGED: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  INPROGRESS: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  CHECKPOINTACTIVE: 'bg-violet-500/10 text-violet-700 dark:text-violet-300',
+  CLOSED: 'bg-muted text-muted-foreground',
+  CANCELLED: 'bg-red-500/10 text-red-700 dark:text-red-300',
 }
 
-export const riskLabels: Record<TruckRiskLevel, string> = {
-  low: 'Normal',
-  medium: 'A surveiller',
-  high: 'Critique',
+export const riskLabels: Record<RiskLevel, string> = {
+  FAIBLE: 'Faible',
+  MODERE: 'Modéré',
+  ELEVE: 'Élevé',
+  CRITIQUE: 'Critique',
+  CRITIQUEEXTREME: 'Critique extrême',
 }
 
-export const riskClasses: Record<TruckRiskLevel, string> = {
-  low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  medium:
-    'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  high: 'bg-red-500/10 text-red-700 dark:text-red-300',
+export const riskClasses: Record<RiskLevel, string> = {
+  FAIBLE: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  MODERE: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  ELEVE: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
+  CRITIQUE: 'bg-red-500/10 text-red-700 dark:text-red-300',
+  CRITIQUEEXTREME: 'bg-red-600/10 text-red-700 dark:text-red-400',
 }
 
-export const truckStatusOptions = [
-  { label: 'Disponible', value: 'available' },
-  { label: 'En livraison', value: 'in_transit' },
-  { label: 'Maintenance', value: 'maintenance' },
-  { label: 'Inactif', value: 'inactive' },
+const REGIONS: readonly Region[] = [
+  'CENTRE', 'LITTORAL', 'NORD', 'EXTREMENORD', 'OUEST',
+  'SUDOUEST', 'EST', 'ADAMAOUA',
+]
+const TOUR_STATUSES: readonly TourneeStatus[] = [
+  'PLANNED', 'INPROGRESS', 'CHECKPOINTACTIVE', 'PLANNED',
+  'INPROGRESS', 'CLOSED', 'PENDINGTRANSPORTERACK', 'PLANNED',
 ]
 
-export const contractTierOptions = [
-  { label: 'Starter', value: 'Starter' },
-  { label: 'Growth', value: 'Growth' },
-  { label: 'Enterprise', value: 'Enterprise' },
-]
-
-export const trucks: Truck[] = [
-  {
-    id: 'TRX-CM-001',
-    plateNumber: 'CE 2145 AB',
-    tenantName: 'Tradex',
-    marketer: 'Tradex Douala',
-    status: 'available',
-    tankCapacityLiters: 22000,
-    compartments: 3,
-    fuelType: 'GPL',
-    makeModel: 'HOWO Sinotruk 6x4',
-    year: 2022,
-    gpsImei: '356938035643809',
-    assignedDriver: 'Nji Gilbert',
-    driverPhone: '+237 6 72 14 09 31',
-    fleetManager: 'Diane Fotso',
-    operatingRegion: 'Littoral',
-    homeDepot: 'Dépôt Bonaberi',
-    currentLocation: 'Dépôt Bonaberi, Douala',
-    latitude: 4.0751,
-    longitude: 9.6814,
-    destination: 'Station Tradex Akwa',
-    destinationLatitude: 4.0498,
-    destinationLongitude: 9.7679,
-    assignedRoute: 'Bonaberi - Akwa',
-    odometerKm: 58240,
-    nextServiceKm: 61750,
-    lastServiceDate: '2026-03-18',
-    insuranceExpiry: '2026-11-08',
-    technicalVisitExpiry: '2026-09-22',
-    permitExpiry: '2026-10-14',
-    lastPing: '2026-04-23T10:42:00+01:00',
-    contractTier: 'Enterprise',
-    riskLevel: 'low',
-  },
-  {
-    id: 'TTC-CM-002',
-    plateNumber: 'LT 8870 AD',
-    tenantName: 'Total Cameroun',
-    marketer: 'Total Yaounde',
-    status: 'in_transit',
-    tankCapacityLiters: 18000,
-    compartments: 2,
-    fuelType: 'GPL',
-    makeModel: 'Mercedes Actros 1845',
-    year: 2021,
-    gpsImei: '356938035643810',
-    assignedDriver: 'Mbah Armel',
-    driverPhone: '+237 6 90 44 18 26',
-    fleetManager: 'Patrick Ngono',
-    operatingRegion: 'Centre',
-    homeDepot: 'Dépôt Mvan',
-    currentLocation: 'Axe Yaounde - Mbalmayo',
-    latitude: 3.6828,
-    longitude: 11.5156,
-    destination: 'Station Total Ebolowa',
-    destinationLatitude: 2.9167,
-    destinationLongitude: 11.15,
-    assignedRoute: 'Yaounde - Ebolowa',
-    odometerKm: 74315,
-    nextServiceKm: 78000,
-    lastServiceDate: '2026-02-25',
-    insuranceExpiry: '2026-08-19',
-    technicalVisitExpiry: '2026-06-30',
-    permitExpiry: '2026-07-01',
-    lastPing: '2026-04-23T10:39:00+01:00',
-    contractTier: 'Growth',
-    riskLevel: 'medium',
-  },
-  {
-    id: 'CEX-CM-003',
-    plateNumber: 'CE 5312 BA',
-    tenantName: 'Centre Emplisseur Bonaberi',
-    marketer: 'Hub Littoral',
-    status: 'maintenance',
-    tankCapacityLiters: 16000,
-    compartments: 2,
-    fuelType: 'GPL',
-    makeModel: 'Iveco Trakker 410',
-    year: 2019,
-    gpsImei: '356938035643811',
-    assignedDriver: 'Tchana Boris',
-    driverPhone: '+237 6 77 01 85 42',
-    fleetManager: 'Helene Kamga',
-    operatingRegion: 'Littoral',
-    homeDepot: 'Atelier Bonaberi',
-    currentLocation: 'Atelier Bonaberi',
-    latitude: 4.079,
-    longitude: 9.6827,
-    destination: 'Controle technique',
-    destinationLatitude: 4.079,
-    destinationLongitude: 9.6827,
-    assignedRoute: 'Maintenance atelier',
-    odometerKm: 121904,
-    nextServiceKm: 122000,
-    lastServiceDate: '2026-04-21',
-    insuranceExpiry: '2026-05-28',
-    technicalVisitExpiry: '2026-05-02',
-    permitExpiry: '2026-05-18',
-    lastPing: '2026-04-23T09:58:00+01:00',
-    contractTier: 'Starter',
-    riskLevel: 'high',
-  },
-  {
-    id: 'MKT-CM-004',
-    plateNumber: 'NW 4042 AC',
-    tenantName: 'Marketer Y',
-    marketer: 'Marketer Y Bafoussam',
-    status: 'inactive',
-    tankCapacityLiters: 12000,
-    compartments: 1,
-    fuelType: 'GPL',
-    makeModel: 'MAN TGS 18.440',
-    year: 2018,
-    gpsImei: '356938035643812',
-    assignedDriver: 'Fongang Junior',
-    driverPhone: '+237 6 99 64 74 11',
-    fleetManager: 'Nadine Talla',
-    operatingRegion: 'Ouest',
-    homeDepot: 'Dépôt Bafoussam',
-    currentLocation: 'Dépôt Bafoussam',
-    latitude: 5.4781,
-    longitude: 10.4178,
-    destination: 'Non affecte',
-    destinationLatitude: 5.4781,
-    destinationLongitude: 10.4178,
-    assignedRoute: 'Standby',
-    odometerKm: 134680,
-    nextServiceKm: 138500,
-    lastServiceDate: '2026-01-17',
-    insuranceExpiry: '2026-12-03',
-    technicalVisitExpiry: '2026-10-16',
-    permitExpiry: '2026-12-03',
-    lastPing: '2026-04-22T17:15:00+01:00',
-    contractTier: 'Starter',
-    riskLevel: 'medium',
-  },
-  {
-    id: 'TRX-CM-005',
-    plateNumber: 'CE 7753 AE',
-    tenantName: 'Tradex',
-    marketer: 'Tradex Kribi',
-    status: 'in_transit',
-    tankCapacityLiters: 20000,
-    compartments: 3,
-    fuelType: 'GPL',
-    makeModel: 'Renault Trucks C460',
-    year: 2023,
-    gpsImei: '356938035643813',
-    assignedDriver: 'Ekane Samuel',
-    driverPhone: '+237 6 96 28 45 33',
-    fleetManager: 'Diane Fotso',
-    operatingRegion: 'Sud',
-    homeDepot: 'Dépôt Kribi',
-    currentLocation: 'Axe Kribi - Edea',
-    latitude: 3.6312,
-    longitude: 10.0454,
-    destination: 'Dépôt Bonaberi',
-    destinationLatitude: 4.0751,
-    destinationLongitude: 9.6814,
-    assignedRoute: 'Kribi - Douala',
-    odometerKm: 31420,
-    nextServiceKm: 36000,
-    lastServiceDate: '2026-03-29',
-    insuranceExpiry: '2027-02-14',
-    technicalVisitExpiry: '2026-12-18',
-    permitExpiry: '2027-01-09',
-    lastPing: '2026-04-23T10:41:00+01:00',
-    contractTier: 'Enterprise',
-    riskLevel: 'low',
-  },
-  {
-    id: 'TTC-CM-006',
-    plateNumber: 'CE 1207 AF',
-    tenantName: 'Total Cameroun',
-    marketer: 'Total Douala',
-    status: 'available',
-    tankCapacityLiters: 24000,
-    compartments: 4,
-    fuelType: 'GPL',
-    makeModel: 'Volvo FMX 420',
-    year: 2020,
-    gpsImei: '356938035643814',
-    assignedDriver: 'Ndombe Patrice',
-    driverPhone: '+237 6 75 82 18 09',
-    fleetManager: 'Patrick Ngono',
-    operatingRegion: 'Littoral',
-    homeDepot: 'Dépôt Bassa',
-    currentLocation: 'Dépôt Bassa, Douala',
-    latitude: 4.0589,
-    longitude: 9.7592,
-    destination: 'Station Total Bonamoussadi',
-    destinationLatitude: 4.0912,
-    destinationLongitude: 9.7411,
-    assignedRoute: 'Bassa - Bonamoussadi',
-    odometerKm: 90135,
-    nextServiceKm: 93500,
-    lastServiceDate: '2026-02-11',
-    insuranceExpiry: '2026-09-09',
-    technicalVisitExpiry: '2026-08-10',
-    permitExpiry: '2026-08-21',
-    lastPing: '2026-04-23T10:32:00+01:00',
-    contractTier: 'Growth',
-    riskLevel: 'low',
-  },
-]
-
-export const trucksTelemetryById: Record<string, TruckTelemetry> = {
-  'TRX-CM-001': {
-    speedKmh: 100,
-    lpgLevelPercent: 72,
-    etaText: '1h 08m',
-    distanceKm: 72.9,
-    routeProgress: 74,
-    pressureBar: 11.7,
-    temperatureCelsius: 29,
-  },
-  'TTC-CM-002': {
-    speedKmh: 82,
-    lpgLevelPercent: 66,
-    etaText: '54m',
-    distanceKm: 49.4,
-    routeProgress: 79,
-    pressureBar: 10.8,
-    temperatureCelsius: 31,
-  },
-  'CEX-CM-003': {
-    speedKmh: 0,
-    lpgLevelPercent: 34,
-    etaText: '--',
-    distanceKm: 0,
-    routeProgress: 0,
-    pressureBar: 6.4,
-    temperatureCelsius: 26,
-  },
-  'MKT-CM-004': {
-    speedKmh: 0,
-    lpgLevelPercent: 19,
-    etaText: '--',
-    distanceKm: 0,
-    routeProgress: 0,
-    pressureBar: 5.1,
-    temperatureCelsius: 25,
-  },
-  'TRX-CM-005': {
-    speedKmh: 94,
-    lpgLevelPercent: 78,
-    etaText: '1h 46m',
-    distanceKm: 131.2,
-    routeProgress: 53,
-    pressureBar: 12.1,
-    temperatureCelsius: 30,
-  },
-  'TTC-CM-006': {
-    speedKmh: 67,
-    lpgLevelPercent: 62,
-    etaText: '2h 03m',
-    distanceKm: 170.9,
-    routeProgress: 35,
-    pressureBar: 9.9,
-    temperatureCelsius: 28,
-  },
+function seededIndex(key: string, modulus: number): number {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
+  return h % modulus
 }
 
-export const truckTenantOptions = Array.from(
-  new Set(trucks.map((truck) => truck.tenantName))
-).map((tenantName) => ({ label: tenantName, value: tenantName }))
+function driverName(driver: CuratedDriver | undefined): string | undefined {
+  return driver ? `${driver.first_name} ${driver.last_name}` : undefined
+}
 
-export const truckMarketerOptions = Array.from(
-  new Set(trucks.map((truck) => truck.marketer))
-).map((marketer) => ({ label: marketer, value: marketer }))
-
-export function getTruckTelemetry(truckId: string) {
-  return (
-    trucksTelemetryById[truckId] ?? {
-      speedKmh: 0,
-      lpgLevelPercent: 0,
-      etaText: '--',
-      distanceKm: 0,
-      routeProgress: 0,
-      pressureBar: 0,
-      temperatureCelsius: 0,
-    }
+function riskLevelFor(vehicleId: string, fallback: RiskLevel): RiskLevel {
+  const row = risk_scores.find(
+    (r) => r.entity_type === 'VEHICLE' && r.entity_id === vehicleId,
   )
+  return row?.level ?? fallback
 }
+
+export function getTrucks(): Truck[] {
+  const vehicles = curated.vehicles as CuratedVehicle[]
+  const activeOrgs = organizations.filter((o) => o.is_active)
+  const toursByVehicle = new Map<string, DeliveryTour>()
+  for (const tour of delivery_tours) {
+    if (tour.vehicle_id && !toursByVehicle.has(tour.vehicle_id)) {
+      toursByVehicle.set(tour.vehicle_id, tour)
+    }
+  }
+
+  return vehicles.map((v, idx): Truck => {
+    const org: CuratedOrganization | undefined = activeOrgs[idx % Math.max(activeOrgs.length, 1)]
+    const driver = drivers[Math.min(idx, drivers.length - 1)]
+    const tour = toursByVehicle.get(v.id)
+    const seedIdx = seededIndex(v.license_plate, TOUR_STATUSES.length)
+    const region: Region = REGIONS[idx % REGIONS.length] ?? 'CENTRE'
+    return {
+      id: v.id,
+      license_plate: v.license_plate,
+      type: v.type,
+      tournee_status: tour?.status ?? TOUR_STATUSES[seedIdx] ?? 'PLANNED',
+      max_volume: v.max_volume,
+      max_bottle_count: v.max_bottle_count,
+      certificate_number: v.certificate_number,
+      certificate_expiry_at: v.certificate_expiry_at,
+      org_id: v.org_id,
+      tenant_name: org?.name ?? '—',
+      region,
+      assigned_driver: driverName(driver),
+      requested_quantity: tour?.requested_quantity ?? 0,
+      loaded_quantity: tour?.loaded_quantity ?? null,
+      delivered_quantity: tour?.delivered_quantity ?? null,
+      risk_level: riskLevelFor(v.id, 'FAIBLE'),
+      current_location: '—',
+      lat: 3.4 + ((seededIndex(v.id, 100) * 0.27) % 1.0),
+      lng: 10.8 + ((seededIndex(v.id, 100) * 0.41) % 1.4),
+    }
+  })
+}
+
+export const trucks: readonly Truck[] = getTrucks()
+
+export function getTruckById(id: string): Truck | undefined {
+  return trucks.find((t) => t.id === id)
+}
+
+export function getTruckTelemetry(truckId: string): TruckTelemetry {
+  const truck = getTruckById(truckId) ?? trucks[0]
+  const tour = delivery_tours.find(
+    (t) => t.id === truckId || (t.vehicle_id && t.vehicle_id.toString() === truckId),
+  )
+  const checkpoint = tour ? checkpoints.find((c) => c.tournee_id === tour.id) : undefined
+  return {
+    loaded_quantity: truck?.loaded_quantity ?? tour?.loaded_quantity ?? undefined,
+    expected_arrival: checkpoint?.expected_arrival ?? undefined,
+    actual_arrival: checkpoint?.actual_arrival ?? undefined,
+  }
+}
+
+export interface SelectOption<T extends string = string> {
+  label: string
+  value: T
+}
+
+export const truckTenantOptions: readonly SelectOption[] = (() => {
+  const set = new Set<string>()
+  for (const t of trucks) if (t.tenant_name) set.add(t.tenant_name)
+  return Array.from(set, (tenant_name) => ({ label: tenant_name, value: tenant_name }))
+})()

@@ -31,7 +31,11 @@ function buildRows<TData>(table: Table<TData>): {
 export function exportToCsv<TData>(table: Table<TData>, opts: ExportOptions = {}) {
   const { headers, rows } = buildRows(table)
   const escape = (val: string | number) => {
-    const s = String(val)
+    let s = String(val)
+    // CSV formula-injection guard: cells starting with a formula prefix
+    // (Excel treats them as DDE/formula commands) are neutralized with a
+    // leading apostrophe so they render as plain text when opened.
+    if (/^[=+\-@]/.test(s)) s = `'${s}`
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
   const csv = [
@@ -52,7 +56,15 @@ export function exportToExcel<TData>(table: Table<TData>, opts: ExportOptions = 
     rows
       .map(
         (r) =>
-          '<tr>' + r.map((c) => `<td>${escapeHtml(String(c))}</td>`).join('') + '</tr>'
+          '<tr>' +
+          r
+            .map((c) => {
+              let s = String(c)
+              if (/^[=+\-@]/.test(s)) s = `'${s}`
+              return `<td>${escapeHtml(s)}</td>`
+            })
+            .join('') +
+          '</tr>'
       )
       .join('') +
     '</table></body></html>'
@@ -63,7 +75,10 @@ export function exportToJson<TData>(table: Table<TData>, opts: ExportOptions = {
   const { headers, rows } = buildRows(table)
   const data = rows.map((r) => {
     const obj: Record<string, string | number> = {}
-    headers.forEach((h, i) => (obj[h] = r[i]))
+    headers.forEach((h, i) => {
+      const cell = r[i]
+      if (cell !== undefined) obj[h] = cell
+    })
     return obj
   })
   downloadFile(

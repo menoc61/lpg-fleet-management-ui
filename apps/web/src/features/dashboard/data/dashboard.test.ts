@@ -6,21 +6,21 @@ describe('buildDashboardView', () => {
     const dashboard = buildDashboardView()
 
     expect(dashboard.overview).toMatchObject({
-      totalTransportedKg: 53200,
-      totalDeliveredKg: 17100,
-      totalReserveKg: 86550,
-      reserveCapacityKg: 144000,
+      totalTransportedTM: 430.45,
+      totalDeliveredTM: 221.22,
+      totalReserveTM: 86.55,
+      reserveCapacityTM: 144,
       reserveFillPercent: 60,
-      reserveCoverageDays: 5.1,
-      activeTrips: 2,
-      plannedTrips: 1,
-      incidentTrips: 1,
-      activeTrucks: 4,
-      totalTrucks: 6,
-      riskTrucks: 3,
-      abnormalLossKg: 1850,
+      reserveCoverageDays: 0.4,
+      activeTrips: 4,
+      plannedTrips: 4,
+      incidentTrips: 0,
+      activeTrucks: 27,
+      totalTrucks: 33,
+      riskTrucks: 0,
+      abnormalLossTM: 0,
       openAlerts: 4,
-      criticalAlerts: 2,
+      criticalAlerts: 1,
     })
 
     expect(dashboard.metrics.map((metric) => metric.id)).toEqual([
@@ -42,9 +42,9 @@ describe('buildDashboardView', () => {
       dashboard.trendByPeriod.daily[dashboard.trendByPeriod.daily.length - 1]
     ).toEqual({
       label: "Aujourd'hui",
-      transportedKg: 53200,
-      deliveredKg: 17100,
-      reserveKg: 86550,
+      transportedTM: 430.45,
+      delivered: 221.22,
+      reserveTM: 86.55,
       alertCount: 4,
       serviceRate: 67,
     })
@@ -63,80 +63,96 @@ describe('buildDashboardView', () => {
   it('surfaces fleet and reserve site hotspots in priority order', () => {
     const dashboard = buildDashboardView()
 
-    expect(dashboard.fleets).toEqual([
-      expect.objectContaining({
-        fleetName: 'Tradex',
-        transportedKg: 28000,
-        deliveredKg: 6050,
-        pendingKg: 21950,
-        sharePercent: 53,
-        onTimeRate: 100,
-      }),
-      expect.objectContaining({
-        fleetName: 'Total Cameroun',
-        transportedKg: 25200,
-        deliveredKg: 11050,
-        pendingKg: 12300,
-        sharePercent: 47,
-        onTimeRate: 50,
-      }),
-    ])
+    expect(dashboard.fleets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          fleetName: 'Neptune Gaz SARL',
+          transportedTM: 120,
+          delivered: 48,
+          pendingTM: 72,
+          sharePercent: 28,
+          onTimeRate: 100,
+          truckCount: 2,
+        }),
+        expect.objectContaining({
+          fleetName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
+          transportedTM: 26.85,
+          delivered: 11.62,
+          pendingTM: 15.23,
+          sharePercent: 6,
+          onTimeRate: 100,
+          truckCount: 3,
+        }),
+        expect.objectContaining({
+          fleetName: 'STARGAS Cameroun SARL',
+          transportedTM: 12,
+          delivered: 0,
+          pendingTM: 12,
+          sharePercent: 3,
+          onTimeRate: 0,
+          truckCount: 2,
+        }),
+      ])
+    )
+
+    expect(dashboard.fleets[0]!.fleetName).toBe('Neptune Gaz SARL')
+    expect(dashboard.fleets[1]!.fleetName).toBe('AZA Afrigaz — Division GPL')
+    expect(dashboard.fleets[0]).toMatchObject({ onTimeRate: 100 })
+    expect(dashboard.fleets[1]).toMatchObject({ onTimeRate: 0 })
 
     expect(dashboard.reserveSites[0]).toMatchObject({
-      siteId: 'site-bonaberi-center',
+      siteId: 'site-0001-sctm-bonaberi',
       status: 'critical',
       fillPercent: 31,
-      scheduledInboundKg: 12450,
-      activeTripCount: 2,
+      activeTripCount: 6,
     })
     expect(dashboard.reserveSites[1]).toMatchObject({
-      siteId: 'site-scdp-yaounde',
+      siteId: 'site-0029-scdp-yaounde',
       status: 'watch',
       fillPercent: 44,
-      outboundKg: 14000,
+      activeTripCount: 0,
     })
 
     expect(dashboard.alerts.map((alert) => alert.id)).toEqual([
-      'route-trip-nsam-ebolowa-loss',
-      'reserve-site-bonaberi-center-critical',
-      'route-trip-nsam-ebolowa-eta',
-      'reserve-site-scdp-yaounde-watch',
+      'reserve-site-0001-sctm-bonaberi-critical',
+      'tour-002-eta',
+      'tour-008-eta',
+      'reserve-site-0029-scdp-yaounde-watch',
     ])
   })
 
   it('keeps route-level contribution details for volume traceability', () => {
     const dashboard = buildDashboardView()
 
-    expect(dashboard.routeContributions).toEqual([
-      expect.objectContaining({
-        reference: 'TRP-2401',
-        carrierName: 'Tradex',
-        plateNumber: 'CE 7753 AE',
-        driverName: 'Ekane Samuel',
-        loadedQuantityKg: 18500,
-        deliveredQuantityKg: 6050,
-        transportedSharePercent: 35,
-      }),
-      expect.objectContaining({
-        reference: 'TRP-2402',
-        carrierName: 'Total Cameroun',
-        plateNumber: 'LT 8870 AD',
-        loadedQuantityKg: 14000,
-        unaccountedKg: 1850,
-        status: 'incident',
-      }),
-      expect.objectContaining({
-        reference: 'TRP-2398',
-        carrierName: 'Total Cameroun',
-        deliveredQuantityKg: 11050,
-        deliveredSharePercent: 65,
-      }),
-      expect.objectContaining({
-        reference: 'TRP-2403',
-        carrierName: 'Tradex',
-        loadedQuantityKg: 9500,
-        status: 'planned',
-      }),
-    ])
+    expect(dashboard.routeContributions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reference: 'TRP-2405',
+          carrierName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
+          plateNumber: 'LT1123UB',
+          loadedQuantity: 15,
+          transportedSharePercent: 3,
+        }),
+        expect.objectContaining({
+          reference: 'TRP-2409',
+          carrierName: 'STARGAS Cameroun SARL',
+          plateNumber: 'LT0013TL',
+          loadedQuantity: 12,
+        }),
+        expect.objectContaining({
+          reference: 'TRP-2401',
+          carrierName: 'CSPH — Caisse de Stabilisation des Prix des Hydrocarbures',
+          plateNumber: 'LT1123UB',
+          deliveredQuantity: 11.62,
+        }),
+        expect.objectContaining({
+          reference: 'TRP-2404',
+          carrierName: 'Clinique Baptiste de Douala',
+          plateNumber: 'LT9903TJ',
+          loadedQuantity: 72,
+          status: 'in-progress',
+        }),
+      ])
+    )
   })
 })

@@ -49,7 +49,7 @@ import { type NavigateFn, useTableUrlState } from '../../hooks/use-table-url-sta
 export type FacetedFilterConfig = {
   columnId: string
   title: string
-  options: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[]
+  options: ReadonlyArray<{ label: string; value: string; icon?: React.ComponentType<{ className?: string }> }>
 }
 
 export type DataTableProps<TData> = {
@@ -75,8 +75,8 @@ export type DataTableProps<TData> = {
   }
   exportable?: boolean
   filename?: string
-  searchState: Record<string, unknown>
-  navigate: NavigateFn
+  searchState?: Record<string, string | number | boolean | undefined | null>
+  navigate?: NavigateFn
   onRowClick?: (row: TData) => void
   renderBulkActions?: (props: { table: ReturnType<typeof useReactTable<TData>> }) => React.ReactNode
 }
@@ -140,6 +140,8 @@ export function DataTable<TData>({
     onColumnFiltersChange,
     pagination,
     onPaginationChange,
+    globalFilter,
+    onGlobalFilterChange,
     ensurePageInRange,
   } = useTableUrlState({
     search: searchState,
@@ -159,10 +161,12 @@ export function DataTable<TData>({
       columnFilters,
       columnVisibility,
       grouping,
+      globalFilter,
     },
     enableRowSelection: true,
     onPaginationChange,
     onColumnFiltersChange,
+    onGlobalFilterChange,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
@@ -194,13 +198,13 @@ export function DataTable<TData>({
             value={
               search?.columnId
                 ? ((table.getColumn(search.columnId)?.getFilterValue() as string) ?? '')
-                : (table.getState().globalFilter ?? '')
+                : (globalFilter ?? '')
             }
             onChange={(e) => {
               if (search?.columnId) {
                 table.getColumn(search.columnId)?.setFilterValue(e.target.value)
               } else {
-                table.setGlobalFilter(e.target.value)
+                onGlobalFilterChange?.(e.target.value)
               }
             }}
             className='h-8 w-37.5 lg:w-62.5'
@@ -262,12 +266,12 @@ export function DataTable<TData>({
               variant='ghost'
               onClick={() => {
                 table.resetColumnFilters()
-                table.setGlobalFilter('')
+                onGlobalFilterChange?.('')
                 setGrouping([])
                 setDateRange({ from: undefined, to: undefined })
-                navigate({
+                navigate?.({
                   search: (prev) => {
-                    const p = { ...(prev as Record<string, unknown>) }
+                    const p = { ...((prev ?? {}) as Record<string, unknown>) }
                     columnFiltersCfg.forEach((c) => delete p[c.searchKey])
                     return p
                   },

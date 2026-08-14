@@ -1,110 +1,135 @@
-import sites from './seed/sites.json'
-import trucks from './seed/trucks.json'
-import tours from './seed/tours.json'
-import declarations from './seed/declarations.json'
-import anomalies from './seed/anomalies.json'
-import reports from './seed/reports.json'
-import pda from './seed/pda.json'
-import infra from './seed/infra.json'
-import organizations from './seed/organizations.json'
-import users from './seed/users.json'
-import transporters from './seed/transporters.json'
-import { AUTH_FIXTURES } from './fixtures-auth.ts'
-import {
-  drivers,
-  rfidTags,
-  pickups,
-  checkpoints,
-  scans,
-  reconciliations,
-  redressements,
-  customRoles,
-  userAssignments,
-  userCustomRoles,
-  notificationGroups,
-  notificationRules,
-  risks,
-  auditLogs,
-  vehicleTypes,
-  deliveryTypes,
-  tourStatuses,
-} from './seed-extended.ts'
+/**
+ * @lpg/mock-data — single source of truth for the entire system.
+ *
+ * Data lives in `seed/curated/*.json` (snake_case, mirrors the production
+ * Postgres schema). This package exposes only that curated data plus pure
+ * analytics selectors. There is no second source of mock data.
+ */
 
-export type SeedName =
-  | 'sites'
-  | 'trucks'
-  | 'tours'
-  | 'declarations'
-  | 'anomalies'
-  | 'reports'
-  | 'pda'
-  | 'infra'
-  | 'organizations'
-  | 'users'
-  | 'transporters'
-  | 'drivers'
-  | 'rfid-tags'
-  | 'pickups'
-  | 'checkpoints'
-  | 'scans'
-  | 'reconciliations'
-  | 'redressements'
-  | 'custom-roles'
-  | 'user-assignments'
-  | 'user-custom-roles'
-  | 'notification-groups'
-  | 'notification-rules'
-  | 'risks'
-  | 'audit-logs'
-  | 'vehicle-types'
-  | 'delivery-types'
-  | 'tour-statuses'
-
-export const seeds: Record<SeedName, unknown[]> = {
-  sites,
-  trucks,
-  tours,
-  declarations,
-  anomalies,
-  reports,
-  pda,
-  infra,
+export { curated } from './curated.ts'
+export {
   organizations,
   users,
-  transporters,
+  sites,
+  clients,
+  client_sites,
+  vehicles,
   drivers,
-  'rfid-tags': rfidTags,
-  pickups,
+  devices,
+  transporter_contracts,
+  pickup_requests,
+  delivery_tours,
   checkpoints,
-  scans,
+  scan_events,
+  declarations,
   reconciliations,
   redressements,
-  'custom-roles': customRoles,
-  'user-assignments': userAssignments,
-  'user-custom-roles': userCustomRoles,
-  'notification-groups': notificationGroups,
-  'notification-rules': notificationRules,
-  risks,
-  'audit-logs': auditLogs,
-  'vehicle-types': vehicleTypes,
-  'delivery-types': deliveryTypes,
-  'tour-statuses': tourStatuses,
+  risk_scores,
+  anomalies,
+  anomaly_assignments,
+  notification_groups,
+  notification_group_members,
+  notification_rules,
+  notifications,
+  user_mfa,
+  integration_auth,
+  system_roles,
+  permissions,
+  regions,
+  rfid_tags,
+  settings,
+  reports,
+  audit_logs,
+  custom_roles,
+  user_custom_roles,
+} from './entities.ts'
+
+export type {
+  Region,
+  Organization,
+  SystemRole,
+  Permission,
+  User,
+  Site,
+  Client,
+  ClientSite,
+  Vehicle,
+  Driver,
+  Device,
+  TransporterContract,
+  PickupRequest,
+  DeliveryTour,
+  Checkpoint,
+  ScanEvent,
+  Declaration,
+  Reconciliation,
+  Redressement,
+  RiskScore,
+  Anomaly,
+  AnomalyAssignment,
+  NotificationGroup,
+  NotificationGroupMember,
+  NotificationRule,
+  Notification,
+  CuratedFixtures,
+} from './curated.ts'
+
+export type {
+  Setting,
+  Report,
+  AuditLog,
+  RfidTag,
+  CustomRole,
+  UserCustomRole,
+} from '@lpg/types'
+
+export * from './analytics.ts'
+
+export { getSetting, getSettingNumber } from './settings.ts'
+
+import { curated } from './curated.ts'
+
+export interface AuthFixture {
+  id: string
+  email: string
+  first_name: string
+  last_name: string
+  system_role: string
+  password: string
+  org_id: string
+  org_name: string
 }
 
-export { AUTH_FIXTURES }
+export const AUTH_FIXTURES: AuthFixture[] = curated.users.map((u) => {
+  const org = (curated.organizations as any[]).find((o) => o.id === u.org_id)
+  return {
+    id: u.id,
+    email: u.email,
+    first_name: u.first_name,
+    last_name: u.last_name,
+    system_role: u.system_role,
+    password: 'password',
+    org_id: u.org_id ?? '',
+    org_name: org?.name ?? 'Organisation inconnue',
+  }
+})
 
 export interface FakeProfile {
   id: string
   email: string
-  firstName: string
-  lastName: string
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPERVISOR' | 'INTEGRATEUR' | 'AGENT' | 'MARKETEUR' | 'LIVREUR'
+  first_name: string
+  last_name: string
+  system_role: string
+  org_id: string
+  org_name: string
 }
 
 export const fakeProfiles: FakeProfile[] = AUTH_FIXTURES.map((f) => ({
   id: f.id,
   email: f.email,
-  firstName: f.firstName,
-  lastName: f.lastName,
-  role: f.role,
+  first_name: f.first_name,
+  last_name: f.last_name,
+  system_role: f.system_role,
+  org_id: f.org_id,
+  org_name: f.org_name,
 }))

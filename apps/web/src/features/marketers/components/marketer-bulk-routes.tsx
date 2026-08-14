@@ -1,8 +1,8 @@
-import { type Marketer } from '../data/marketers'
+import { type Organization } from '@lpg/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
-export function MarketerBulkRoutes({ marketer: _marketer }: { marketer: Marketer }) {
+export function MarketerBulkRoutes({ marketer: _marketer }: { marketer: Organization }) {
   // Données simulées pour les tournées vrac
   const bulkRoutes = [
     { id: 'RT-V-01', truck: 'LT 1234 AB', origin: 'Dépôt Bonaberi', destination: 'Station Akwa', status: 'en cours', volume: '18 TM' },

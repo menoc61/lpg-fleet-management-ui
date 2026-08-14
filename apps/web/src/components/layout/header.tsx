@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
-import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { cn, Separator, SidebarTrigger } from '@lpg/ui'
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
@@ -26,7 +24,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
     <header
       className={cn(
         'z-40 h-16 w-full transition-all duration-200',
-        fixed && 'header-fixed peer/header sticky top-0',
+        fixed && 'peer/header sticky top-0',
         fixed &&
           (offset > 12
             ? 'border-b border-border/70 bg-background/75 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-background/60'
@@ -35,9 +33,7 @@ export function Header({ className, fixed, children, ...props }: HeaderProps) {
       )}
       {...props}
     >
-      <div
-        className={cn('flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6')}
-      >
+      <div className={cn('flex h-full items-center gap-3 px-4 sm:gap-4 sm:px-6')}>
         <SidebarTrigger
           variant='outline'
           className='rounded-xl border-border/60 bg-background/80 max-md:scale-125'

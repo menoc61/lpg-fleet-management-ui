@@ -1,19 +1,24 @@
+/**
+ * HTTP handlers for the mock API. All field names and entity names are
+ * snake_case to match the production Postgres schema.
+ */
+
 import type { Request, Response, Router } from 'express'
 import { Router as makeRouter } from 'express'
 import { signToken, verifyToken } from './jwt.ts'
 import { AUTH_FIXTURES } from '@lpg/mock-data'
+import { ROLE_GRANTS, type PermissionCode } from '@lpg/permissions'
 import {
   listEntities,
   getEntity,
   createEntity,
   updateEntity,
-  deleteEntity,
   softDeleteEntity,
   findEntities,
   countEntities,
   geoNear,
 } from './db.ts'
-import type { EntityName, EntityMap } from './types.ts'
+import type { EntityName } from './types.ts'
 
 const ACCESS_TTL = 60 * 15
 const REFRESH_TTL = 60 * 60 * 24 * 7
@@ -22,9 +27,9 @@ function publicUser(fixture: (typeof AUTH_FIXTURES)[number]) {
   return {
     id: fixture.id,
     email: fixture.email,
-    firstName: fixture.firstName,
-    lastName: fixture.lastName,
-    role: fixture.role,
+    first_name: fixture.first_name,
+    last_name: fixture.last_name,
+    system_role: fixture.system_role,
   }
 }
 
@@ -33,187 +38,164 @@ function requireAuth(req: Request, res: Response, next: () => void) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : ''
   const payload = token ? verifyToken(token) : null
   if (!payload || payload.type !== 'access') {
-    return res.status(401).json({ success: false, message: 'Non authentifie', donnees: null })
+    return res.status(401).json({ success: false, message: 'Non authentifie', data: null })
   }
   ;(req as any).auth = payload
   next()
 }
 
 function ok<T>(res: Response, data: T, message = 'OK') {
-  return res.json({ success: true, message, donnees: data })
+  return res.json({ success: true, message, data })
 }
 function created<T>(res: Response, data: T) {
-  return res.status(201).json({ success: true, message: 'Cree', donnees: data })
+  return res.status(201).json({ success: true, message: 'Cree', data })
 }
 function notFound(res: Response, msg = 'Introuvable') {
-  return res.status(404).json({ success: false, message: msg, donnees: null })
+  return res.status(404).json({ success: false, message: msg, data: null })
 }
 function badReq(res: Response, msg: string) {
-  return res.status(400).json({ success: false, message: msg, donnees: null })
+  return res.status(400).json({ success: false, message: msg, data: null })
 }
 
-function paginatedList(req: Request, res: Response, name: EntityName, options?: { dateField?: string }) {
+function paginatedList(req: Request, res: Response, name: EntityName, options?: { date_field?: string }) {
   const page = Math.max(1, Number(req.query.page ?? 1))
-  const limit = Number(req.query.limit ?? req.query.limite ?? 20)
-  const sortBy = (req.query.sortBy ?? req.query.sort) as string | undefined
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)))
+  const sort_by = req.query.sort_by as string | undefined
   const order = (req.query.order as 'asc' | 'desc') ?? 'desc'
-  const groupBy = req.query.groupBy as string | undefined
-  const dateFrom = req.query.dateFrom as string | undefined
-  const dateTo = req.query.dateTo as string | undefined
+  const group_by = req.query.group_by as string | undefined
+  const date_from = req.query.date_from as string | undefined
+  const date_to = req.query.date_to as string | undefined
   const search = req.query.search as string | undefined
 
-  const reserved = new Set(['page', 'limit', 'limite', 'sortBy', 'sort', 'order', 'groupBy', 'dateFrom', 'dateTo', 'search'])
+  const reserved = new Set(['page', 'limit', 'sort_by', 'order', 'group_by', 'date_from', 'date_to', 'search'])
   const filters: Record<string, string> = {}
   for (const [k, v] of Object.entries(req.query)) {
-    if (!reserved.has(k) && typeof v === 'string') {
-      filters[k] = v
-    }
+    if (!reserved.has(k) && typeof v === 'string') filters[k] = v
   }
 
   const result = listEntities(name, {
-    page, limit, filters, search, sortBy, order, groupBy, dateFrom, dateTo, dateField: options?.dateField,
+    page, limit, filters, search, sort_by, order, group_by, date_from, date_to, date_field: options?.date_field,
   })
 
-  const envelope: any = { success: true, message: 'OK', donnees: result.data, pagination: result.pagination }
-  if (result.aggregations) {
-    envelope.aggregations = result.aggregations
-  }
+  const envelope: any = { success: true, message: 'OK', data: result.data, pagination: result.pagination }
+  if (result.aggregations) envelope.aggregations = result.aggregations
   return res.json(envelope)
 }
 
-// =============================================
-// DOMAIN 1: Authentication & User Profile
-// =============================================
+// ============ AUTH ============
 function authRouter(): Router {
   const r = makeRouter()
-
-  r.post('/login', (req: Request, res: Response) => {
+  r.post('/login', (req, res) => {
     const { email, password } = req.body ?? {}
     const fixture = AUTH_FIXTURES.find((f) => f.email === email && f.password === password)
-    if (!fixture) return res.status(401).json({ success: false, message: 'Identifiants invalides', donnees: null })
-    const access = signToken({ sub: fixture.id, role: fixture.role, email: fixture.email, type: 'access' }, ACCESS_TTL)
-    const refresh = signToken({ sub: fixture.id, role: fixture.role, email: fixture.email, type: 'refresh' }, REFRESH_TTL)
-    return res.json({ success: true, message: 'Connexion reussie', donnees: { accessToken: access, refreshToken: refresh, user: publicUser(fixture) } })
+    if (!fixture) return res.status(401).json({ success: false, message: 'Identifiants invalides', data: null })
+    const access = signToken({ sub: fixture.id, role: fixture.system_role, email: fixture.email, type: 'access' }, ACCESS_TTL)
+    const refresh = signToken({ sub: fixture.id, role: fixture.system_role, email: fixture.email, type: 'refresh' }, REFRESH_TTL)
+    return res.json({ success: true, message: 'Connexion reussie', data: { accessToken: access, refreshToken: refresh, user: publicUser(fixture) } })
   })
 
-  r.post('/refresh', (req: Request, res: Response) => {
+  r.post('/refresh', (req, res) => {
     const { refreshToken } = req.body ?? {}
     const payload = refreshToken ? verifyToken(refreshToken) : null
-    if (!payload || payload.type !== 'refresh') return res.status(401).json({ success: false, message: 'Refresh token invalide', donnees: null })
+    if (!payload || payload.type !== 'refresh') return res.status(401).json({ success: false, message: 'Refresh token invalide', data: null })
     const fixture = AUTH_FIXTURES.find((f) => f.id === payload.sub)
-    if (!fixture) return res.status(401).json({ success: false, message: 'Utilisateur introuvable', donnees: null })
-    const access = signToken({ sub: fixture.id, role: fixture.role, email: fixture.email, type: 'access' }, ACCESS_TTL)
-    const refresh = signToken({ sub: fixture.id, role: fixture.role, email: fixture.email, type: 'refresh' }, REFRESH_TTL)
-    return res.json({ success: true, message: 'Session renouvelee', donnees: { accessToken: access, refreshToken: refresh, user: publicUser(fixture) } })
+    if (!fixture) return res.status(401).json({ success: false, message: 'Utilisateur introuvable', data: null })
+    const access = signToken({ sub: fixture.id, role: fixture.system_role, email: fixture.email, type: 'access' }, ACCESS_TTL)
+    const refresh = signToken({ sub: fixture.id, role: fixture.system_role, email: fixture.email, type: 'refresh' }, REFRESH_TTL)
+    return res.json({ success: true, message: 'Session renouvelee', data: { accessToken: access, refreshToken: refresh, user: publicUser(fixture) } })
   })
 
-  r.post('/logout', requireAuth, (_req, res) => {
-    return res.json({ success: true, message: 'Deconnexion reussie', donnees: null })
-  })
-
+  r.post('/logout', requireAuth, (_req, res) => res.json({ success: true, message: 'Deconnexion reussie', data: null }))
   return r
 }
 
 function meRouter(): Router {
   const r = makeRouter()
-
-  r.get('/', requireAuth, (req, res) => {
+  r.use(requireAuth)
+  r.get('/', (req, res) => {
     const payload = (req as any).auth
     const fixture = AUTH_FIXTURES.find((f) => f.id === payload.sub)
     if (!fixture) return notFound(res, 'Utilisateur introuvable')
-    const usersList = findEntities('users', (u: any) => u.id === payload.sub)
-    const user = usersList[0] ?? publicUser(fixture)
-    const userId = (user as any).organizationId ?? 'org-1'
-    return ok(res, {
-      ...user,
-      organizations: [{ id: userId, name: 'CSPH', type: 'CSPH' }],
-      sites: findEntities<EntityMap['sites']>('sites', (s: any) => s.organizationId === userId).slice(0, 5),
-    })
+    const user = getEntity('users', payload.sub)
+    return ok(res, user ?? publicUser(fixture))
   })
 
   r.patch('/', requireAuth, (req, res) => {
     const payload = (req as any).auth
-    const { firstName, lastName } = req.body ?? {}
-    const user = getEntity<EntityMap['users']>('users', payload.sub)
-    if (!user) return notFound(res)
-    const updated = updateEntity<EntityMap['users']>('users', payload.sub, { firstName, lastName } as any)
-    return ok(res, updated)
+    const { first_name, last_name } = req.body ?? {}
+    const updated = updateEntity('users', payload.sub, { first_name, last_name } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
 
   r.get('/permissions', requireAuth, (req, res) => {
     const payload = (req as any).auth
-    const perms = {
-      can: [
-        'read:organizations', 'read:users', 'read:sites', 'read:trucks',
-        'read:tours', 'read:declarations', 'read:anomalies', 'read:reports',
-        'read:pda', 'read:infra', 'read:transporters', 'read:drivers',
-        'read:rfid-tags', 'read:pickups', 'read:checkpoints', 'read:scans',
-        'read:reconciliations', 'read:redressements', 'read:risks',
-        'read:audit-logs', 'read:notification-groups', 'read:notification-rules',
-        'write:organizations', 'write:users', 'write:sites', 'write:trucks',
-        'write:tours', 'write:declarations', 'write:anomalies',
-      ],
-    }
-    if (payload.role === 'SUPER_ADMIN') perms.can.push('manage:all')
-    return ok(res, perms)
+    const grants = ROLE_GRANTS[payload.role as keyof typeof ROLE_GRANTS] ?? []
+    return ok(res, { can: grants as PermissionCode[] })
   })
-
   return r
 }
 
-// =============================================
-// DOMAIN 2: Organizations
-// =============================================
+// ============ ORGS ============
 function orgRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
   r.get('/', (req, res) => paginatedList(req, res, 'organizations'))
   r.post('/', (req, res) => created(res, createEntity('organizations', req.body ?? {})))
   r.get('/:id', (req, res) => {
     const item = getEntity('organizations', req.params.id)
-    if (!item) return notFound(res)
-    return ok(res, item)
+    return item ? ok(res, item) : notFound(res)
   })
   r.patch('/:id', (req, res) => {
     const item = updateEntity('organizations', req.params.id, req.body ?? {})
-    if (!item) return notFound(res)
-    return ok(res, item)
+    return item ? ok(res, item) : notFound(res)
   })
   r.delete('/:id', (req, res) => {
-    if (!softDeleteEntity('organizations', req.params.id)) return notFound(res)
-    return ok(res, null, 'Supprime')
+    return softDeleteEntity('organizations', req.params.id) ? ok(res, null, 'Supprime') : notFound(res)
   })
   r.get('/:id/stats', (req, res) => {
     const orgId = req.params.id
-    const vehicles = countEntities('trucks', (v: any) => v.organizationId === orgId)
-    const sites = countEntities('sites', (s: any) => s.organizationId === orgId)
-    const activeTours = countEntities('tours', (t: any) => t.status === 'in_progress' || t.status === 'IN_PROGRESS')
     return ok(res, {
-      organizationId: orgId,
-      totalVehicles: vehicles,
-      totalSites: sites,
-      activeTours,
-      activeDeliveries: Math.floor(activeTours * 0.7),
-      totalVolume: Math.floor(Math.random() * 100000 + 20000),
+      organization_id: orgId,
+      total_vehicles: countEntities('vehicles', (v: any) => v.org_id === orgId),
+      total_sites: countEntities('sites', (s: any) => s.org_id === orgId),
+      active_tours: countEntities('delivery_tours', (t: any) => t.status === 'INPROGRESS'),
     })
   })
-
   return r
 }
 
-// =============================================
-// DOMAIN 3: Sites & Geo
-// =============================================
+// ============ USERS ============
+function usersRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'users'))
+  r.post('/', (req, res) => created(res, createEntity('users', req.body ?? {})))
+  r.get('/:id', (req, res) => {
+    const item = getEntity('users', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('users', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.post('/:id/reset-password', (req, res) => {
+    const user = getEntity('users', req.params.id)
+    if (!user) return notFound(res)
+    const new_password = req.body?.new_password ?? `temp-${Math.random().toString(36).slice(2, 10)}`
+    return ok(res, { user_id: req.params.id, new_password })
+  })
+  return r
+}
+
+// ============ SITES & CLIENT SITES ============
 function sitesRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
   r.get('/', (req, res) => {
     const { lat, lng, radius } = req.query
     if (lat && lng && radius) {
       const result = geoNear('sites', Number(lat), Number(lng), Number(radius))
-      return res.json({ success: true, message: 'OK', donnees: result, pagination: { page: 1, limite: result.length, total: result.length } })
+      return res.json({ success: true, message: 'OK', data: result, pagination: { page: 1, limit: result.length, total: result.length } })
     }
     return paginatedList(req, res, 'sites')
   })
@@ -226,158 +208,124 @@ function sitesRouter(): Router {
   })
   r.get('/:id', (req, res) => {
     const item = getEntity('sites', req.params.id)
-    if (!item) return notFound(res)
-    return ok(res, item)
+    return item ? ok(res, item) : notFound(res)
   })
   r.patch('/:id', (req, res) => {
     const item = updateEntity('sites', req.params.id, req.body ?? {})
-    if (!item) return notFound(res)
-    return ok(res, item)
-  })
-  r.post('/:id/auto-assign-geo', (req, res) => {
-    const site = getEntity<EntityMap['sites']>('sites', req.params.id)
-    if (!site) return notFound(res)
-    const updated = updateEntity<EntityMap['sites']>('sites', req.params.id, { status: 'ACTIVE' as any })
-    return ok(res, updated)
+    return item ? ok(res, item) : notFound(res)
   })
   r.post('/:id/verify', (req, res) => {
-    const site = getEntity<EntityMap['sites']>('sites', req.params.id)
-    if (!site) return notFound(res)
-    const updated = updateEntity<EntityMap['sites']>('sites', req.params.id, { isVerifiedByAgent: true })
-    return ok(res, updated)
+    const updated = updateEntity('sites', req.params.id, { is_verified: true, verified_at: new Date().toISOString(), status: 'VERIFIED' } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   r.post('/:id/suspend', (req, res) => {
-    const site = getEntity<EntityMap['sites']>('sites', req.params.id)
-    if (!site) return notFound(res)
-    const updated = updateEntity<EntityMap['sites']>('sites', req.params.id, { status: 'INACTIVE' as any })
-    return ok(res, updated)
+    const { reason } = req.body ?? {}
+    const updated = updateEntity('sites', req.params.id, { status: 'SUSPENDED', reason } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
-
   return r
 }
 
-// =============================================
-// DOMAIN 4: Users & RBAC
-// =============================================
-function usersRouter(): Router {
+function clientSitesRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'users'))
-  r.post('/', (req, res) => created(res, createEntity('users', req.body ?? {})))
+  r.get('/', (req, res) => paginatedList(req, res, 'client_sites'))
+  r.post('/', (req, res) => created(res, createEntity('client_sites', req.body ?? {})))
   r.get('/:id', (req, res) => {
-    const item = getEntity('users', req.params.id)
-    if (!item) return notFound(res)
-    return ok(res, item)
+    const item = getEntity('client_sites', req.params.id)
+    return item ? ok(res, item) : notFound(res)
   })
   r.patch('/:id', (req, res) => {
-    const item = updateEntity('users', req.params.id, req.body ?? {})
-    if (!item) return notFound(res)
-    return ok(res, item)
+    const item = updateEntity('client_sites', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
-  r.post('/:id/reset-password', (req, res) => {
-    const user = getEntity('users', req.params.id)
-    if (!user) return notFound(res)
-    const newPassword = req.body?.newPassword ?? `temp-${Math.random().toString(36).slice(2, 10)}`
-    return ok(res, { userId: req.params.id, newPassword })
-  })
-
-  return r
-}
-
-function userAssignmentsRouter(): Router {
-  const r = makeRouter()
-  r.use(requireAuth)
-  r.get('/', (req, res) => paginatedList(req, res, 'user-assignments'))
-  r.post('/', (req, res) => created(res, createEntity('user-assignments', req.body ?? {})))
-  r.delete('/:id', (req, res) => {
-    if (!deleteEntity('user-assignments', req.params.id)) return notFound(res)
-    return ok(res, null, 'Supprime')
+  r.post('/:id/verify', (req, res) => {
+    const updated = updateEntity('client_sites', req.params.id, { is_verified: true, verified_at: new Date().toISOString() } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   return r
 }
 
-function customRolesRouter(): Router {
+function clientsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-  r.get('/', (req, res) => paginatedList(req, res, 'custom-roles'))
-  r.post('/', (req, res) => created(res, createEntity('custom-roles', req.body ?? {})))
+  r.get('/', (req, res) => paginatedList(req, res, 'clients'))
+  r.post('/', (req, res) => created(res, createEntity('clients', req.body ?? {})))
+  r.get('/:id', (req, res) => {
+    const item = getEntity('clients', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('clients', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
   return r
 }
 
-function userCustomRolesRouter(): Router {
-  const r = makeRouter()
-  r.use(requireAuth)
-  r.get('/', (req, res) => paginatedList(req, res, 'user-custom-roles'))
-  r.post('/', (req, res) => created(res, createEntity('user-custom-roles', req.body ?? {})))
-  return r
-}
-
-// =============================================
-// DOMAIN 5: Vehicles & Drivers
-// =============================================
+// ============ VEHICLES & DRIVERS ============
 function vehiclesRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'trucks'))
-  r.post('/', (req, res) => created(res, createEntity('trucks', req.body ?? {})))
+  r.get('/', (req, res) => paginatedList(req, res, 'vehicles'))
+  r.post('/', (req, res) => created(res, createEntity('vehicles', req.body ?? {})))
   r.get('/:id', (req, res) => {
-    const item = getEntity('trucks', req.params.id)
-    if (!item) return notFound(res)
-    return ok(res, item)
+    const item = getEntity('vehicles', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('vehicles', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
   r.get('/:id/certificate', (req, res) => {
-    const truck = getEntity('trucks', req.params.id)
-    if (!truck) return notFound(res)
-    return ok(res, { certificateUrl: `/certificates/${req.params.id}.pdf`, certificateNumber: `CERT-${Date.now()}`, validUntil: '2027-06-30' })
+    const vehicle = getEntity('vehicles', req.params.id)
+    if (!vehicle) return notFound(res)
+    return ok(res, {
+      certificate_url: (vehicle as any).certificate_url,
+      certificate_number: (vehicle as any).certificate_number,
+      valid_until: (vehicle as any).certificate_expiry_at,
+    })
   })
-
   return r
 }
 
 function driversRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
   r.get('/', (req, res) => paginatedList(req, res, 'drivers'))
   r.post('/', (req, res) => created(res, createEntity('drivers', req.body ?? {})))
-
+  r.get('/:id', (req, res) => {
+    const item = getEntity('drivers', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('drivers', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
   return r
 }
 
-// =============================================
-// DOMAIN 6: Equipment (PDA & RFID)
-// =============================================
-function pdaRouter(): Router {
+// ============ DEVICES ============
+function devicesRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'pda'))
-  r.post('/', (req, res) => created(res, createEntity('pda', req.body ?? {})))
+  r.get('/', (req, res) => paginatedList(req, res, 'devices'))
+  r.post('/', (req, res) => created(res, createEntity('devices', req.body ?? {})))
+  r.get('/:id', (req, res) => {
+    const item = getEntity('devices', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
   r.patch('/:id', (req, res) => {
-    const item = updateEntity('pda', req.params.id, req.body ?? {})
-    if (!item) return notFound(res)
-    return ok(res, item)
+    const item = updateEntity('devices', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
   r.post('/:id/assign', (req, res) => {
-    const item = getEntity('pda', req.params.id)
-    if (!item) return notFound(res)
-    const { livreurUserId } = req.body ?? {}
-    const updated = updateEntity('pda', req.params.id, { assignedToUserId: livreurUserId, assignedTo: livreurUserId ?? null } as any)
-    return ok(res, updated)
-  })
-
-  return r
-}
-
-function pdaSyncRouter(): Router {
-  const r = makeRouter()
-  r.use(requireAuth)
-  r.post('/', (req, res) => {
-    const { tourneeId, scans: scanData = [], photos = [] } = req.body ?? {}
-    const createdScans = scanData.map((s: any) => createEntity('scans', { ...s, scannedAt: s.scannedAt ?? new Date().toISOString() }))
-    return created(res, { tourneeId, scansCreated: createdScans.length, photosReceived: photos.length, status: 'COMPLETED' })
+    const { user_id, vehicle_id } = req.body ?? {}
+    const updated = updateEntity('devices', req.params.id, {
+      assigned_to_user_id: user_id,
+      assigned_to_vehicle_id: vehicle_id,
+      status: 'ASSIGNED',
+    } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   return r
 }
@@ -385,548 +333,393 @@ function pdaSyncRouter(): Router {
 function rfidTagsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'rfid-tags'))
+  r.get('/', (req, res) => paginatedList(req, res, 'rfid_tags'))
   r.post('/', (req, res) => {
     const body = req.body ?? {}
     if (Array.isArray(body)) {
-      const createdTags = body.map((t: any) => createEntity('rfid-tags', { ...t, status: t.status ?? 'ACTIVE', createdAt: new Date().toISOString() }))
-      return created(res, createdTags)
+      const items = body.map((t) => createEntity('rfid_tags', { ...t, status: t.status ?? 'AVAILABLE' }))
+      return created(res, items)
     }
-    return created(res, createEntity('rfid-tags', { ...body, status: body.status ?? 'ACTIVE', createdAt: new Date().toISOString() }))
+    return created(res, createEntity('rfid_tags', { ...body, status: body.status ?? 'AVAILABLE' }))
   })
-  r.post('/:id/block', (req, res) => {
-    const item = getEntity('rfid-tags', req.params.id)
-    if (!item) return notFound(res)
-    const { reason } = req.body ?? {}
-    const updated = updateEntity('rfid-tags', req.params.id, { status: 'BLOCKED', blockReason: reason } as any)
-    return ok(res, updated)
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('rfid_tags', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
-
   return r
 }
 
-// =============================================
-// DOMAIN 7: Pickups (Approvisionnement)
-// =============================================
-function pickupsRouter(): Router {
+// ============ PICKUPS ============
+function pickupRequestsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'pickups'))
-  r.post('/', (req, res) => created(res, createEntity('pickups', { ...req.body, status: req.body?.status ?? 'PENDING', createdAt: new Date().toISOString() })))
-  r.get('/:id/vehicles', (req, res) => {
-    const pickup = getEntity('pickups', req.params.id)
-    if (!pickup) return notFound(res)
-    const vehicles = findEntities<EntityMap['trucks']>('trucks', () => true).slice(0, 4)
-    return ok(res, vehicles.map((v: any) => ({
-      id: v.id,
-      plateNumber: v.plateNumber ?? v.licensePlate,
-      maxVolumeLiters: v.maxVolumeLiters ?? v.tankCapacityLiters,
-      recommended: true,
-      utilization: Math.round((pickup as any).requestedQuantityKg / ((v.maxVolumeLiters ?? v.tankCapacityLiters) * 0.5) * 100),
-    })))
+  r.get('/', (req, res) => paginatedList(req, res, 'pickup_requests'))
+  r.post('/', (req, res) => created(res, createEntity('pickup_requests', { ...req.body, status: req.body?.status ?? 'DRAFT' })))
+  r.get('/:id', (req, res) => {
+    const item = getEntity('pickup_requests', req.params.id)
+    return item ? ok(res, item) : notFound(res)
   })
-  r.post('/:id/assign-vehicles', (req, res) => {
-    const pickup = getEntity('pickups', req.params.id)
-    if (!pickup) return notFound(res)
-    const { vehicleIds } = req.body ?? {}
-    const updated = updateEntity('pickups', req.params.id, { vehicleIds } as any)
-    return ok(res, updated)
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('pickup_requests', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
   r.patch('/:id/validate', (req, res) => {
-    const pickup = getEntity('pickups', req.params.id)
-    if (!pickup) return notFound(res)
-    const updated = updateEntity('pickups', req.params.id, { ...req.body, status: 'VALIDATED' } as any)
-    return ok(res, updated)
-  })
-  r.post('/:id/start', (req, res) => {
-    const pickup = getEntity('pickups', req.params.id)
-    if (!pickup) return notFound(res)
-    const { vehicleId, driverId, livreurUserId } = req.body ?? {}
-    const updated = updateEntity('pickups', req.params.id, { vehicleId, driverId, livreurUserId, status: 'IN_PROGRESS' } as any)
-    return ok(res, updated)
+    const { approved_quantity } = req.body ?? {}
+    const updated = updateEntity('pickup_requests', req.params.id, { approved_quantity, status: 'VALIDATED' } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   r.post('/:id/complete', (req, res) => {
-    const pickup = getEntity('pickups', req.params.id)
-    if (!pickup) return notFound(res)
-    const updated = updateEntity('pickups', req.params.id, { ...req.body, status: 'COMPLETED' } as any)
-    return ok(res, updated)
+    const updated = updateEntity('pickup_requests', req.params.id, { status: 'COMPLETED' } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
-
   return r
 }
 
-// =============================================
-// DOMAIN 8: Delivery Tours
-// =============================================
-function toursRouter(): Router {
+// ============ TOURS & CHECKPOINTS & SCANS ============
+function deliveryToursRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'tours'))
+  r.get('/', (req, res) => paginatedList(req, res, 'delivery_tours'))
   r.post('/', (req, res) => {
-    const body = { ...req.body, status: req.body?.status ?? 'planned', stops: req.body?.checkpoints?.length ?? 0 }
-    const tour = createEntity('tours', body)
-    if (req.body?.checkpoints) {
-      for (const cp of req.body.checkpoints) {
-        createEntity('checkpoints', { ...cp, tourId: tour.id, status: cp.status ?? 'PENDING' } as any)
-      }
-    }
+    const body = { ...req.body, status: req.body?.status ?? 'DRAFT' }
+    const tour = createEntity('delivery_tours', body)
     return created(res, tour)
   })
   r.get('/:id', (req, res) => {
-    const tour = getEntity('tours', req.params.id)
+    const tour = getEntity('delivery_tours', req.params.id)
     if (!tour) return notFound(res)
-    const tourCheckpoints = findEntities('checkpoints', (c: any) => c.tourId === req.params.id)
-    const tourScans = findEntities('scans', (s: any) => tourCheckpoints.some((c: any) => c.id === s.checkpointId))
-    return ok(res, { ...tour, checkpoints: tourCheckpoints, scans: tourScans })
+    const checkpoints = findEntities('checkpoints', (c: any) => c.tournee_id === req.params.id)
+    const scans = findEntities('scan_events', (s: any) => checkpoints.some((c: any) => c.id === s.checkpoint_id))
+    return ok(res, { ...tour, checkpoints, scans })
   })
   r.patch('/:id', (req, res) => {
-    const tour = getEntity('tours', req.params.id)
-    if (!tour) return notFound(res)
-    const updated = updateEntity('tours', req.params.id, req.body ?? {})
-    return ok(res, updated)
+    const item = updateEntity('delivery_tours', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
   r.post('/:id/start', (req, res) => {
-    const tour = getEntity('tours', req.params.id)
-    if (!tour) return notFound(res)
-    const updated = updateEntity('tours', req.params.id, { ...req.body, status: 'IN_PROGRESS', startedAt: req.body?.startedAt ?? new Date().toISOString() } as any)
-    return ok(res, updated)
+    const updated = updateEntity('delivery_tours', req.params.id, { status: 'INPROGRESS', started_at: req.body?.started_at ?? new Date().toISOString() } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   r.post('/:id/close', (req, res) => {
-    const tour = getEntity('tours', req.params.id)
-    if (!tour) return notFound(res)
-    const updated = updateEntity('tours', req.params.id, { ...req.body, status: 'completed' } as any)
-    return ok(res, updated)
+    const updated = updateEntity('delivery_tours', req.params.id, { status: 'CLOSED', closed_at: new Date().toISOString() } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   r.get('/:id/replay', (req, res) => {
-    const tour = getEntity('tours', req.params.id)
-    if (!tour) return notFound(res)
-    const tourCheckpoints = findEntities('checkpoints', (c: any) => c.tourId === req.params.id)
-    const waypoints = tourCheckpoints
-      .filter((c: any) => c.actualLat && c.actualLng)
-      .map((c: any, i: number) => ({ sequence: i + 1, lat: c.actualLat, lng: c.actualLng, status: c.status, timestamp: c.actualArrival ?? c.expectedArrival }))
-    return ok(res, { type: 'FeatureCollection', features: waypoints.map((w: any) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [w.lng, w.lat] }, properties: w })) })
+    const checkpoints = findEntities('checkpoints', (c: any) => c.tournee_id === req.params.id)
+    const waypoints = checkpoints
+      .filter((c: any) => c.actual_arrival)
+      .map((c: any, i: number) => ({ sequence: c.sequence ?? i + 1, status: c.status, timestamp: c.actual_arrival }))
+    return ok(res, { type: 'FeatureCollection', features: waypoints })
   })
-
   return r
 }
 
 function checkpointsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
+  r.get('/', (req, res) => paginatedList(req, res, 'checkpoints'))
+  r.post('/', (req, res) => created(res, createEntity('checkpoints', req.body ?? {})))
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('checkpoints', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
   r.post('/:id/reach', (req, res) => {
-    const cp = getEntity('checkpoints', req.params.id)
-    if (!cp) return notFound(res)
-    const updated = updateEntity('checkpoints', req.params.id, { ...req.body, status: 'REACHED', actualArrival: new Date().toISOString() } as any)
-    return ok(res, updated)
+    const updated = updateEntity('checkpoints', req.params.id, { status: 'REACHED', actual_arrival: new Date().toISOString() } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   r.post('/:id/skip', (req, res) => {
-    const cp = getEntity('checkpoints', req.params.id)
-    if (!cp) return notFound(res)
-    const updated = updateEntity('checkpoints', req.params.id, { ...req.body, status: 'SKIPPED' } as any)
-    return ok(res, updated)
+    const { reason } = req.body ?? {}
+    const updated = updateEntity('checkpoints', req.params.id, { status: 'SKIPPED', skip_reason: reason } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
-
   return r
 }
 
-function scansRouter(): Router {
+function scanEventsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
+  r.get('/', (req, res) => paginatedList(req, res, 'scan_events'))
   r.post('/', (req, res) => {
-    const scan = createEntity('scans', { ...req.body, scannedAt: req.body?.scannedAt ?? new Date().toISOString() } as any)
+    const scan = createEntity('scan_events', { ...req.body, timestamp: req.body?.timestamp ?? new Date().toISOString() })
     return created(res, scan)
   })
-
+  r.post('/bulk', (req, res) => {
+    const { scans = [] } = req.body ?? {}
+    const items = scans.map((s: any) => createEntity('scan_events', { ...s, timestamp: s.timestamp ?? new Date().toISOString() }))
+    return created(res, { received: items.length })
+  })
   return r
 }
 
-// =============================================
-// DOMAIN 9: Declarations & Perequation
-// =============================================
+// ============ DECLARATIONS & RECONCILIATION ============
 function declarationsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
   r.get('/', (req, res) => paginatedList(req, res, 'declarations'))
-  r.post('/', (req, res) => created(res, createEntity('declarations', req.body ?? {})))
-  r.get('/:id/reconcile', (req, res) => {
-    const decl = getEntity<EntityMap['declarations']>('declarations', req.params.id)
+  r.post('/', (req, res) => created(res, createEntity('declarations', { ...req.body, status: req.body?.status ?? 'DRAFT' })))
+  r.get('/:id', (req, res) => {
+    const item = getEntity('declarations', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.post('/:id/submit', (req, res) => {
+    const updated = updateEntity('declarations', req.params.id, { status: 'SUBMITTED' } as any)
+    return updated ? ok(res, updated) : notFound(res)
+  })
+  r.post('/:id/reconcile', (req, res) => {
+    const decl = getEntity('declarations', req.params.id)
     if (!decl) return notFound(res)
-    const declaredVolume = decl.declaredVolumeKg ?? Math.round(((decl.bottlesIn ?? 0) + (decl.bottlesOut ?? 0)) * 12.5)
-    const trackedVolume = Math.round(declaredVolume * (0.85 + Math.random() * 0.3))
-    const gap = trackedVolume - declaredVolume
+    const declared_volume = (decl as any).declared_volume ?? 0
+    const tracked = declared_volume * (0.85 + Math.random() * 0.3)
+    const gap = tracked - declared_volume
     const rec = createEntity('reconciliations', {
-      declarationId: req.params.id,
-      marketeurOrgId: decl.marketerOrgId ?? decl.marketeurId,
-      declaredVolumeKg: declaredVolume,
-      trackedVolumeKg: trackedVolume,
-      gapKg: gap,
-      gapPct: Math.round((gap / declaredVolume) * 1000) / 10,
-      status: 'PENDING_VERIFICATION',
-      periodStart: decl.periodStart ?? '2026-07-01',
-      periodEnd: decl.periodEnd ?? '2026-07-31',
+      declaration_id: req.params.id,
+      tracked_volume: Math.round(tracked),
+      volume_gap: Math.round(gap),
+      subsidy_impact: Math.round(gap * 1000),
+      status: 'PENDING',
     } as any)
     return ok(res, rec)
   })
-
   return r
 }
 
 function reconciliationsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
   r.get('/', (req, res) => paginatedList(req, res, 'reconciliations'))
   r.patch('/:id/verify', (req, res) => {
-    const item = getEntity('reconciliations', req.params.id)
-    if (!item) return notFound(res)
-    const updated = updateEntity('reconciliations', req.params.id, { ...req.body, status: 'VERIFIED', verifiedByAgent: true } as any)
-    return ok(res, updated)
+    const { notes } = req.body ?? {}
+    const updated = updateEntity('reconciliations', req.params.id, { status: 'VERIFIED', verified_at: new Date().toISOString(), notes } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
   r.post('/:id/redressement', (req, res) => {
-    const item = getEntity('reconciliations', req.params.id)
-    if (!item) return notFound(res)
-    const redressement = createEntity('redressements', {
-      reconciliationId: req.params.id,
-      amountFcfa: req.body?.amountFcfa ?? 0,
-      dueDate: req.body?.dueDate ?? '2026-08-30T00:00:00Z',
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-    } as any)
-    return created(res, redressement)
+    const { amount, due_date } = req.body ?? {}
+    const item = createEntity('redressements', {
+      reconciliation_id: req.params.id,
+      amount: amount ?? 0,
+      due_date: due_date ?? '2026-08-30',
+      status: 'ISSUED',
+      issued_at: new Date().toISOString(),
+    })
+    updateEntity('reconciliations', req.params.id, { status: 'REDRESSEMENTAPPLIED' } as any)
+    return created(res, item)
   })
-
   return r
 }
 
 function redressementsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.patch('/:id/pay', (req, res) => {
-    const item = getEntity('redressements', req.params.id)
-    if (!item) return notFound(res)
-    const updated = updateEntity('redressements', req.params.id, { ...req.body, status: 'PAID' } as any)
-    return ok(res, updated)
+  r.get('/', (req, res) => paginatedList(req, res, 'redressements'))
+  r.patch('/:id/mark-paid', (req, res) => {
+    const { transaction_ref } = req.body ?? {}
+    const updated = updateEntity('redressements', req.params.id, { status: 'PAID', paid_at: new Date().toISOString(), transaction_ref } as any)
+    return updated ? ok(res, updated) : notFound(res)
   })
-
+  r.patch('/:id/waive', (req, res) => {
+    const updated = updateEntity('redressements', req.params.id, { status: 'WAIVED' } as any)
+    return updated ? ok(res, updated) : notFound(res)
+  })
   return r
 }
 
-// =============================================
-// DOMAIN 10: Risk, Anomalies & Notifications
-// =============================================
+// ============ ANOMALIES ============
 function anomaliesRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
   r.get('/', (req, res) => paginatedList(req, res, 'anomalies'))
   r.get('/:id', (req, res) => {
     const item = getEntity('anomalies', req.params.id)
-    if (!item) return notFound(res)
-    return ok(res, item)
+    return item ? ok(res, item) : notFound(res)
   })
-  r.patch('/:id/assign', (req, res) => {
-    const item = getEntity('anomalies', req.params.id)
-    if (!item) return notFound(res)
-    const updated = updateEntity('anomalies', req.params.id, { ...req.body, status: 'ASSIGNE' } as any)
-    return ok(res, updated)
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('anomalies', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
   })
-  r.patch('/:id/resolve', (req, res) => {
-    const item = getEntity('anomalies', req.params.id)
-    if (!item) return notFound(res)
-    const updated = updateEntity('anomalies', req.params.id, { ...req.body, status: 'RESOLU', resolved: true } as any)
-    return ok(res, updated)
+  r.post('/:id/assign', (req, res) => {
+    const assignment = createEntity('anomaly_assignments', { ...req.body, anomaly_id: req.params.id, assigned_at: new Date().toISOString(), status: 'PENDING' })
+    return created(res, assignment)
   })
-
+  r.post('/:id/resolve', (req, res) => {
+    const { resolution_notes } = req.body ?? {}
+    const updated = updateEntity('anomalies', req.params.id, { status: 'RESOLU', resolved_at: new Date().toISOString(), resolution_notes } as any)
+    return updated ? ok(res, updated) : notFound(res)
+  })
   return r
 }
 
-function risksRouter(): Router {
+// ============ RISK ============
+function riskScoresRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'risks'))
-  r.post('/recompute', (req, res) => {
-    const { entityId } = req.body ?? {}
-    const allRisks = findEntities('risks', (r: any) => !entityId || r.entityId === entityId)
-    const recalculated = allRisks.map((r: any) => updateEntity('risks', r.id, {
-      score: Math.round((0.1 + Math.random() * 0.9) * 100) / 100,
-      computedAt: new Date().toISOString(),
-    } as any))
-    return ok(res, recalculated)
+  r.get('/', (req, res) => paginatedList(req, res, 'risk_scores'))
+  r.post('/recompute', (_req, res) => {
+    const recomputed = findEntities('risk_scores', () => true).map(
+      (rs: any) => ({
+        id: rs.id,
+        entity_type: rs.entity_type,
+        entity_id: rs.entity_id,
+        score: clampScore(rs.score ?? 0),
+        level: riskLevelFor(rs.score ?? 0),
+        model_version: 'CSPH-RISK-v2.2',
+        recomputed_at: new Date().toISOString(),
+      }),
+    )
+    return ok(res, {
+      recomputed: recomputed.length,
+      model_version: 'CSPH-RISK-v2.2',
+      generated_at: new Date().toISOString(),
+      data: recomputed,
+    })
   })
-
   return r
 }
 
+function clampScore(score: number): number {
+  return Math.max(0, Math.min(100, Math.round(score)))
+}
+
+function riskLevelFor(score: number): string {
+  if (score >= 85) return 'CRITIQUEEXTREME'
+  if (score >= 70) return 'CRITIQUE'
+  if (score >= 45) return 'ELEVE'
+  if (score >= 20) return 'MODERE'
+  return 'FAIBLE'
+}
+
+// ============ NOTIFICATIONS ============
 function notificationGroupsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'notification-groups'))
-  r.post('/', (req, res) => created(res, createEntity('notification-groups', req.body ?? {})))
+  r.get('/', (req, res) => paginatedList(req, res, 'notification_groups'))
+  r.post('/', (req, res) => created(res, createEntity('notification_groups', req.body ?? {})))
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('notification_groups', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
   return r
 }
 
 function notificationRulesRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/', (req, res) => paginatedList(req, res, 'notification-rules'))
-  r.post('/', (req, res) => created(res, createEntity('notification-rules', req.body ?? {})))
+  r.get('/', (req, res) => paginatedList(req, res, 'notification_rules'))
+  r.post('/', (req, res) => created(res, createEntity('notification_rules', req.body ?? {})))
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('notification_rules', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
   return r
 }
 
-// =============================================
-// DOMAIN 11: Reports & Dashboards
-// =============================================
+function notificationsRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'notifications'))
+  return r
+}
+
+// ============ CONTRACTS & RBAC ============
+function transporterContractsRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'transporter_contracts'))
+  r.post('/', (req, res) => created(res, createEntity('transporter_contracts', req.body ?? {})))
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('transporter_contracts', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.post('/:id/set-primary', (req, res) => {
+    const updated = updateEntity('transporter_contracts', req.params.id, { is_primary: true } as any)
+    return updated ? ok(res, updated) : notFound(res)
+  })
+  return r
+}
+
+function customRolesRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'custom_roles'))
+  r.post('/', (req, res) => created(res, createEntity('custom_roles', req.body ?? {})))
+  r.patch('/:id', (req, res) => {
+    const item = updateEntity('custom_roles', req.params.id, req.body ?? {})
+    return item ? ok(res, item) : notFound(res)
+  })
+  return r
+}
+
+function permissionsRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'permissions'))
+  return r
+}
+
+function settingsRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'settings'))
+  r.patch('/:key', (req, res) => ok(res, { setting_key: req.params.key, ...req.body }))
+  return r
+}
+
+function auditLogsRouter(): Router {
+  const r = makeRouter()
+  r.use(requireAuth)
+  r.get('/', (req, res) => paginatedList(req, res, 'audit_logs'))
+  return r
+}
+
 function reportsRouter(): Router {
   const r = makeRouter()
   r.use(requireAuth)
-
-  r.get('/operational', (req, res) => {
-    return ok(res, {
-      format: req.query.format ?? 'PDF',
-      generatedAt: new Date().toISOString(),
-      totalTours: countEntities('tours'),
-      completedTours: countEntities('tours', (t: any) => t.status === 'completed'),
-      totalVolume: Math.round(Math.random() * 200000 + 50000),
-      activeVehicles: countEntities('trucks', (t: any) => t.status === 'active'),
-      incidentsThisMonth: Math.floor(Math.random() * 15),
-    })
-  })
-  r.get('/financial', (req, res) => {
-    return ok(res, {
-      format: req.query.format ?? 'PDF',
-      period: req.query.period ?? '2026-Q2',
-      generatedAt: new Date().toISOString(),
-      totalDeclared: Math.round(Math.random() * 500000 + 100000),
-      totalTracked: Math.round(Math.random() * 480000 + 100000),
-      totalGapKg: Math.round(Math.random() * 20000 - 10000),
-      totalRedressementFcfa: Math.round(Math.random() * 5000000),
-      paidRedressementFcfa: Math.round(Math.random() * 3000000),
-    })
-  })
-  r.get('/compliance', (req, res) => {
-    return ok(res, {
-      format: req.query.format ?? 'PDF',
-      generatedAt: new Date().toISOString(),
-      totalSites: countEntities('sites'),
-      verifiedSites: countEntities('sites', (s: any) => (s as any).isVerifiedByAgent),
-      missingScanSites: Math.floor(Math.random() * 8),
-      lateDeclarationMarketers: Math.floor(Math.random() * 5),
-      complianceScore: Math.round(Math.random() * 20 + 75),
-    })
-  })
-
+  r.get('/', (req, res) => paginatedList(req, res, 'reports'))
   return r
 }
 
-function dashboardRouter(): Router {
-  const r = makeRouter()
-  r.use(requireAuth)
-
-  r.get('/super-admin', (_req, res) => {
-    return ok(res, {
-      totalOrganizations: countEntities('organizations'),
-      activeOrganizations: countEntities('organizations', (o: any) => o.active ?? o.isActive ?? true),
-      totalUsers: countEntities('users'),
-      totalVehicles: countEntities('trucks'),
-      activeTours: countEntities('tours', (t: any) => t.status === 'in_progress' || t.status === 'IN_PROGRESS'),
-      totalDeclarationsThisMonth: countEntities('declarations'),
-      unresolvedAnomalies: countEntities('anomalies', (a: any) => !a.resolved),
-      nationalVolume: randomInt(500000, 800000),
-      subventionTotal: randomInt(200000000, 500000000),
-      topFraudRiskMarketers: ['TotalEnergies Marketers', 'SCDP'] as any,
-      monthlyTrends: Array.from({ length: 6 }, (_, i) => ({
-        month: `2026-0${i + 1}`,
-        volume: randomInt(80000, 150000),
-        declarations: randomInt(15, 30),
-        anomalies: randomInt(3, 12),
-      })),
-    })
-  })
-
-  r.get('/admin', (_req, res) => {
-    return ok(res, {
-      organizations: countEntities('organizations'),
-      activeUsers: countEntities('users', (u: any) => u.active ?? u.isActive ?? true),
-      managedSites: countEntities('sites'),
-      pendingDeclarations: countEntities('declarations', (d: any) => d.status === 'submitted' || d.status === 'SUBMITTED'),
-      recentAnomalies: countEntities('anomalies', (a: any) => !a.resolved),
-      fleetHealth: { operational: randomInt(20, 40), maintenance: randomInt(2, 8), offline: randomInt(1, 5) },
-    })
-  })
-
-  r.get('/agent', (_req, res) => {
-    return ok(res, {
-      assignedMarketers: 6,
-      pendingDeclarations: randomInt(3, 8),
-      pendingVerifications: randomInt(2, 5),
-      fraudAlerts: randomInt(0, 3),
-      recentAnomalies: findEntities('anomalies', (a: any) => !a.resolved).slice(0, 5).map((a: any) => ({ id: a.id, type: a.type, severity: a.severity, message: a.message, date: a.detectedAt })),
-    })
-  })
-
-  r.get('/marketeur', (_req, res) => {
-    return ok(res, {
-      fleetSize: countEntities('trucks'),
-      activeTours: countEntities('tours', (t: any) => t.status === 'in_progress' || t.status === 'IN_PROGRESS'),
-      monthlyVolume: randomInt(30000, 80000),
-      driverPerformance: Array.from({ length: 4 }, (_, i) => ({
-        driver: `Driver ${i + 1}`,
-        tours: randomInt(10, 30),
-        avgEfficiency: Math.round((80 + Math.random() * 20) * 10) / 10,
-      })),
-      deliveryCompletion: Math.round((85 + Math.random() * 15) * 10) / 10,
-    })
-  })
-
-  r.get('/livreur', (_req, res) => {
-    return ok(res, {
-      activeMissions: countEntities('tours', (t: any) => (t.status === 'in_progress' || t.status === 'IN_PROGRESS') && t.livreurUserId),
-      completedToday: randomInt(1, 5),
-      syncStatus: 'OK',
-      pendingUploads: randomInt(0, 3),
-      batteryLevel: randomInt(40, 95),
-    })
-  })
-
-  return r
-}
-
-// =============================================
-// DOMAIN 12: Monitoring & Infrastructure
-// =============================================
 function systemRouter(): Router {
   const r = makeRouter()
-
-  r.get('/health', (_req, res) => {
-    return ok(res, {
-      status: 'healthy',
-      database: 'connected',
-      redis: 'connected',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-    })
-  })
-
-  r.get('/metrics', requireAuth, (_req, res) => {
-    return ok(res, {
-      cpu: { usage: randomInt(10, 45) },
-      memory: { used: randomInt(2, 8) + 'GB', total: '16GB' },
-      api: { requestsPerSec: randomInt(50, 200), errorRate: (Math.random() * 3).toFixed(1) + '%' },
-      activeConnections: randomInt(20, 150),
-    })
-  })
-
-  r.get('/audit-logs', requireAuth, (req, res) => paginatedList(req, res, 'audit-logs'))
-
+  r.get('/health', (_req, res) => ok(res, { status: 'ok', timestamp: new Date().toISOString() }))
+  r.get('/metrics', (_req, res) => ok(res, { active_tours: countEntities('delivery_tours', (t: any) => t.status === 'INPROGRESS'), open_anomalies: countEntities('anomalies', (a: any) => a.status !== 'RESOLU') }))
   return r
 }
 
-// =============================================
-// Generic Resource CRUD (for entities not needing domain logic)
-// =============================================
-function genericResourceRouter(): Router {
-  const r = makeRouter()
-  r.use(requireAuth)
-  const names: EntityName[] = ['reports', 'infra', 'transporters', 'vehicle-types', 'delivery-types', 'tour-statuses']
-
-  for (const name of names) {
-    r.get(`/${name}`, (req, res) => paginatedList(req, res, name as EntityName))
-    r.get(`/${name}/:id`, (req, res) => {
-      const item = getEntity(name as EntityName, req.params.id)
-      if (!item) return notFound(res)
-      return ok(res, item)
-    })
-    r.post(`/${name}`, (req, res) => created(res, createEntity(name as EntityName, req.body ?? {})))
-    r.put(`/${name}/:id`, (req, res) => {
-      const item = updateEntity(name as EntityName, req.params.id, req.body ?? {})
-      if (!item) return notFound(res)
-      return ok(res, item)
-    })
-    r.delete(`/${name}/:id`, (req, res) => {
-      if (!deleteEntity(name as EntityName, req.params.id)) return notFound(res)
-      return ok(res, null, 'Supprime')
-    })
-  }
-
-  return r
-}
-
-// =============================================
-// Main App
-// =============================================
-export function createApp(): Router {
-  const app = makeRouter()
-
-  // Health
-  app.get('/health', (_req, res) => res.json({ success: true, message: 'mock-api up', donnees: null }))
-
-  // Domain 1: Auth
-  app.use('/auth', authRouter())
-  app.use('/me', meRouter())
-
-  // Domain 2: Organizations
-  app.use('/organizations', orgRouter())
-
-  // Domain 3: Sites
-  app.use('/sites', sitesRouter())
-
-  // Domain 4: Users & RBAC
-  app.use('/users', usersRouter())
-  app.use('/user-assignments', userAssignmentsRouter())
-  app.use('/custom-roles', customRolesRouter())
-  app.use('/user-custom-roles', userCustomRolesRouter())
-
-  // Domain 5: Vehicles & Drivers
-  app.use('/vehicles', vehiclesRouter())
-  app.use('/drivers', driversRouter())
-
-  // Domain 6: Equipment
-  app.use('/pda-devices', pdaRouter())
-  app.use('/pda-sync', pdaSyncRouter())
-  app.use('/rfid-tags', rfidTagsRouter())
-
-  // Domain 7: Pickups
-  app.use('/pickups', pickupsRouter())
-
-  // Domain 8: Tours
-  app.use('/tours', toursRouter())
-  app.use('/checkpoints', checkpointsRouter())
-  app.use('/scans', scansRouter())
-
-  // Domain 9: Declarations & Perequation
-  app.use('/declarations', declarationsRouter())
-  app.use('/reconciliations', reconciliationsRouter())
-  app.use('/redressements', redressementsRouter())
-
-  // Domain 10: Risk, Anomalies & Notifications
-  app.use('/anomalies', anomaliesRouter())
-  app.use('/risks', risksRouter())
-  app.use('/notification-groups', notificationGroupsRouter())
-  app.use('/notification-rules', notificationRulesRouter())
-
-  // Domain 11: Reports & Dashboards
-  app.use('/reports', reportsRouter())
-  app.use('/dashboard', dashboardRouter())
-
-  // Domain 12: System
-  app.use('/system', systemRouter())
-
-  // Generic fallback CRUD
-  app.use('/', genericResourceRouter())
-
-  return app
-}
-
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min
+// ============ AGGREGATE ============
+export function buildRouter(): Router {
+  const root = makeRouter()
+  root.use('/auth', authRouter())
+  root.use('/me', meRouter())
+  root.use('/organizations', orgRouter())
+  root.use('/users', usersRouter())
+  root.use('/sites', sitesRouter())
+  root.use('/client-sites', clientSitesRouter())
+  root.use('/clients', clientsRouter())
+  root.use('/vehicles', vehiclesRouter())
+  root.use('/drivers', driversRouter())
+  root.use('/devices', devicesRouter())
+  root.use('/rfid-tags', rfidTagsRouter())
+  root.use('/pickup-requests', pickupRequestsRouter())
+  root.use('/pickups', pickupRequestsRouter())
+  root.use('/delivery-tours', deliveryToursRouter())
+  root.use('/tours', deliveryToursRouter())
+  root.use('/checkpoints', checkpointsRouter())
+  root.use('/scan-events', scanEventsRouter())
+  root.use('/scans', scanEventsRouter())
+  root.use('/declarations', declarationsRouter())
+  root.use('/reconciliations', reconciliationsRouter())
+  root.use('/redressements', redressementsRouter())
+  root.use('/anomalies', anomaliesRouter())
+  root.use('/risk-scores', riskScoresRouter())
+  root.use('/risks', riskScoresRouter())
+  root.use('/notification-groups', notificationGroupsRouter())
+  root.use('/notification-rules', notificationRulesRouter())
+  root.use('/notifications', notificationsRouter())
+  root.use('/transporter-contracts', transporterContractsRouter())
+  root.use('/custom-roles', customRolesRouter())
+  root.use('/permissions', permissionsRouter())
+  root.use('/settings', settingsRouter())
+  root.use('/audit-logs', auditLogsRouter())
+  root.use('/reports', reportsRouter())
+  root.use('/system', systemRouter())
+  return root
 }

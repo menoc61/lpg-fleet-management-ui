@@ -1,436 +1,651 @@
 // Shared domain types — LPG Fleet Management platform.
+// Aligned to csph_gpl_schema_v6_2.sql and TODO.md.
+// All enum values are UPPERCASE per schema convention (no underscores in enum values).
+// All field names are snake_case to match the production Postgres schema.
 
 export type Role =
-  | 'SUPER_ADMIN'
+  | 'SUPERADMIN'
   | 'ADMIN'
   | 'SUPERVISOR'
   | 'INTEGRATEUR'
   | 'AGENT'
   | 'MARKETEUR'
+  | 'TRANSPORTEUR'
   | 'LIVREUR'
 
-export type OrgType = 'CSPH' | 'SCDP' | 'SNH' | 'MARKETEUR' | 'TRANSPORTEUR' | 'csph' | 'scdp' | 'snh' | 'marketeur' | 'transporteur'
+export type OrgType =
+  | 'REGULATEUR'
+  | 'DEPOT'
+  | 'MARKETEUR'
+  | 'TRANSPORTEUR'
+  | 'CLIENT'
 
-export type SiteType = 'CENTRE_EMPLISSEUR' | 'DEPOT' | 'CLIENT' | 'POINT_DE_VENTE' | 'depot' | 'scdp' | 'filling-center' | 'marketer' | 'delivery-point'
+export type Region =
+  | 'ADAMAOUA'
+  | 'CENTRE'
+  | 'EST'
+  | 'EXTREMENORD'
+  | 'LITTORAL'
+  | 'NORD'
+  | 'NORDOUEST'
+  | 'OUEST'
+  | 'SUD'
+  | 'SUDOUEST'
 
-export type SiteStatus = 'PENDING_GEO_ASSIGN' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED' | 'active' | 'planned' | 'inactive'
+export type SiteType =
+  | 'CENTREEMPLISSEUR'
+  | 'ENTREPOT'
+  | 'POINTAPPROVISIONABLE'
 
-export type BottleStatus = 'in_empty' | 'out_full'
+export type SiteStatus =
+  | 'UNASSIGNED'
+  | 'ASSIGNED'
+  | 'ACTIVE'
+  | 'VERIFIED'
+  | 'SUSPENDED'
+  | 'REJECTED'
 
-export type TruckStatus = 'available' | 'in_transit' | 'maintenance' | 'inactive' | 'active'
+export type VehicleType = 'VRAC' | 'BOUTEILLES50KG'
+export type TourneeType = 'VRAC' | 'BOUTEILLES50KG'
 
-export type ContractTier = 'Starter' | 'Growth' | 'Enterprise'
+export type ExecutionMode = 'INTERNAL' | 'EXTERNAL'
 
-export type TruckRiskLevel = 'low' | 'medium' | 'high'
+export type TourneeStatus =
+  | 'DRAFT'
+  | 'PLANNED'
+  | 'PENDINGTRANSPORTERACK'
+  | 'ACKNOWLEDGED'
+  | 'INPROGRESS'
+  | 'CHECKPOINTACTIVE'
+  | 'CLOSED'
+  | 'CANCELLED'
 
-export type TransporterStatus = 'active' | 'pending' | 'suspended'
+export type CheckpointStatus = 'PENDING' | 'REACHED' | 'COMPLETED' | 'SKIPPED'
+export type ScanDirection = 'IN' | 'OUT'
 
-export type VehicleType = 'VRAC' | 'BOUTEILLES'
+export type PickupStatus =
+  | 'DRAFT'
+  | 'VALIDATED'
+  | 'INPROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED'
+
+export type DeclarationStatus = 'DRAFT' | 'SUBMITTED' | 'RECONCILED' | 'DISPUTED'
+export type ReconciliationStatus = 'PENDING' | 'VERIFIED' | 'REDRESSEMENTAPPLIED'
+export type RedressementStatus = 'ISSUED' | 'PAID' | 'WAIVED'
+
+export type DeviceType = 'GPS' | 'PDA' | 'RFIDREADER'
+
+export type DeviceStatus =
+  | 'UNASSIGNED'
+  | 'ASSIGNED'
+  | 'INMISSION'
+  | 'OFFLINE'
+  | 'PENDINGSYNC'
+  | 'SYNCING'
+  | 'SYNCED'
+  | 'SYNCFAILED'
+  | 'MAINTENANCE'
+  | 'DEPLOYED'
+  | 'REMOVED'
+  | 'LOST'
+
+export type RfidTagStatus =
+  | 'AVAILABLE'
+  | 'ASSIGNEDTOBOTTLE'
+  | 'INTRANSITOUT'
+  | 'INTRANSITIN'
+  | 'LOST'
+  | 'BLOCKED'
+
+export type RiskLevel = 'FAIBLE' | 'MODERE' | 'ELEVE' | 'CRITIQUE' | 'CRITIQUEEXTREME'
+
+export type RiskEntityType =
+  | 'MARKETEUR'
+  | 'TRANSPORTEUR'
+  | 'LIVREUR'
+  | 'SITE'
+  | 'TOURNEE'
+  | 'CLIENT'
+  | 'CLIENTSITE'
+  | 'VEHICLE'
 
 export type AnomalyCategory = 'INVESTIGATION' | 'TECHNICAL'
 
 export type AnomalyType =
-  | 'VOLUME_GAP' | 'DEVIATION_ROUTE' | 'CHECKPOINT_MISSED' | 'SCAN_OUT_OF_SEQUENCE'
-  | 'SIPHONNAGE' | 'SUBSTITUTION_BOUTEILLES' | 'FALSIFICATION_PREUVES'
-  | 'PDA_UNSYNCED' | 'BATTERY_CRITICAL' | 'GPS_FAILURE' | 'KAFKA_TIMEOUT' | 'IOT_DEGRADATION'
-  | 'gps' | 'rfid' | 'weight' | 'iot'
+  | 'VOLUMEGAP'
+  | 'DEVIATIONROUTE'
+  | 'CHECKPOINTMISSED'
+  | 'SCANOUTOFSEQUENCE'
+  | 'SIPHONNAGE'
+  | 'SUBSTITUTIONBOUTEILLES'
+  | 'FALSIFICATIONPREUVES'
+  | 'FILLINGILLEGAL'
+  | 'DIVERSIONSUBSIDIES'
+  | 'PDAUNSYNCED'
+  | 'BATTERYCRITICAL'
+  | 'GPSFAILURE'
+  | 'KAFKATIMEOUT'
+  | 'IOTDEGRADATION'
+  | 'SERVERUNAVAILABLE'
+  | 'TOURNEEUNASSIGNEDTOOLONG'
+  | 'TRANSPORTERNOACK'
+  | 'GPSREMOVED'
+  | 'DEVICEOFFLINE'
 
-export type GroupType = 'TECHNICAL' | 'INVESTIGATION' | 'ADMIN' | 'MARKETING'
+export type AnomalyStatus = 'NOUVEAU' | 'ENCOURS' | 'RESOLU' | 'FERME'
 
-export type RiskLevel = 'FAIBLE' | 'MODERE' | 'ELEVE' | 'CRITIQUE' | 'CRITIQUE_EXTREME' | 'low' | 'medium' | 'high'
+export type NotificationGroupType =
+  | 'TECHNICAL'
+  | 'INVESTIGATION'
+  | 'ADMIN'
+  | 'MARKETING'
+  | 'TRANSPORT'
 
-export type PickupStatus = 'DRAFT' | 'VALIDATED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'PENDING'
+export type MfaType = 'TOTP' | 'SMS' | 'EMAIL'
+export type MfaStatus = 'DISABLED' | 'PENDINGSETUP' | 'ENABLED' | 'LOCKED'
 
-export type TourneeType = 'VRAC' | 'BOUTEILLES_50KG'
+export type AuditAction =
+  | 'LOGINSUCCESS'
+  | 'LOGINFAILURE'
+  | 'LOGOUT'
+  | 'TOKENREFRESH'
+  | 'PASSWORDRESET'
+  | 'MFAENABLED'
+  | 'MFADISABLED'
+  | 'MFACHALLENGEFAILED'
+  | 'MFACHALLENGESUCCESS'
+  | 'PERMISSIONDENIED'
+  | 'DATAEXPORT'
+  | 'BULKDELETE'
+  | 'DECLARATIONSUBMITTED'
+  | 'RECONCILIATIONVERIFIED'
+  | 'TOURNEECREATED'
+  | 'TOURNEEASSIGNED'
+  | 'TOURNEESENTTOTRANSPORTER'
+  | 'TOURNEEACKNOWLEDGED'
+  | 'TOURNESTARTED'
+  | 'TOURNEECLOSED'
+  | 'VEHICLECERTIFICATEEXPIRED'
+  | 'SITESUSPENDED'
+  | 'CLIENTCREATED'
+  | 'SCANEVENTRECEIVED'
+  | 'PDASYNCBULKUPLOAD'
+  | 'ANOMALYRESOLVED'
+  | 'DEVICEREMOVED'
+  | 'GPSPOSITIONCAPTURED'
+  | 'SETTINGCHANGED'
 
-export type TourneeStatus = 'PLANNED' | 'IN_PROGRESS' | 'CHECKPOINT_ACTIVE' | 'CLOSED' | 'CANCELLED'
-
-export type CheckpointStatus = 'PENDING' | 'REACHED' | 'COMPLETED' | 'SKIPPED'
-
-export type ScanDirection = 'IN' | 'OUT'
-
-export type ReconciliationStatus = 'PENDING' | 'VERIFIED' | 'REDRESSEMENT_APPLIED' | 'PENDING_VERIFICATION' | 'REJECTED'
-
-export type RedressementStatus = 'ISSUED' | 'PAID' | 'WAIVED' | 'PENDING' | 'OVERDUE'
-
-export type AnomalyStatus = 'NOUVEAU' | 'EN_COURS' | 'RESOLU' | 'FERME' | 'ASSIGNE'
-
-export type DeclarationStatus = 'DRAFT' | 'SUBMITTED' | 'RECONCILED' | 'DISPUTED' | 'draft' | 'submitted' | 'validated' | 'rejected'
+export type ReportType = 'OPERATIONAL' | 'FINANCIAL' | 'COMPLIANCE'
+export type ReportFormat = 'PDF' | 'EXCEL' | 'CSV' | 'JSON'
+export type ReportStatus = 'PENDING' | 'GENERATING' | 'READY' | 'FAILED' | 'EXPIRED'
 
 export interface BaseEntity {
   id: string
-  createdAt: string
-  createdBy?: string
-  updatedAt?: string
-  updatedBy?: string
-  deletedAt?: string | null
+  created_at?: string
+  created_by?: string | null
+  updated_at?: string
+  updated_by?: string | null
+  deleted_at?: string | null
 }
 
-export interface Organization {
+export interface Organization extends BaseEntity {
   id: string
   name: string
   type: OrgType
-  code: string
-  registrationNumber?: string
-  region: string
-  isActive: boolean
-  active: boolean
-  contactEmail?: string
-  contactPhone?: string
+  registration_number?: string
+  tax_id?: string
+  is_active: boolean
+  operational_site_count?: number
+  client_site_count?: number
+  vehicle_count?: number
+  driver_count?: number
+  user_count?: number
 }
 
-export interface AppUser {
+export interface AppUser extends BaseEntity {
   id: string
   email: string
-  firstName: string
-  lastName: string
-  systemRole: Role
-  role: Role
-  organizationId: string
-  orgId?: string
-  active: boolean
-  isActive?: boolean
+  password_hash?: string
+  first_name: string
+  last_name: string
+  system_role: Role
+  org_id: string
+  is_active: boolean
+  mfa_status?: MfaStatus
+  last_login_at?: string | null
+  last_login_ip?: string | null
+  failed_login_count?: number
+  locked_until?: string | null
+  password_changed_at?: string | null
+  must_change_password?: boolean
 }
 
-export interface Transporter {
+// Alias for backward compatibility
+export type User = AppUser
+
+export interface RegionEntity {
   id: string
   name: string
-  status: TransporterStatus
-  region: string
-  contactEmail: string
-  contactPhone: string
-  fleetSize: number
-  organizationId?: string
+  code: Region
+  created_at?: string
+  updated_at?: string
 }
 
-export interface Vehicle {
+export interface SystemRole {
   id: string
-  licensePlate: string
-  plateNumber?: string
+  name: Role
+  description?: string
+  hierarchy_level: number
+  can_create_subroles?: boolean
+  can_assign_roles?: boolean
+  max_subordinate_level?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface Permission {
+  id: string
+  code: string
+  name: string
+  description?: string
+  category: string
+  created_at?: string
+}
+
+export interface Vehicle extends BaseEntity {
+  id: string
+  license_plate: string
   type: VehicleType
-  transporterOrgId: string
-  maxVolumeLiters?: number
-  maxBottleCount?: number
-  tankCapacityLiters?: number
-  certificateDeJaugementUrl: string
-  certificateIssuedAt?: string
-  certificateExpiryAt: string
-  certificateNumber: string
-  tareWeightKg?: number
-  isActive: boolean
-  compartments?: number
-  fuelType?: 'GPL'
-  makeModel: string
-  year: number
-  gpsImei?: string
-  assignedDriver?: string
-  status: TruckStatus
-  contractTier?: ContractTier
-  riskLevel?: TruckRiskLevel
-  organizationId?: string
+  org_id: string
+  max_volume?: number | null
+  max_bottle_count?: number | null
+  certificate_url?: string
+  certificate_number?: string
+  certificate_issued_at?: string | null
+  certificate_expiry_at?: string | null
+  tare_weight?: number | null
+  is_active: boolean
 }
 
-export interface Driver {
+export interface Driver extends BaseEntity {
   id: string
-  firstName: string
-  lastName: string
-  licenseNumber: string
-  transporterOrgId: string
-  userId?: string
-  phone?: string
-  status?: 'active' | 'inactive'
+  first_name: string
+  last_name: string
+  license_number?: string
+  org_id: string
+  user_id?: string | null
+  is_active: boolean
 }
 
-export interface Site {
+export interface Site extends BaseEntity {
   id: string
-  orgId: string
-  organizationId?: string
+  org_id: string
+  region: Region
   name: string
-  type: SiteType
-  addressText: string
-  capturedLat: number | null
-  capturedLng: number | null
-  lat?: number
-  lng?: number
-  city?: string
-  region?: string
-  operator?: string
-  geoConfidenceScore: number
-  deliveryCountAtGeo: number
-  isVerifiedByAgent: boolean
-  verifiedAt?: string | null
-  verifiedBy?: string | null
+  functions?: SiteType[] | null
+  address?: string
+  geo_point?: number[] | [number, number] | null
+  geo_confidence_score?: number
+  delivery_count?: number
+  is_verified: boolean
+  verified_at?: string | null
+  verified_by?: string | null
   status: SiteStatus
-  reason?: string
-  description?: string
-  isKeySite?: boolean
+  reason?: string | null
+  is_active: boolean
 }
 
-export interface Tour {
+export interface Client extends BaseEntity {
   id: string
-  reference: string
-  marketerOrgId: string
-  transporterOrgId: string
-  type: TourneeType
-  vehicleId: string
-  truckId?: string
-  driverId: string
-  livreurUserId: string
-  loadedVolumeLiters?: number
-  deliveredVolumeLiters?: number
-  loadedBottleCount?: number
-  deliveredBottleCount?: number
-  checkpoints?: Checkpoint[]
-  status: TourneeStatus | 'planned' | 'in_progress' | 'completed' | 'cancelled'
-  startedAt?: string
-  closedAt?: string | null
-  plannedDate?: string
-  stops?: number
+  org_id: string
+  primary_contact_name?: string
+  primary_contact_phone?: string
+  primary_contact_email?: string
+  billing_address?: string
+  payment_terms?: number | null
+  credit_limit?: number | null
+  tax_id?: string
+  industry_sector?: string
+  is_active: boolean
 }
 
-export interface Checkpoint {
+export interface ClientSite extends BaseEntity {
   id: string
-  tourneeId: string
-  tourId?: string
-  siteId: string
-  sequence: number
-  expectedArrival: string
-  actualArrival?: string | null
-  status: CheckpointStatus
-  scans?: ScanEvent[]
-  skipReason?: string
-  actualLat?: number
-  actualLng?: number
-}
-
-export interface ScanEvent {
-  id: string
-  checkpointId: string
-  livreurUserId: string
-  rfidTagId: string | null
-  direction: ScanDirection
-  capturedLat: number
-  capturedLng: number
-  timestamp: string
-  scannedAt?: string
-  meterReading?: number
-  photoUrl?: string
-}
-
-export interface PickupRequest {
-  id: string
-  marketerOrgId: string
-  sourceSiteId: string
-  destinationSiteId: string
-  requestedQuantityKg: number
-  approvedQuantityKg?: number
-  status: PickupStatus
-  assignedVehicles?: string[]
-  vehicleIds?: string[]
-  vehicleId?: string
-  driverId?: string
-  livreurUserId?: string
-  createdAt: string
-}
-
-export interface Declaration {
-  id: string
-  marketerOrgId: string
-  marketeurId?: string
-  periodStart: string
-  periodEnd: string
-  declaredVolumeKg: number
-  status: DeclarationStatus
-  submittedBy: string
-  reference?: string
-  siteId?: string
-  bottlesIn?: number
-  bottlesOut?: number
-  declaredAt?: string
-  createdAt?: string
-}
-
-export interface Reconciliation {
-  id: string
-  declarationId: string
-  trackedVolumeKg: number
-  trackedBottlesOut: number
-  trackedBottlesIn: number
-  volumeGapKg: number
-  gapKg?: number
-  gapPct?: number
-  subsidyImpactFcfa: number
-  status: ReconciliationStatus
-  verifiedBy?: string | null
-  verifiedByAgent?: boolean
-  notes?: string
-  periodStart?: string
-  periodEnd?: string
-  declaredVolumeKg?: number
-  marketeurOrgId?: string
-}
-
-export interface Redressement {
-  id: string
-  reconciliationId: string
-  amountFcfa: number
-  status: RedressementStatus
-  issuedAt?: string
-  createdAt?: string
-  paidAt?: string | null
-  transactionRef?: string | null
-  dueDate?: string
-}
-
-export interface RiskScore {
-  id: string
-  entityType: 'MARKETEUR' | 'TRANSPORTEUR' | 'LIVREUR' | 'SITE' | 'TOURNEE'
-  entityId: string
-  score: number
-  level: RiskLevel
-  periodStart: string
-  periodEnd: string
-  modelVersion: string
-  details: Record<string, unknown>
-  factors?: Record<string, number>
-  computedAt?: string
-}
-
-export interface Anomaly {
-  id: string
-  type: AnomalyType
-  category: AnomalyCategory
-  severity: RiskLevel | 'low' | 'medium' | 'high'
-  status: AnomalyStatus
-  entityType: string
-  entityId: string
-  siteId?: string
-  evidence: Record<string, unknown>
-  assignedToGroup: 'TECHNICAL_TEAM' | 'INVESTIGATION_TEAM'
-  assignedToUserId?: string
-  resolvedAt?: string | null
-  resolvedBy?: string | null
-  resolutionNotes?: string | null
-  resourceId?: string
-  message?: string
-  detectedAt?: string
-  resolved?: boolean
-}
-
-export interface CustomRole {
-  id: string
-  orgId: string
+  client_org_id: string
+  region: Region
   name: string
-  description?: string
-  permissions: { can: { action: string; resource: string }[] }
-  isActive: boolean
-}
-
-export interface UserCustomRole {
-  id: string
-  userId: string
-  customRoleId: string
-  siteId?: string
+  address?: string
+  geo_point?: number[] | [number, number] | null
+  geo_confidence_score?: number
+  delivery_count?: number
+  is_verified: boolean
+  verified_at?: string | null
+  verified_by?: string | null
+  current_marketeur_org_id?: string | null
+  site_contact_name?: string
+  site_contact_phone?: string
+  is_active: boolean
 }
 
 export interface UserSiteAssignment {
   id: string
-  userId: string
-  siteId: string
-  isPrimary: boolean
+  user_id: string
+  site_id: string
+  client_site_id?: string | null
+  is_primary: boolean
+  created_at?: string
+  updated_at?: string
 }
 
-export interface NotificationGroup {
+export interface CustomRole extends BaseEntity {
   id: string
+  org_id: string
   name: string
-  type: GroupType
-  members: string[]
-  memberIds?: string[]
-  isActive: boolean
+  description?: string
+  permissions_json: Record<string, unknown>
+  is_active: boolean
 }
 
-export interface NotificationRule {
+export interface UserCustomRole {
   id: string
-  name?: string
-  anomalyType: AnomalyType
-  minSeverity: RiskLevel | 'low' | 'medium' | 'high'
-  targetGroupId: string
-  isActive: boolean
+  user_id: string
+  custom_role_id: string
+  site_id?: string | null
+}
+
+export interface Device extends BaseEntity {
+  id: string
+  serial_number: string
+  device_type: DeviceType
+  status: DeviceStatus
+  firmware_version?: string
+  battery_level: number | null
+  battery_critical: boolean
+  last_sync?: string | null
+  last_known_position?: [number, number] | null
+  assigned_to_user_id?: string | null
+  assigned_to_vehicle_id?: string | null
+  org_id?: string | null
+  config_json?: Record<string, unknown> | null
+  metadata_json?: Record<string, unknown> | null
+}
+
+export interface TransporterContract extends BaseEntity {
+  id: string
+  marketeur_org_id: string
+  transporter_org_id: string
+  is_primary: boolean
+  contract_reference?: string
+  started_at?: string | null
+  ended_at?: string | null
+  is_active: boolean
+}
+
+export interface PickupRequest extends BaseEntity {
+  id: string
+  marketeur_org_id: string
+  source_site_id: string
+  destination_site_id: string
+  requested_quantity: number
+  approved_quantity?: number | null
+  status: PickupStatus
+}
+
+export interface DeliveryTour extends BaseEntity {
+  id: string
+  marketeur_org_id: string
+  execution_mode: ExecutionMode
+  transporter_org_id?: string | null
+  vehicle_id?: string | null
+  driver_id?: string | null
+  livreur_user_id?: string | null
+  assigned_by_transporter_user_id?: string | null
+  transporter_assigned_at?: string | null
+  sent_to_transporter_at?: string | null
+  type: TourneeType
+  status: TourneeStatus
+  requested_quantity: number
+  loaded_quantity?: number | null
+  delivered_quantity?: number | null
+  started_at?: string | null
+  closed_at?: string | null
+}
+
+export interface Checkpoint extends BaseEntity {
+  id: string
+  tournee_id: string
+  site_id?: string | null
+  client_site_id?: string | null
+  sequence: number
+  expected_arrival?: string | null
+  actual_arrival?: string | null
+  status: CheckpointStatus
+  skip_reason?: string | null
+}
+
+export interface ScanEvent {
+  id: string
+  checkpoint_id: string
+  livreur_user_id?: string | null
+  rfid_tag_id?: string | null
+  direction: ScanDirection
+  geo_point?: [number, number] | null
+  timestamp: string
+  meter_reading?: number | null
+  photo_url?: string | null
+  pda_sync_id?: string | null
+  conflict_status?: string | null
+  created_at?: string
+  created_by?: string | null
 }
 
 export interface RfidTag {
   id: string
-  tagId: string
-  bottleSerial: string
-  status: 'ACTIVE' | 'ASSIGNED_TO_BOTTLE' | 'BLOCKED' | 'COMPROMISED'
-  blockReason?: string
-  createdAt: string
+  tag_id: string
+  bottle_serial?: string | null
+  status: RfidTagStatus
+  current_site_id?: string | null
+  current_client_site_id?: string | null
+  created_at?: string
+  updated_at?: string
+  deleted_at?: string | null
 }
 
-export interface PdaDevice {
+export interface Declaration extends BaseEntity {
   id: string
-  serial: string
-  serialNumber?: string
-  status: 'online' | 'offline' | 'maintenance' | 'PENDING_SYNC' | 'ACTIVE'
-  assignedTo: string | null
-  assignedToUserId?: string
-  lastSync: string
-  batteryLevel?: number
-  batteryCritical?: boolean
+  marketeur_org_id: string
+  period_start: string
+  period_end: string
+  declared_volume: number
+  status: DeclarationStatus
+  submitted_by?: string | null
 }
 
-export interface InfraMetric {
+export interface Reconciliation extends BaseEntity {
   id: string
-  service: string
-  cpu: number
-  memory: number
-  status: 'healthy' | 'degraded' | 'down'
-  measuredAt: string
+  declaration_id: string
+  tracked_volume: number
+  tracked_bottles_out?: number | null
+  tracked_bottles_in?: number | null
+  volume_gap: number
+  subsidy_impact: number
+  status: ReconciliationStatus
+  verified_by?: string | null
+  verified_at?: string | null
+  notes?: string | null
 }
 
-export interface Report {
+export interface Redressement extends BaseEntity {
   id: string
-  title: string
-  category: 'operations' | 'finance' | 'compliance'
-  generatedAt: string
-  author: string
-  format?: string
+  reconciliation_id: string
+  amount: number
+  status: RedressementStatus
+  issued_at?: string
+  due_date?: string | null
+  paid_at?: string | null
+  transaction_ref?: string | null
+}
+
+export interface RiskScore extends BaseEntity {
+  id: string
+  entity_type: RiskEntityType
+  entity_id: string
+  score: number
+  level: RiskLevel
+  period_start: string
+  period_end: string
+  model_version: string
+  details_json?: Record<string, unknown> | null
+}
+
+export interface Anomaly extends BaseEntity {
+  id: string
+  type: AnomalyType
+  category: AnomalyCategory
+  severity: RiskLevel
+  status: AnomalyStatus
+  entity_type?: RiskEntityType | null
+  entity_id?: string | null
+  site_id?: string | null
+  client_site_id?: string | null
+  evidence_json?: Record<string, unknown> | null
+  assigned_to_group?: NotificationGroupType | null
+  resolved_at?: string | null
+  resolved_by?: string | null
+  resolution_notes?: string | null
+}
+
+export interface AnomalyAssignment {
+  id: string
+  anomaly_id: string
+  assigned_to_user_id: string
+  assigned_by_user_id: string
+  assigned_at?: string
+  status: string
+  notes?: string | null
+  resolved_at?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+export interface NotificationGroup extends BaseEntity {
+  id: string
+  name: string
+  type: NotificationGroupType
+  is_active: boolean
+}
+
+export interface NotificationGroupMember {
+  id: string
+  group_id: string
+  user_id: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface NotificationRule extends BaseEntity {
+  id: string
+  name: string
+  anomaly_type?: AnomalyType | null
+  min_severity?: RiskLevel | null
+  target_group_id: string
+  is_active: boolean
+}
+
+export interface Notification {
+  id: string
+  rule_id?: string | null
+  anomaly_id?: string | null
+  target_user_id?: string | null
+  target_group_id?: string | null
+  channel: string
+  subject: string
+  body: string
+  payload_json?: Record<string, unknown> | null
+  is_read: boolean
+  read_at?: string | null
+  delivered_at?: string | null
+  created_at?: string
+}
+
+export interface Report extends BaseEntity {
+  id: string
+  name: string
+  type: ReportType
+  format: ReportFormat
+  parameters_json: Record<string, unknown>
+  status: ReportStatus
+  generated_at?: string | null
+  file_url?: string | null
+  file_size?: number | null
+  generated_by?: string | null
+  expires_at?: string | null
 }
 
 export interface AuditLog {
   id: string
-  userId: string
-  table: string
-  action: string
-  entityId: string
-  changes: Record<string, unknown>
-  timestamp: string
+  user_id?: string | null
+  session_id?: string | null
+  action: AuditAction
+  resource_table?: string | null
+  resource_id?: string | null
+  field_name?: string | null
+  old_value?: Record<string, unknown> | null
+  new_value?: Record<string, unknown> | null
+  ip_address?: string | null
+  user_agent?: string | null
+  request_id?: string | null
+  risk_score?: number
+  created_at: string
 }
 
-export interface DeliveryType {
+export interface IntegrationAuth {
   id: string
-  name: string
-  code: string
-  description?: string
+  user_id: string
+  auth_key_hash: string
+  certificate_pem?: string | null
+  certificate_expiry?: string | null
+  allowed_ip_ranges?: string[] | null
+  last_auth_at?: string | null
+  auth_success_count?: number
+  auth_failure_count?: number
+  is_active: boolean
 }
 
-export interface TourStatus {
+export interface UserMfa {
   id: string
-  name: string
-  code: string
-  color?: string
+  user_id: string
+  mfa_type?: MfaType | null
+  secret_encrypted?: string | null
+  backup_codes_hash?: string[] | null
+  is_enabled: boolean
+  verified_at?: string | null
+}
+
+export interface Setting {
+  id: string
+  setting_key: string
+  setting_value: string
+  value_type: string
+  category: string
+  description?: string | null
+  is_encrypted: boolean
+  min_value?: number | null
+  max_value?: number | null
+  requires_restart: boolean
 }
 
 export interface ApiEnvelope<T> {
   success: boolean
   message: string
-  donnees: T
-  pagination?: Pagination
-  filtres?: ApiFilters
+  data: T
+  pagination?: ApiPagination
+  filters?: ApiFilters
   aggregations?: AggregationResult
 }
 
-export interface Pagination {
+export interface ApiPagination {
   page: number
   limit: number
   total: number
@@ -438,22 +653,22 @@ export interface Pagination {
 }
 
 export interface ApiFilters {
-  dateDebut?: string
-  dateFin?: string
-  tri?: string
-  groupement?: string
+  date_from?: string
+  date_to?: string
+  sort?: string
+  group_by?: string
 }
 
 export interface AggregationBucket {
   key: string
   count: number
-  sumVolume?: number
-  avgScore?: number
+  sum_volume?: number
+  avg_score?: number
 }
 
 export interface AggregationResult {
-  groupedBy: string
+  grouped_by: string
   buckets: AggregationBucket[]
-  totalCount: number
-  totalVolume?: number
+  total_count: number
+  total_volume?: number
 }

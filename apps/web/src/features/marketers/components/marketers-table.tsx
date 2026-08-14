@@ -10,6 +10,7 @@ import {
   type SortingState,
   type VisibilityState,
   useReactTable,
+  GroupingState,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
@@ -22,14 +23,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { marketerStatusOptions, type Marketer } from '../data/marketers'
+import { type Organization } from '@lpg/types'
 import { getMarketersColumns } from './marketers-columns'
 
 type MarketersTableProps = {
-  data: Marketer[]
+  data: Organization[]
   search: Record<string, unknown>
   navigate: NavigateFn
-  onViewDetails: (marketer: Marketer) => void
+  onViewDetails: (marketer: Organization) => void
+  onEdit?: (marketer: Organization) => void
+  onDelete?: (marketer: Organization) => void
 }
 
 export function MarketersTable({
@@ -37,13 +40,16 @@ export function MarketersTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: MarketersTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  const [grouping, setGrouping] = useState<GroupingState>([])
   const columns = useMemo(
-    () => getMarketersColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getMarketersColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {
@@ -59,7 +65,7 @@ export function MarketersTable({
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: 'name', searchKey: 'q', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'is_active', searchKey: 'is_active', type: 'array' },
     ],
   })
 
@@ -99,18 +105,38 @@ export function MarketersTable({
         'flex flex-1 flex-col gap-4'
       )}
     >
+    <div className='flex flex-wrap items-center gap-3'>
       <DataTableToolbar
         table={table}
         searchPlaceholder='Rechercher marketer...'
         searchKey='name'
         filters={[
           {
-            columnId: 'status',
+            columnId: 'is_active',
             title: 'Statut',
-            options: marketerStatusOptions,
+            options: [
+              { label: 'Actif', value: 'true' },
+              { label: 'Inactif', value: 'false' },
+            ],
           },
         ]}
       />
+      {/* Le sélecteur est maintenant correctement placé en tant qu'enfant (children) */}
+      
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) =>
+              setGrouping(e.target.value ? [e.target.value] : [])
+            }
+            className="h-8 rounded-md border bg-background px-2 text-sm"
+          >
+            <option value="">-</option>
+            <option value="site">sites</option>
+          </select>
+        </div>
+      </div>
 
       <div className='overflow-hidden rounded-md border'>
         <Table>
@@ -177,7 +203,7 @@ export function MarketersTable({
           </TableBody>
         </Table>
       </div>
-      
+
       <DataTablePagination table={table} />
     </div>
   )

@@ -1,14 +1,10 @@
-import { type ElementType, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  AlertTriangle,
   ArrowDownToLine,
   ArrowDownRight,
   ArrowUpRight,
   CalendarRange,
   ChevronRight,
-  PackageCheck,
-  Truck,
-  Warehouse,
 } from 'lucide-react'
 import {
   Bar,
@@ -32,7 +28,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { type Role } from '@/config/rbac/roles'
 import { Main } from '@/components/layout/main'
+import { formatTm, formatBtl } from '@/features/map/utils/format'
 import {
   buildDashboardView,
   type DashboardActivityStatus,
@@ -44,58 +42,55 @@ import {
   type DashboardRouteContribution,
 } from './data/dashboard'
 
-type DashboardDetailId = 'transported' | 'reserve' | 'delivered' | 'alerts'
-
-const metricIcons: Record<string, ElementType> = {
-  transported: Truck,
-  reserve: Warehouse,
-  delivered: PackageCheck,
-  alerts: AlertTriangle,
-}
-
-const activityStatusClasses: Record<DashboardActivityStatus, string> = {
-  completed:
-    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  attention:
-    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  planned:
-    'border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300',
-}
-
-const reserveStatusClasses = {
-  healthy:
-    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  watch:
-    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  critical:
-    'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300',
-} as const
-
-const routeStatusLabels: Record<DashboardRouteContribution['status'], string> =
-  {
-    planned: 'Planifiée',
-    'in-progress': 'En cours',
-    completed: 'Terminée',
-    incident: 'Incident',
-  }
-
-export function DashboardPage() {
+export function DashboardPage({ role }: { role?: Role } = {}) {
   const dashboard = useMemo(() => buildDashboardView(), [])
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')
   const monthlySeries = dashboard.trendByPeriod.monthly
   const dailyAlerts = dashboard.trendByPeriod.daily
 
+  const heading =
+    role === 'SUPERADMIN'
+      ? 'Pilotage national'
+      : role === 'ADMIN'
+        ? 'Tableau de bord administration'
+        : role === 'SUPERVISOR'
+          ? 'Métriques système'
+          : role === 'INTEGRATEUR'
+            ? 'Activation matériel'
+            : role === 'AGENT'
+              ? 'Vue consolidée agent'
+              : role === 'MARKETEUR'
+                ? 'Pilotage marketeur'
+                : role === 'TRANSPORTEUR'
+                  ? 'État de la flotte'
+                  : 'Tableau de bord global'
+  const subtitle =
+    role === 'SUPERADMIN'
+      ? 'Vue nationale des volumes, traçabilité et anomalies agrégées.'
+      : role === 'ADMIN'
+        ? 'Administration des utilisateurs, marketeurs et validations.'
+        : role === 'SUPERVISOR'
+          ? 'Santé services, alertes infrastructure et risques.'
+          : role === 'INTEGRATEUR'
+            ? 'Parc PDA/GPS/RFID et authentification des appareils.'
+            : role === 'AGENT'
+              ? 'Suivi marketeurs assignés et visites terrain.'
+              : role === 'MARKETEUR'
+                ? 'Flotte, quotas, tournées et clients.'
+                : role === 'TRANSPORTEUR'
+                  ? 'Flotte, tournées, scans et points de contrôle.'
+                  : 'Pilotage consolidé des volumes transportés, de la réserve utile et des signaux récents du réseau GPL.'
+
   return (
     <Main fluid className='space-y-6 bg-muted/20'>
       <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
         <div className='space-y-1'>
           <h1 className='font-manrope text-3xl font-semibold tracking-tight'>
-            Tableau de bord global
+            {heading}
           </h1>
           <p className='max-w-3xl text-sm text-muted-foreground sm:text-base'>
-            Pilotage consolidé des volumes transportés, de la réserve utile et
-            des signaux récents du réseau GPL.
+            {subtitle}
           </p>
         </div>
 
@@ -141,7 +136,7 @@ export function DashboardPage() {
 
       <section className='grid gap-4 xl:grid-cols-[1.05fr_1fr_0.95fr]'>
         <FlowBreakdownCard
-          totalTransportedKg={dashboard.overview.totalTransportedKg}
+          totalTransportedTM={dashboard.overview.totalTransportedTM}
           breakdown={dashboard.flowBreakdown}
           deltaPercent={dashboard.metrics[0]?.deltaPercent ?? 0}
         />
@@ -149,7 +144,7 @@ export function DashboardPage() {
         <MonthlyVolumesCard series={monthlySeries} />
 
         <ReserveSummaryCard
-          totalReserveKg={dashboard.overview.totalReserveKg}
+          totalReserveTM={dashboard.overview.totalReserveTM}
           summary={dashboard.reserveSummary}
         />
       </section>
@@ -166,6 +161,34 @@ export function DashboardPage() {
   )
 }
 
+type DashboardDetailId = 'transported' | 'reserve' | 'delivered' | 'alerts'
+
+const activityStatusClasses: Record<DashboardActivityStatus, string> = {
+  completed:
+    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  attention:
+    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  planned:
+    'border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300',
+}
+
+const reserveStatusClasses = {
+  healthy:
+    'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  watch:
+    'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  critical:
+    'border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+} as const
+
+const routeStatusLabels: Record<DashboardRouteContribution['status'], string> =
+  {
+    planned: 'Planifiée',
+    'in-progress': 'En cours',
+    completed: 'Terminée',
+    incident: 'Incident',
+  }
+
 function MetricCard({
   metric,
   sparkline,
@@ -177,7 +200,6 @@ function MetricCard({
   selected: boolean
   onSelect: () => void
 }) {
-  const Icon = metricIcons[metric.id] ?? Truck
   const DeltaIcon =
     metric.deltaDirection === 'down' ? ArrowDownRight : ArrowUpRight
 
@@ -191,7 +213,7 @@ function MetricCard({
       <CardHeader className='gap-3 pb-3'>
         <div className='flex items-center justify-between gap-3'>
           <div className='flex size-10 items-center justify-center rounded-xl border bg-muted/30'>
-            <Icon className='size-4 text-muted-foreground' />
+            <div className='size-4 rounded-full bg-primary/20' />
           </div>
           {metric.id === 'alerts' ? (
             <Badge className='border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300'>
@@ -350,9 +372,9 @@ function CarrierSummaryList({ fleets }: { fleets: DashboardFleetSummary[] }) {
               />
             </div>
             <div className='grid grid-cols-2 gap-2 text-xs text-muted-foreground'>
-              <span>{formatKg(fleet.transportedKg)} chargés</span>
+              <span>{formatTm(fleet.transportedTM)} chargés</span>
               <span className='text-right'>
-                {formatKg(fleet.deliveredKg)} livrés
+                {formatTm(fleet.delivered)} livrés
               </span>
             </div>
           </div>
@@ -371,15 +393,15 @@ function RouteContributionTable({
 }) {
   const rows = [...contributions]
     .filter((contribution) =>
-      mode === 'delivered' ? contribution.deliveredQuantityKg > 0 : true
+      mode === 'delivered' ? contribution.deliveredQuantity > 0 : true
     )
     .sort((left, right) => {
       const leftValue =
-        mode === 'delivered' ? left.deliveredQuantityKg : left.loadedQuantityKg
+        mode === 'delivered' ? left.deliveredQuantity : left.loadedQuantity
       const rightValue =
         mode === 'delivered'
-          ? right.deliveredQuantityKg
-          : right.loadedQuantityKg
+          ? right.deliveredQuantity
+          : right.loadedQuantity
 
       return rightValue - leftValue
     })
@@ -403,8 +425,8 @@ function RouteContributionTable({
           {rows.map((contribution) => {
             const volume =
               mode === 'delivered'
-                ? contribution.deliveredQuantityKg
-                : contribution.loadedQuantityKg
+                ? contribution.deliveredQuantity
+                : contribution.loadedQuantity
             const share =
               mode === 'delivered'
                 ? contribution.deliveredSharePercent
@@ -431,18 +453,18 @@ function RouteContributionTable({
                   </p>
                 </td>
                 <td className='px-4 py-3 text-right align-top'>
-                  <p className='font-medium'>{formatKg(volume)}</p>
+                  <p className='font-medium'>{formatTm(volume)}</p>
                   <p className='text-xs text-muted-foreground'>
                     {share}% du total
                   </p>
                 </td>
                 <td className='px-4 py-3 text-right align-top'>
                   <p className='font-medium'>
-                    {formatKg(contribution.remainingQuantityKg)}
+                    {formatTm(contribution.remainingQuantity)}
                   </p>
-                  {contribution.unaccountedKg > 0 ? (
+                  {contribution.unaccounted > 0 ? (
                     <p className='text-xs text-rose-600 dark:text-rose-300'>
-                      {formatKg(contribution.unaccountedKg)} à vérifier
+                      {formatTm(contribution.unaccounted)} à vérifier
                     </p>
                   ) : (
                     <p className='text-xs text-muted-foreground'>
@@ -492,7 +514,7 @@ function ReserveDetailTable({ sites }: { sites: DashboardReserveSite[] }) {
                 </p>
               </td>
               <td className='px-4 py-3 text-right'>
-                <p className='font-medium'>{formatKg(site.reserveKg)}</p>
+                <p className='font-medium'>{formatTm(site.reserveTM)}</p>
                 <p className='text-xs text-muted-foreground'>
                   {site.fillPercent}% rempli
                 </p>
@@ -507,11 +529,9 @@ function ReserveDetailTable({ sites }: { sites: DashboardReserveSite[] }) {
                 </p>
               </td>
               <td className='px-4 py-3 text-right'>
-                <p className='font-medium'>
-                  {formatKg(site.scheduledInboundKg)}
-                </p>
+                <p className='font-medium'>{formatTm(site.scheduledInboundTM)}</p>
                 <p className='text-xs text-muted-foreground'>
-                  sorties {formatKg(site.outboundKg)}
+                  sorties {formatTm(site.outboundTM)}
                 </p>
               </td>
             </tr>
@@ -545,9 +565,7 @@ function AlertDetailList({
           <div className='flex items-start justify-between gap-3'>
             <div className='space-y-1'>
               <p className='font-medium'>{alert.title}</p>
-              <p className='text-sm text-muted-foreground'>
-                {alert.description}
-              </p>
+              <p className='text-sm text-muted-foreground'>{alert.description}</p>
             </div>
             <Badge
               className={cn(
@@ -608,11 +626,11 @@ function getDetailsCopy(activeMetricId: DashboardDetailId) {
 }
 
 function FlowBreakdownCard({
-  totalTransportedKg,
+  totalTransportedTM,
   breakdown,
   deltaPercent,
 }: {
-  totalTransportedKg: number
+  totalTransportedTM: number
   breakdown: DashboardBreakdownItem[]
   deltaPercent: number
 }) {
@@ -628,7 +646,7 @@ function FlowBreakdownCard({
         <div className='space-y-2'>
           <p className='text-sm text-muted-foreground'>Volume transporté</p>
           <p className='text-4xl font-semibold tracking-tight'>
-            {formatKg(totalTransportedKg)}
+            {formatTm(totalTransportedTM)}
           </p>
           <p className='flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-300'>
             <ArrowUpRight className='size-4' />
@@ -666,7 +684,7 @@ function FlowBreakdownCard({
                   </p>
                 </div>
               </div>
-              <p className='font-medium'>{formatKg(item.amountKg)}</p>
+              <p className='font-medium'>{formatTm(item.amountTM)}</p>
             </div>
           ))}
         </div>
@@ -678,7 +696,7 @@ function FlowBreakdownCard({
 function MonthlyVolumesCard({
   series,
 }: {
-  series: { label: string; transportedKg: number; deliveredKg: number }[]
+  series: { label: string; transportedTM: number; delivered: number }[]
 }) {
   return (
     <Card className='rounded-2xl border-border/60 shadow-none'>
@@ -697,7 +715,7 @@ function MonthlyVolumesCard({
       </CardHeader>
       <CardContent className='space-y-5'>
         <div className='h-[290px]'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' aspect={16 / 9}>
             <BarChart data={series} barCategoryGap={18}>
               <CartesianGrid
                 stroke='rgba(148, 163, 184, 0.18)'
@@ -711,7 +729,7 @@ function MonthlyVolumesCard({
                 fontSize={12}
               />
               <YAxis
-                tickFormatter={(value) => formatAxisKg(Number(value))}
+                tickFormatter={(value) => formatTm(Number(value))}
                 tickLine={false}
                 axisLine={false}
                 fontSize={12}
@@ -733,9 +751,9 @@ function MonthlyVolumesCard({
                     <div className='rounded-xl border bg-background px-3 py-2 shadow-sm'>
                       <p className='text-xs text-muted-foreground'>{label}</p>
                       <div className='mt-2 space-y-1 text-sm'>
-                        <p>Transporté: {formatKg(transported)}</p>
+                        <p>Transporté: {formatTm(transported)}</p>
                         <p className='text-muted-foreground'>
-                          Livré: {formatKg(delivered)}
+                          Livré: {formatTm(delivered)}
                         </p>
                       </div>
                     </div>
@@ -743,13 +761,13 @@ function MonthlyVolumesCard({
                 }}
               />
               <Bar
-                dataKey='transportedKg'
+                dataKey='transportedTM'
                 name='Transporté'
                 fill='var(--color-primary)'
                 radius={[10, 10, 0, 0]}
               />
               <Bar
-                dataKey='deliveredKg'
+                dataKey='delivered'
                 name='Livré'
                 fill='#93c5fd'
                 radius={[10, 10, 0, 0]}
@@ -773,10 +791,10 @@ function MonthlyVolumesCard({
 }
 
 function ReserveSummaryCard({
-  totalReserveKg,
+  totalReserveTM,
   summary,
 }: {
-  totalReserveKg: number
+  totalReserveTM: number
   summary: DashboardBreakdownItem[]
 }) {
   return (
@@ -790,16 +808,16 @@ function ReserveSummaryCard({
           variant='outline'
           className='border-transparent bg-muted/40 text-foreground'
         >
-          {formatTons(totalReserveKg)}
+          {formatTm(totalReserveTM)}
         </Badge>
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='relative mx-auto h-[220px] w-full max-w-[240px]'>
-          <ResponsiveContainer width='100%' height='100%'>
+          <ResponsiveContainer width='100%' aspect={16 / 9}>
             <PieChart>
               <Pie
                 data={summary}
-                dataKey='amountKg'
+                dataKey='amountTM'
                 innerRadius={60}
                 outerRadius={92}
                 paddingAngle={3}
@@ -819,7 +837,7 @@ function ReserveSummaryCard({
                     <div className='rounded-xl border bg-background px-3 py-2 shadow-sm'>
                       <p className='text-sm font-medium'>{item.label}</p>
                       <p className='mt-1 text-xs text-muted-foreground'>
-                        {formatKg(item.amountKg)} - {item.sharePercent}%
+                        {formatTm(item.amountTM)} - {item.sharePercent}%
                       </p>
                     </div>
                   )
@@ -831,9 +849,7 @@ function ReserveSummaryCard({
             <p className='text-xs tracking-[0.18em] text-muted-foreground uppercase'>
               Réserve utile
             </p>
-            <p className='text-3xl font-semibold'>
-              {formatTons(totalReserveKg)}
-            </p>
+            <p className='text-3xl font-semibold'>{formatTm(totalReserveTM)}</p>
           </div>
         </div>
 
@@ -850,9 +866,7 @@ function ReserveSummaryCard({
                 />
                 <span className='font-medium'>{item.label}</span>
               </div>
-              <span className='text-muted-foreground'>
-                {item.sharePercent}%
-              </span>
+              <span className='text-muted-foreground'>{item.sharePercent}%</span>
             </div>
           ))}
         </div>
@@ -900,9 +914,7 @@ function RecentActivitiesCard({
                       : 'Planifié'}
                 </Badge>
               </div>
-              <p className='text-sm text-muted-foreground'>
-                {activity.description}
-              </p>
+              <p className='text-sm text-muted-foreground'>{activity.description}</p>
               <div className='flex flex-wrap items-center gap-3 text-xs text-muted-foreground'>
                 <span>{activity.location}</span>
                 <span>{activity.owner}</span>
@@ -912,11 +924,9 @@ function RecentActivitiesCard({
 
             <div className='text-right'>
               <p className='text-sm font-medium'>
-                {activity.volumeKg ? formatKg(activity.volumeKg) : '--'}
+                {activity.volumeTM ? formatTm(activity.volumeTM) : '--'}
               </p>
-              <p className='mt-1 text-xs text-muted-foreground'>
-                impact estimé
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>impact estimé</p>
             </div>
           </div>
         ))}
@@ -957,9 +967,7 @@ function ReserveSitesCard({ sites }: { sites: DashboardReserveSite[] }) {
                 </p>
               </div>
               <div className='text-right'>
-                <p className='text-sm font-medium'>
-                  {formatKg(site.reserveKg)}
-                </p>
+                <p className='text-sm font-medium'>{formatTm(site.reserveTM)}</p>
                 <p className='text-xs text-muted-foreground'>
                   {site.daysOfCover.toFixed(1)} jours
                 </p>
@@ -984,9 +992,9 @@ function ReserveSitesCard({ sites }: { sites: DashboardReserveSite[] }) {
               <MiniStat label='Remplissage' value={`${site.fillPercent}%`} />
               <MiniStat
                 label='Inbound prévu'
-                value={formatKg(site.scheduledInboundKg)}
+                value={formatTm(site.scheduledInboundTM)}
               />
-              <MiniStat label='Sorties' value={formatKg(site.outboundKg)} />
+              <MiniStat label='Sorties' value={formatTm(site.outboundTM)} />
             </div>
           </div>
         ))}
@@ -1033,9 +1041,7 @@ function FleetPerformanceCard({ fleets }: { fleets: DashboardFleetSummary[] }) {
                 </p>
               </div>
               <div className='text-right'>
-                <p className='text-lg font-semibold'>
-                  {formatKg(fleet.transportedKg)}
-                </p>
+                <p className='text-lg font-semibold'>{formatTm(fleet.transportedTM)}</p>
                 <p className='text-xs text-muted-foreground'>
                   {fleet.onTimeRate}% de service
                 </p>
@@ -1043,8 +1049,8 @@ function FleetPerformanceCard({ fleets }: { fleets: DashboardFleetSummary[] }) {
             </div>
 
             <div className='mt-4 grid gap-3 sm:grid-cols-4'>
-              <MiniStat label='Livré' value={formatKg(fleet.deliveredKg)} />
-              <MiniStat label='En attente' value={formatKg(fleet.pendingKg)} />
+              <MiniStat label='Livré' value={formatTm(fleet.delivered)} />
+              <MiniStat label='En attente' value={formatTm(fleet.pendingTM)} />
               <MiniStat
                 label='Mobilisation'
                 value={`${fleet.utilizationPercent}%`}
@@ -1072,35 +1078,17 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   )
 }
 
-function formatKg(value: number) {
-  return `${new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  }).format(value)} kg`
-}
-
-function formatTons(value: number) {
-  return `${new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(value / 1000)} t`
-}
-
 function formatMetricValue(
   value: number,
-  unit: 'kg' | 'count' | 'percent' | 'days'
+  unit: 'TM' | 'btl' | 'count' | 'percent' | 'days'
 ) {
-  if (unit === 'kg') return formatKg(value)
+  if (unit === 'TM') return formatTm(value)
+  if (unit === 'btl') return formatBtl(value)
   if (unit === 'percent') return `${value}%`
   if (unit === 'days') return `${value.toFixed(1)} jours`
   return new Intl.NumberFormat('fr-FR', {
     maximumFractionDigits: 0,
   }).format(value)
-}
-
-function formatAxisKg(value: number) {
-  return `${new Intl.NumberFormat('fr-FR', {
-    maximumFractionDigits: 0,
-  }).format(value / 1000)}t`
 }
 
 function formatActivityDate(value: string) {

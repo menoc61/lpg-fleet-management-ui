@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
+import { usePreferencesStore } from '@/store/preferences-store'
 
 type Theme = 'dark' | 'light' | 'system'
 type ResolvedTheme = Exclude<Theme, 'system'>
@@ -38,9 +39,30 @@ export function ThemeProvider({
   storageKey = THEME_COOKIE_NAME,
   ...props
 }: ThemeProviderProps) {
-  const [theme, _setTheme] = useState<Theme>(
-    () => (getCookie(storageKey) as Theme) || defaultTheme
-  )
+  // The user preference store (Zustand, persisted) is the primary source of
+  // truth for the theme. The cookie keeps it sticky across hard reloads and
+  // covers cases where the store has been cleared (e.g. private mode).
+  const prefTheme = usePreferencesStore((s) => s.theme)
+  const setPrefTheme = usePreferencesStore((s) => s.setTheme)
+
+  const [cookieTheme, _setCookieTheme] = useState<Theme | null>(() => {
+    const fromCookie = getCookie(storageKey) as Theme | undefined
+    return fromCookie ?? null
+  })
+
+  const theme: Theme = cookieTheme ?? prefTheme ?? defaultTheme
+
+  const setTheme = (next: Theme) => {
+    setCookie(storageKey, next, THEME_COOKIE_MAX_AGE)
+    _setCookieTheme(next)
+    setPrefTheme(next)
+  }
+
+  const resetTheme = () => {
+    removeCookie(storageKey)
+    _setCookieTheme(null)
+    setPrefTheme(DEFAULT_THEME)
+  }
 
   // Optimized: Memoize the resolved theme calculation to prevent unnecessary re-computations
   const resolvedTheme = useMemo((): ResolvedTheme => {
@@ -74,16 +96,6 @@ export function ThemeProvider({
 
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [theme, resolvedTheme])
-
-  const setTheme = (theme: Theme) => {
-    setCookie(storageKey, theme, THEME_COOKIE_MAX_AGE)
-    _setTheme(theme)
-  }
-
-  const resetTheme = () => {
-    removeCookie(storageKey)
-    _setTheme(DEFAULT_THEME)
-  }
 
   const contextValue = {
     defaultTheme,

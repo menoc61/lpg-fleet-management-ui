@@ -12,11 +12,11 @@ type DataTableToolbarProps<TData> = {
   filters?: {
     columnId: string
     title: string
-    options: {
+    options: ReadonlyArray<{
       label: string
       value: string
       icon?: React.ComponentType<{ className?: string }>
-    }[]
+    }>
   }[]
 }
 

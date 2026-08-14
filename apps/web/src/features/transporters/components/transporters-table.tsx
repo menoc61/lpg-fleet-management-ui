@@ -22,14 +22,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { transporterStatusOptions, type Transporter } from '../data/transporters'
+import { type Organization } from '@lpg/types'
 import { getTransportersColumns } from './transporters-columns'
 
 type TransportersTableProps = {
-  data: Transporter[]
+  data: Organization[]
   search: Record<string, unknown>
   navigate: NavigateFn
-  onViewDetails: (transporter: Transporter) => void
+  onViewDetails: (transporter: Organization) => void
+  onEdit?: (transporter: Organization) => void
+  onDelete?: (transporter: Organization) => void
 }
 
 export function TransportersTable({
@@ -37,13 +39,15 @@ export function TransportersTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: TransportersTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
-    () => getTransportersColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getTransportersColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {
@@ -59,7 +63,7 @@ export function TransportersTable({
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: 'name', searchKey: 'q', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'is_active', searchKey: 'is_active', type: 'array' },
     ],
   })
 
@@ -105,9 +109,12 @@ export function TransportersTable({
         searchKey='name'
         filters={[
           {
-            columnId: 'status',
+            columnId: 'is_active',
             title: 'Statut',
-            options: transporterStatusOptions,
+            options: [
+              { label: 'Actif', value: 'true' },
+              { label: 'Inactif', value: 'false' },
+            ] as { label: string; value: string }[],
           },
         ]}
       />

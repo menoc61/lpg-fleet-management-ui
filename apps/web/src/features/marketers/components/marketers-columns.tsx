@@ -3,16 +3,20 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { LongText } from '@/components/long-text'
-import { marketerStatusOptions, type Marketer } from '../data/marketers'
+import { type Organization } from '@lpg/types'
+import { CrudRowActions } from '@/components/entity-crud'
 
 type MarketersColumnsProps = {
-  onViewDetails: (marketer: Marketer) => void
+  onViewDetails: (marketer: Organization) => void
+  onEdit?: (marketer: Organization) => void
+  onDelete?: (marketer: Organization) => void
 }
 
 export function getMarketersColumns({
   onViewDetails,
-}: MarketersColumnsProps): ColumnDef<Marketer>[] {
+  onEdit,
+  onDelete,
+}: MarketersColumnsProps): ColumnDef<Organization>[] {
   return [
     {
       id: 'select',
@@ -42,9 +46,9 @@ export function getMarketersColumns({
       enableHiding: false,
     },
     {
-      accessorKey: 'id',
+      accessorKey: 'name',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='ID Marketer' />
+        <DataTableColumnHeader column={column} title='Name Marketer' />
       ),
       cell: ({ row }) => (
         <button
@@ -52,19 +56,20 @@ export function getMarketersColumns({
           onClick={() => onViewDetails(row.original)}
           className='ps-3 text-left font-medium text-primary underline-offset-4 hover:underline'
         >
-          {row.original.id}
+          {row.original.name}
         </button>
       ),
       meta: {
-        label: 'ID Marketer',
+        label: 'Name Marketer',
         className: cn(
           'drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.1)] dark:drop-shadow-[0_1px_2px_rgb(255_255_255_/_0.1)]',
           'inset-s-6 ps-0.5 max-md:sticky @4xl/content:table-cell @4xl/content:drop-shadow-none'
         ),
       },
       enableHiding: false,
+      enableGrouping: true,
     },
-    {
+    /*{
       accessorKey: 'name',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Nom' />
@@ -73,56 +78,74 @@ export function getMarketersColumns({
         <div className='font-medium'>{row.original.name}</div>
       ),
       meta: { label: 'Nom', className: 'w-48' },
-    },
+      enableGrouping: true,
+    },*/
     {
-      accessorKey: 'status',
+      accessorKey: 'is_active',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title='Statut' />
       ),
-      cell: ({ row }) => {
-        const status = row.original.status
-        const label = marketerStatusOptions.find((o) => o.value === status)?.label
-        return (
-          <Badge variant={status === 'active' ? 'default' : 'secondary'}>
-            {label}
-          </Badge>
-        )
-      },
+      cell: ({ row }) => (
+        <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
+          {row.original.is_active ? 'Actif' : 'Inactif'}
+        </Badge>
+      ),
       filterFn: (row, id, value) =>
         (value as string[]).includes(String(row.getValue(id))),
       meta: { label: 'Statut' },
       enableSorting: false,
       enableHiding: false,
+      enableGrouping: true,
     },
     {
-      accessorKey: 'region',
+      accessorKey: 'user_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Région' />
+        <DataTableColumnHeader column={column} title='Personnels' />
       ),
       cell: ({ row }) => (
-        <LongText className='max-w-44'>{row.original.region}</LongText>
+        <span className='font-medium'>{row.original.user_count ?? 0}</span>
       ),
-      meta: { label: 'Région' },
+      meta: { label: 'Personnels' },
+      enableGrouping: true,
     },
     {
-      accessorKey: 'contactEmail',
+      accessorKey: 'vehicle_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Email' />
+        <DataTableColumnHeader column={column} title='Véhicules' />
       ),
       cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contactEmail}</div>
+        <span className='font-medium'>{row.original.vehicle_count ?? 0}</span>
       ),
-      meta: { label: 'Email' },
+      meta: { label: 'Véhicules' },
+      enableGrouping: true,
     },
     {
-      accessorKey: 'contactPhone',
+      accessorKey: 'operational_site_count',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title='Téléphone' />
+        <DataTableColumnHeader column={column} title='Sites' />
       ),
       cell: ({ row }) => (
-        <div className='text-muted-foreground'>{row.original.contactPhone}</div>
+        <span className='font-medium'>{row.original.operational_site_count ?? 0}</span>
       ),
-      meta: { label: 'Téléphone' },
+      meta: { label: 'Sites' },
+      enableGrouping: true,
+    },
+    {
+      id: 'actions',
+      header: () => <span className='sr-only'>Actions</span>,
+      cell: ({ row }) => (
+        <div className='text-right'>
+          <CrudRowActions
+            resource='markets'
+            itemLabel='ce marketeur'
+            onEdit={onEdit ? () => onEdit?.(row.original) : undefined}
+            onDelete={onDelete ? () => onDelete?.(row.original) : undefined}
+          />
+        </div>
+      ),
+      meta: { label: 'Actions' },
+      enableHiding: false,
+      enableSorting: false,
     },
   ]
 }

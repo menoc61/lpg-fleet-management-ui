@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn } from '@lpg/ui'
 
 type MainProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean

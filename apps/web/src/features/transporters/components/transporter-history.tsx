@@ -1,16 +1,35 @@
-import { type Transporter } from '../data/transporters'
-import { getTransporterRoutes } from '../data/transporter-routes'
+import { type Organization } from '@lpg/types'
+import { getToursForTransporter, type TransporterTourWithDetails } from '../data/transporter-tours'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { format } from 'date-fns'
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
-  'en cours': 'default',
-  'terminé': 'secondary',
-  'planifié': 'outline',
+const statusVariant: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+  DRAFT: 'outline',
+  PLANNED: 'secondary',
+  PENDINGTRANSPORTERACK: 'outline',
+  ACKNOWLEDGED: 'default',
+  INPROGRESS: 'default',
+  CHECKPOINTACTIVE: 'default',
+  CLOSED: 'secondary',
+  CANCELLED: 'destructive',
 }
 
-export function TransporterHistory({ transporter }: { transporter: Transporter }) {
-  const routes = getTransporterRoutes(transporter.id)
+const executionModeBadge: Record<string, 'default' | 'secondary' | 'outline'> = {
+  INTERNAL: 'default',
+  EXTERNAL: 'secondary',
+}
+
+function getDriverName(tour: TransporterTourWithDetails): string {
+  if (!tour.driver) return '—'
+  const firstName = tour.driver.first_name?.trim() ?? ''
+  const lastName = tour.driver.last_name?.trim() ?? ''
+  const fullName = `${firstName} ${lastName}`.trim()
+  return fullName || '—'
+}
+
+export function TransporterHistory({ transporter }: { transporter: Organization }) {
+  const tours = getToursForTransporter(transporter.id)
 
   return (
     <Card>
@@ -20,44 +39,46 @@ export function TransporterHistory({ transporter }: { transporter: Transporter }
       <CardContent className='px-0 sm:px-6'>
         {/* Mobile: card list */}
         <div className='flex flex-col gap-3 sm:hidden'>
-          {routes.map((route) => (
-            <div key={route.id} className='border rounded-lg p-3 mx-3'>
+          {tours.map((tour) => (
+            <div key={tour.id} className='border rounded-lg p-3 mx-3'>
               <div className='flex items-start justify-between gap-2'>
                 <div className='min-w-0'>
-                  <p className='font-medium text-sm'>{route.id}</p>
-                  <p className='text-xs text-muted-foreground font-mono'>{route.truckPlate}</p>
+                  <p className='font-medium text-sm'>{tour.marketeur?.name ?? '—'}</p>
+                  <p className='text-xs text-muted-foreground font-mono'>{tour.id}</p>
                 </div>
-                <Badge variant={statusVariant[route.status]} className='shrink-0'>
-                  {route.status}
+                <Badge variant={statusVariant[tour.status] ?? 'outline'} className='shrink-0'>
+                  {tour.statusLabel}
                 </Badge>
               </div>
               <div className='mt-2 space-y-1 text-xs'>
                 <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>Date</span>
-                  <span>{route.date}</span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>Origine</span>
-                  <span className='text-right'>{route.origin}</span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>Destination</span>
-                  <span className='text-right'>{route.destination}</span>
+                  <span className='text-muted-foreground'>Marketeur</span>
+                  <span className='text-right font-medium'>{tour.marketeur?.name ?? '—'}</span>
                 </div>
                 <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Volume</span>
-                  <span className='font-medium text-emerald-600 dark:text-emerald-400'>{route.volume}</span>
+                  <span className='text-right'>{tour.requested_quantity} {tour.type === 'VRAC' ? 'TM' : 'btl'}</span>
                 </div>
                 <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>Marketer</span>
-                  <span className='font-medium'>{route.marketer}</span>
+                  <span className='text-muted-foreground'>Mode</span>
+                  <Badge variant={executionModeBadge[tour.execution_mode] ?? 'outline'} className='text-[10px]'>
+                    {tour.execution_mode === 'INTERNAL' ? 'Interne' : 'Externe'}
+                  </Badge>
+                </div>
+                <div className='flex justify-between'>
+                  <span className='text-muted-foreground'>Camion</span>
+                  <span className='text-right'>{tour.vehicle?.license_plate ?? '—'}</span>
+                </div>
+                <div className='flex justify-between'>
+                  <span className='text-muted-foreground'>Chauffeur</span>
+                  <span className='text-right font-medium'>{getDriverName(tour)}</span>
                 </div>
               </div>
             </div>
           ))}
-          {routes.length === 0 && (
+          {tours.length === 0 && (
             <p className='p-4 text-center text-muted-foreground'>
-              Aucune tournée enregistrée pour ce transporter.
+              Aucune tournée enregistrée pour ce transporteur.
             </p>
           )}
         </div>
@@ -67,37 +88,45 @@ export function TransporterHistory({ transporter }: { transporter: Transporter }
           <table className='w-full text-sm text-left'>
             <thead className='bg-muted/50 text-muted-foreground'>
               <tr>
-                <th className='p-3 font-medium whitespace-nowrap'>ID</th>
-                <th className='p-3 font-medium'>Date</th>
-                <th className='p-3 font-medium'>Camion</th>
-                <th className='p-3 font-medium'>Origine</th>
-                <th className='p-3 font-medium'>Destination</th>
+                <th className='p-3 font-medium whitespace-nowrap'>Marketeur</th>
+                <th className='p-3 font-medium'>ID Tournée</th>
                 <th className='p-3 font-medium'>Volume</th>
-                <th className='p-3 font-medium'>Marketer</th>
+                <th className='p-3 font-medium'>Mode</th>
+                <th className='p-3 font-medium'>Camion</th>
+                <th className='p-3 font-medium'>Chauffeur</th>
                 <th className='p-3 font-medium'>Statut</th>
+                <th className='p-3 font-medium'>Démarré le</th>
               </tr>
             </thead>
             <tbody>
-              {routes.map((route) => (
-                <tr key={route.id} className='border-t'>
-                  <td className='p-3 font-medium whitespace-nowrap'>{route.id}</td>
-                  <td className='p-3 whitespace-nowrap'>{route.date}</td>
-                  <td className='p-3 font-mono whitespace-nowrap'>{route.truckPlate}</td>
-                  <td className='p-3'>{route.origin}</td>
-                  <td className='p-3'>{route.destination}</td>
-                  <td className='p-3 font-medium text-emerald-600 dark:text-emerald-400 whitespace-nowrap'>{route.volume}</td>
-                  <td className='p-3 font-medium'>{route.marketer}</td>
-                  <td className='p-3'>
-                    <Badge variant={statusVariant[route.status]}>
-                      {route.status}
+              {tours.map((tour) => (
+                <tr key={tour.id} className='border-t'>
+                  <td className='p-3 font-medium whitespace-nowrap'>{tour.marketeur?.name ?? '—'}</td>
+                  <td className='p-3 font-mono whitespace-nowrap'>{tour.id}</td>
+                  <td className='p-3 whitespace-nowrap'>
+                    {tour.requested_quantity} {tour.type === 'VRAC' ? 'TM' : 'btl'}
+                  </td>
+                  <td className='p-3 whitespace-nowrap'>
+                    <Badge variant={executionModeBadge[tour.execution_mode] ?? 'outline'} className='text-[10px]'>
+                      {tour.execution_mode === 'INTERNAL' ? 'Interne' : 'Externe'}
                     </Badge>
+                  </td>
+                  <td className='p-3 whitespace-nowrap'>{tour.vehicle?.license_plate ?? '—'}</td>
+                  <td className='p-3 whitespace-nowrap'>{getDriverName(tour)}</td>
+                  <td className='p-3'>
+                    <Badge variant={statusVariant[tour.status] ?? 'outline'}>
+                      {tour.statusLabel}
+                    </Badge>
+                  </td>
+                  <td className='p-3 whitespace-nowrap'>
+                    {tour.started_at ? format(new Date(tour.started_at), 'dd/MM/yyyy HH:mm') : '—'}
                   </td>
                 </tr>
               ))}
-              {routes.length === 0 && (
+              {tours.length === 0 && (
                 <tr>
                   <td colSpan={8} className='p-4 text-center text-muted-foreground'>
-                    Aucune tournée enregistrée pour ce transporter.
+                    Aucune tournée enregistrée pour ce transporteur.
                   </td>
                 </tr>
               )}

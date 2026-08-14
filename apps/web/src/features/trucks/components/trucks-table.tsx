@@ -23,9 +23,6 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
-  contractTierOptions,
-  truckMarketerOptions,
-  truckStatusOptions,
   truckTenantOptions,
   type Truck,
 } from '../data/trucks'
@@ -37,6 +34,8 @@ type TrucksTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (truck: Truck) => void
+  onEdit?: (truck: Truck) => void
+  onDelete?: (truck: Truck) => void
 }
 
 export function TrucksTable({
@@ -44,18 +43,15 @@ export function TrucksTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
 }: TrucksTableProps) {
   const [rowSelection, setRowSelection] = useState({})
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    compartments: false,
-    gpsImei: false,
-    permitExpiry: false,
-    lastPing: false,
-  })
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const columns = useMemo(
-    () => getTrucksColumns({ onViewDetails }),
-    [onViewDetails]
+    () => getTrucksColumns({ onViewDetails, onEdit, onDelete }),
+    [onViewDetails, onEdit, onDelete]
   )
 
   const {
@@ -71,10 +67,9 @@ export function TrucksTable({
     globalFilter: { enabled: false },
     columnFilters: [
       { columnId: 'id', searchKey: 'q', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'tenantName', searchKey: 'company', type: 'array' },
-      { columnId: 'marketer', searchKey: 'site', type: 'array' },
-      { columnId: 'contractTier', searchKey: 'contract', type: 'array' },
+      { columnId: 'tournee_status', searchKey: 'status', type: 'array' },
+      { columnId: 'tenant_name', searchKey: 'company', type: 'array' },
+      { columnId: 'region', searchKey: 'region', type: 'array' },
     ],
   })
 
@@ -120,24 +115,9 @@ export function TrucksTable({
         searchKey='id'
         filters={[
           {
-            columnId: 'status',
-            title: 'Statut',
-            options: truckStatusOptions,
-          },
-          {
-            columnId: 'tenantName',
+            columnId: 'tenant_name',
             title: 'Entreprise',
-            options: truckTenantOptions,
-          },
-          {
-            columnId: 'marketer',
-            title: 'Site',
-            options: truckMarketerOptions,
-          },
-          {
-            columnId: 'contractTier',
-            title: 'Contrat',
-            options: contractTierOptions,
+            options: [...truckTenantOptions],
           },
         ]}
       />

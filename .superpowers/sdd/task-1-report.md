@@ -1,17 +1,52 @@
-## Task 1 Report
+# Task 1 Report — Add `national-map.read` permission code (SUPERADMIN-only)
 
 **Status:** DONE
 
-**Commits:**
-- 63a065d chore: add pnpm-workspace.yaml with package overrides
-- c6dc081 chore: add turbo.json with build, lint, and dev config
-- a93e092 chore: add monorepo root package.json with turbo scripts
-- 3205f16 chore: add root vercel.json for @lpg/web build filtering
-- 09fc537 chore: add scripts/dev-kill.js stub
-- 2d34243 chore: add /.turbo to .gitignore
+## Files touched
 
-**Test summary:**
-- pnpm install: pass
-- pnpm -r typecheck (packages only): pass (no packages found yet — expected for skeleton)
+- `packages/permissions/src/index.ts` — block comment `(20)` → `(21)`; appended
+  `{ code: 'national-map.read', category: 'reporting', label: 'Voir la carte nationale (SUPERADMIN)' }`
+  to `PERMISSION_CATALOG`.
+- `packages/permissions/src/index.test.ts` — bumped catalog-length assertion
+  `140` → `141` (test title + `toHaveLength`); bumped category-counts assertion
+  `reporting: 20` → `reporting: 21`.
 
-**Concerns:** none
+No other files. SUPERADMIN auto-includes the new code via `PERMISSION_CATALOG.map(...)`
+— no `*_GRANTS` array was edited. No commit.
+
+## Test command + output
+
+```
+npm test                              (from packages/permissions)
+
+ RUN  v4.1.10 …/packages/permissions
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Duration  273ms
+```
+
+## Typecheck command + output
+
+```
+npm run typecheck                     (from apps/web)
+
+> typecheck
+> tsc --noEmit -p tsconfig.app.json
+
+(0 errors)
+```
+
+## One-line test summary
+
+`packages/permissions` — 17/17 vitest tests pass after adding
+`national-map.read` to `PERMISSION_CATALOG` (category `reporting`) and bumping
+the two test assertions.
+
+## Concerns
+
+- None for Task 1 itself. The new code is `^[a-z-]+\.[a-z]+$`-conformant
+  (`resource = national-map`, `action = read`), and `read` is a registered
+  action in `ACTION_IMPLICATIONS`, so `defineAbilityFor('SUPERADMIN')` does not
+  crash (this was the failure mode of the previous `map.national.read` attempt).
+- Reminder for downstream tasks: this permission is plumbed into a feature that
+  must read it from `@lpg/permissions`, not by hardcoded string.

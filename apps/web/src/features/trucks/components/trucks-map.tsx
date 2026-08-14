@@ -9,8 +9,6 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js'
 import MapView from '@arcgis/core/views/MapView.js'
 import type { ClickEvent } from '@arcgis/core/views/input/types.js'
 import { AlertTriangle, Wifi } from 'lucide-react'
-import lpgSphereIconUrl from '@/assets/lpg-sphere.png'
-import lpgCenterSvgRaw from '@/assets/lpg.svg?raw'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -19,12 +17,23 @@ import {
   type Site,
   type SiteType,
 } from '@/features/sites/data/sites'
+import { siteMarkerTokens } from '@/features/sites/utils/site-graphics'
+import {
+  getArcgisBasemap,
+  getArcgisViewTheme,
+  getMarkerOutlineColor,
+  getSiteOutlineColor,
+  getSiteIconUrl,
+} from '@/features/map/utils/map-theme'
+import type { MapTheme } from '@/features/map/utils/map-theme'
+import { LegendSiteIcon } from '@/features/map/utils/legend'
 import {
   getTruckTelemetry,
   statusLabels,
   type Truck,
   type TruckStatus,
 } from '../data/trucks'
+import { quantityInfo } from '../lib/quantity'
 
 const arcgisApiKey = String(import.meta.env.VITE_ARCGIS_API_KEY ?? '').trim()
 
@@ -41,80 +50,17 @@ type TrucksMapProps = {
   onSelectTruck: (truck: Truck) => void
 }
 
-type MapTheme = 'light' | 'dark'
-
 type HitTestResults = Awaited<ReturnType<MapView['hitTest']>>['results']
 
 const statusColors: Record<TruckStatus, [number, number, number, number]> = {
-  available: [16, 185, 129, 0.95],
-  in_transit: [14, 165, 233, 0.95],
-  maintenance: [245, 158, 11, 0.95],
-  inactive: [100, 116, 139, 0.9],
-}
-
-const siteMarkerTokens: Record<
-  SiteType,
-  {
-    color: [number, number, number, number]
-    haloColor: [number, number, number, number]
-    iconKind: 'sphere' | 'lpg' | 'marker'
-    style: 'circle' | 'diamond' | 'square' | 'triangle' | 'x'
-    size: number
-    haloSize?: number
-    iconWidth?: number
-    iconHeight?: number
-    swatch: string
-  }
-> = {
-  depot: {
-    color: [22, 163, 74, 0.95],
-    haloColor: [22, 163, 74, 0.22],
-    iconKind: 'sphere',
-    style: 'circle',
-    size: 26,
-    haloSize: 32,
-    iconWidth: 26,
-    iconHeight: 26,
-    swatch: 'rgba(22, 163, 74, 0.95)',
-  },
-  scdp: {
-    color: [59, 130, 246, 0.95],
-    haloColor: [59, 130, 246, 0.2],
-    iconKind: 'sphere',
-    style: 'diamond',
-    size: 24,
-    haloSize: 30,
-    iconWidth: 24,
-    iconHeight: 24,
-    swatch: 'rgba(59, 130, 246, 0.95)',
-  },
-  'filling-center': {
-    color: [245, 158, 11, 0.95],
-    haloColor: [245, 158, 11, 0.2],
-    iconKind: 'lpg',
-    style: 'square',
-    size: 20,
-    haloSize: 30,
-    iconWidth: 20,
-    iconHeight: 20,
-    swatch: 'rgba(245, 158, 11, 0.95)',
-  },
-  marketer: {
-    color: [168, 85, 247, 0.95],
-    haloColor: [168, 85, 247, 0.95],
-    iconKind: 'marker',
-    style: 'triangle',
-    size: 12,
-    swatch: 'rgba(168, 85, 247, 0.95)',
-  },
-  'delivery-point': {
-    color: [236, 72, 153, 0.95],
-    haloColor: [236, 72, 153, 0.95],
-    iconKind: 'marker',
-    style: 'x',
-    size: 12,
-    swatch: 'rgba(236, 72, 153, 0.95)',
-  },
+  DRAFT: [100, 116, 139, 0.9],
+  PLANNED: [14, 165, 233, 0.95],
+  PENDINGTRANSPORTERACK: [245, 158, 11, 0.95],
+  ACKNOWLEDGED: [16, 185, 129, 0.95],
+  INPROGRESS: [14, 165, 233, 0.95],
+  CHECKPOINTACTIVE: [168, 85, 247, 0.95],
+  CLOSED: [100, 116, 139, 0.9],
+  CANCELLED: [239, 68, 68, 0.95],
 }
 
 export function TrucksMap({
@@ -174,7 +120,7 @@ export function TrucksMap({
     const view = new MapView({
       container: mapContainerRef.current,
       map,
-      center: [initialTruck.longitude, initialTruck.latitude],
+      center: [initialTruck.lng, initialTruck.lat],
       constraints: {
         minZoom: 4,
       },
@@ -252,7 +198,7 @@ export function TrucksMap({
 
     const routeGraphics = showRoutes
       ? trucks
-          .filter((truck) => truck.status === 'in_transit')
+          .filter((truck) => truck.tournee_status === 'INPROGRESS')
           .map((truck) => createRouteGraphic(truck, mapTheme))
       : []
     const siteGraphics = sites.flatMap((site) =>
@@ -272,8 +218,8 @@ export function TrucksMap({
 
     void view
       .goTo({
-        center: [selectedTruck.longitude, selectedTruck.latitude],
-        zoom: selectedTruck.status === 'in_transit' ? 8 : 11,
+        center: [selectedTruck.lng, selectedTruck.lat],
+        zoom: selectedTruck.tournee_status === 'INPROGRESS' ? 8 : 11,
       })
       .catch(() => undefined)
   }, [isReady, selectedTruck])
@@ -378,13 +324,13 @@ function createTruckGraphic(
   mapTheme: MapTheme
 ) {
   const telemetry = getTruckTelemetry(truck.id)
-  const color = statusColors[truck.status]
+  const color = statusColors[truck.tournee_status]
   const outlineColor = getMarkerOutlineColor(mapTheme, isSelected)
 
   return new Graphic({
     geometry: new Point({
-      longitude: truck.longitude,
-      latitude: truck.latitude,
+      longitude: truck.lng,
+      latitude: truck.lat,
       spatialReference: { wkid: 4326 },
     }),
     symbol: {
@@ -400,10 +346,10 @@ function createTruckGraphic(
     attributes: {
       kind: 'truck',
       truckId: truck.id,
-      status: truck.status,
+      status: truck.tournee_status,
     },
     popupTemplate: {
-      title: `${truck.id} - ${truck.plateNumber}`,
+      title: `${truck.id} - ${truck.license_plate}`,
       content: createTruckPopupContent(truck, telemetry, mapTheme),
     },
   })
@@ -484,14 +430,6 @@ function createSiteGraphics(site: Site, mapTheme: MapTheme) {
   ]
 }
 
-function getSiteIconUrl(siteType: SiteType, mapTheme: MapTheme) {
-  if (siteType === 'filling-center') {
-    return getLpgMarkerIcon(mapTheme)
-  }
-
-  return lpgSphereIconUrl
-}
-
 function findGraphicHit(results: HitTestResults, kind: 'truck' | 'site') {
   return results.find((result) => {
     const graphic = (result as { graphic?: Graphic }).graphic
@@ -511,23 +449,25 @@ function createTruckPopupContent(
   telemetry: ReturnType<typeof getTruckTelemetry>,
   mapTheme: MapTheme
 ) {
-  const loadedLiters = Math.round(
-    (truck.tankCapacityLiters * telemetry.lpgLevelPercent) / 100
-  )
+  const info = quantityInfo(truck)
+  const etaText = telemetry.expected_arrival
+    ? new Date(telemetry.expected_arrival).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '—'
 
   return `
     <div class="fleet-truck-popup" data-popup-theme="${mapTheme}">
-      ${popupLine('Entreprise', truck.tenantName)}
-      ${popupLine('Chauffeur', truck.assignedDriver)}
-      ${popupLine('Telephone', truck.driverPhone)}
-      ${popupLine('Statut', statusLabels[truck.status])}
-      ${popupLine('Position', truck.currentLocation)}
-      ${popupLine('Route', truck.assignedRoute)}
-      ${popupLine('Destination', truck.destination)}
-      ${popupLine('Niveau GPL', `${telemetry.lpgLevelPercent}%`)}
-      ${popupLine('Charge GPL', `${loadedLiters.toLocaleString('fr-FR')} L`)}
-      ${popupLine('Pression', `${telemetry.pressureBar.toFixed(1)} bar`)}
-      ${popupLine('ETA', telemetry.etaText)}
+      ${popupLine('Type', truck.type)}
+      ${popupLine('Plaque', truck.license_plate)}
+      ${popupLine('Entreprise', truck.tenant_name)}
+      ${popupLine('Chauffeur', truck.assigned_driver)}
+      ${popupLine('Statut', statusLabels[truck.tournee_status])}
+      ${popupLine('Position', truck.current_location)}
+      ${popupLine('Niveau GPL', info.amount)}
+      ${popupLine('Remplissage', `${info.percent}%`)}
+      ${popupLine('ETA', etaText)}
     </div>
   `
 }
@@ -545,7 +485,7 @@ function createSitePopupContent(site: Site, mapTheme: MapTheme) {
   `
 }
 
-function popupLine(label: string, value: string) {
+function popupLine(label: string, value: string | undefined) {
   return `
     <p class="fleet-truck-popup__row">
       <strong>${label}</strong>
@@ -554,8 +494,8 @@ function popupLine(label: string, value: string) {
   `
 }
 
-function escapePopupValue(value: string) {
-  return value.replace(/[&<>"']/g, (character) => {
+function escapePopupValue(value: string | undefined) {
+  return (value ?? '—').replace(/[&<>"']/g, (character) => {
     const entities: Record<string, string> = {
       '&': '&amp;',
       '<': '&lt;',
@@ -568,20 +508,20 @@ function escapePopupValue(value: string) {
   })
 }
 
-function createRouteGraphic(truck: Truck, mapTheme: MapTheme) {
+function createRouteGraphic(truck: Truck, _mapTheme: MapTheme) {
   return new Graphic({
     geometry: new Polyline({
       paths: [
         [
-          [truck.longitude, truck.latitude],
-          [truck.destinationLongitude, truck.destinationLatitude],
+          [truck.lng, truck.lat],
+          [truck.lng + 0.01, truck.lat + 0.01],
         ],
       ],
       spatialReference: { wkid: 4326 },
     }),
     symbol: {
       type: 'simple-line',
-      color: mapTheme === 'dark' ? [250, 204, 21, 0.9] : [217, 119, 6, 0.85],
+      color: [250, 204, 21, 0.9],
       width: 3,
       style: 'short-dash',
     },
@@ -590,91 +530,4 @@ function createRouteGraphic(truck: Truck, mapTheme: MapTheme) {
       truckId: truck.id,
     },
   })
-}
-
-function getArcgisBasemap(mapTheme: MapTheme) {
-  return mapTheme === 'dark'
-    ? 'dark-gray-vector'
-    : 'streets-navigation-vector'
-}
-
-function getArcgisViewTheme(mapTheme: MapTheme) {
-  return mapTheme === 'dark'
-    ? {
-        accentColor: '#86efac',
-        textColor: '#f8fafc',
-      }
-    : {
-        accentColor: '#16a34a',
-        textColor: '#0f172a',
-      }
-}
-
-function getMarkerOutlineColor(
-  mapTheme: MapTheme,
-  isSelected: boolean
-): [number, number, number, number] {
-  if (mapTheme === 'dark') {
-    return isSelected ? [248, 250, 252, 1] : [226, 232, 240, 0.86]
-  }
-
-  return isSelected ? [255, 255, 255, 1] : [15, 23, 42, 0.28]
-}
-
-function getSiteOutlineColor(mapTheme: MapTheme): [
-  number,
-  number,
-  number,
-  number,
-] {
-  return mapTheme === 'dark'
-    ? [226, 232, 240, 0.84]
-    : [15, 23, 42, 0.28]
-}
-
-function getLpgMarkerIcon(mapTheme: MapTheme) {
-  const fillColor = mapTheme === 'dark' ? '#f8fafc' : '#0f172a'
-
-  return svgToDataUri(lpgCenterSvgRaw.replace(/#000000/g, fillColor))
-}
-
-function svgToDataUri(svg: string) {
-  const normalizedSvg = svg.replace(/\s+/g, ' ').trim()
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(normalizedSvg)}`
-}
-
-function LegendSiteIcon({
-  type,
-  mapTheme,
-}: {
-  type: SiteType
-  mapTheme: MapTheme
-}) {
-  const marker = siteMarkerTokens[type]
-
-  if (marker.iconKind === 'marker') {
-    return (
-      <span
-        className='block size-2.5 rounded-full'
-        style={{ backgroundColor: marker.swatch }}
-      />
-    )
-  }
-
-  return (
-    <span
-      className='flex size-6 items-center justify-center rounded-full'
-      style={{ backgroundColor: rgbaFromTuple(marker.haloColor) }}
-    >
-      <img
-        src={getSiteIconUrl(type, mapTheme)}
-        alt=''
-        className='max-h-4 max-w-4 object-contain'
-      />
-    </span>
-  )
-}
-
-function rgbaFromTuple(value: [number, number, number, number]) {
-  return `rgba(${value[0]}, ${value[1]}, ${value[2]}, ${value[3]})`
 }

@@ -1,120 +1,59 @@
-Task 1: Foundation — monorepo skeleton
+# Task 1 Brief — Add `national-map.read` permission code (SUPERADMIN-only)
 
-Goal: Create the monorepo root infrastructure (pnpm-workspace.yaml, turbo.json, root package.json, vercel.json, .gitignore update, scripts/dev-kill.js stub).
+**Files:**
+- Modify: `packages/permissions/src/index.ts:175-200`
+- Modify: `packages/permissions/src/index.test.ts:22-25` and `packages/permissions/src/index.test.ts:50-60` (category-counts assertion)
 
-Architecture: Standard pnpm 9 + turbo 2 monorepo matching source topology.
+**Interfaces:**
+- Consumes: existing `PERMISSION_CATALOG` shape — every code MUST match `^[a-z-]+\.[a-z]+$` (one dot, `resource.action`).
+- Produces: new permission code `national-map.read` (category `'reporting'`). Resource = `national-map`, action = `read`.
 
-Tech Stack: pnpm@9.0.0, turbo@^2.10.5, vite.
+**Why this code name:** `map.national.read` was the original idea but it has two dots and violates the catalog's enforced regex (one dot, `resource.action`). `national-map.read` keeps the intent (SUPERADMIN-only national map) and satisfies the schema.
 
-Global Constraints:
-- Package manager: pnpm 9.0.0 (from pnpm-workspace.yaml override)
-- App name: @lpg/web, version 0.0.0, private true
-- All commits must be atomic
-- Workspace root @ alias resolves to ./ inside apps/web/
-- vercel.json at root filters build to @lpg/web; output is apps/web/dist
+## Step 1: Add the entry to `PERMISSION_CATALOG`
 
-## Files to create/modify:
+In `packages/permissions/src/index.ts`, inside the `// ---- reporting & system (20) ----` block, append after line 195:
 
-### Create: pnpm-workspace.yaml
-From source. Exact content:
-```yaml
-packages:
-  - "apps/*"
-  - "packages/*"
-
-overrides:
-  "@types/react": "19.2.14"
-  "@types/react-dom": "19.2.3"
-  react: "19.2.5"
-  "react-dom": "19.2.5"
-  "react-hook-form": "7.73.1"
+```ts
+  { code: 'national-map.read', category: 'reporting', label: 'Voir la carte nationale (SUPERADMIN)' },
 ```
 
-### Create: turbo.json
-```json
-{
-  "$schema": "https://turbo.build/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
-    },
-    "lint": {
-      "dependsOn": ["^build"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    }
-  }
-}
+Update the section comment from `(20)` to `(21)`.
+
+## Step 2: Update the catalog count test
+
+In `packages/permissions/src/index.test.ts`, find the assertion:
+
+```ts
+  it('defines exactly 140 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(140)
 ```
 
-### Create: root package.json
-```json
-{
-  "name": "lpg-fleet-platform",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "predev": "node scripts/dev-kill.js",
-    "dev": "turbo run dev",
-    "dev:kill": "node scripts/dev-kill.js",
-    "mock": "turbo run dev --filter @lpg/mock-api",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
-  },
-  "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "^2.10.5"
-  },
-  "packageManager": "pnpm@9.0.0"
-}
+and change to:
+
+```ts
+  it('defines exactly 141 codes across 9 categories', () => {
+    expect(PERMISSION_CATALOG).toHaveLength(141)
 ```
 
-### Create: root vercel.json
-```json
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "buildCommand": "pnpm turbo run build --filter @lpg/web",
-  "outputDirectory": "apps/web/dist",
-  "installCommand": "pnpm install",
-  "env": {
-    "VITE_API_MODE": "fake"
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
+Then find the category-counts assertion (currently asserts `reporting: 20`) and bump `reporting` to `21`. The exact line varies — look for the literal `reporting: 20` and change it to `reporting: 21`. (The implementer report at `task-1-report.md` notes line 50.)
+
+## Step 3: Run tests
+
+```bash
+cd packages/permissions
+npm test
 ```
 
-### Modify: .gitignore
-Append /.turbo at the end if not already present.
+Expected: PASS — 17/17 (or whatever the current count is).
 
-### Create: scripts/dev-kill.js (minimal stub)
-Since the root package.json references scripts/dev-kill.js which does not exist yet, create a minimal stub:
-```js
-// scripts/dev-kill.js — stub until proper kill script is added
-console.log('dev-kill stub');
+## Step 4: Run typecheck
+
+```bash
+cd apps/web
+npm run typecheck
 ```
 
-## Steps (each 2-5 min):
+Expected: PASS.
 
-- [ ] Write pnpm-workspace.yaml
-- [ ] Write turbo.json
-- [ ] Write root package.json
-- [ ] Write root vercel.json
-- [ ] Create scripts/dev-kill.js stub
-- [ ] Run `pnpm install` — verify no peer-dep errors
-- [ ] Append /.turbo to .gitignore if missing
-- [ ] Commit: git add pnpm-workspace.yaml turbo.json package.json vercel.json .gitignore scripts/dev-kill.js && git commit -m "chore: add monorepo skeleton (pnpm-workspace, turbo, vercel)"
-
-## Verification:
-- pnpm install succeeds cleanly
-- pnpm -r typecheck (packages/* should pass with empty stubs; apps/web may fail — that is expected since it has not been moved yet)
-- No uncommitted changes after commit
+## Step 5: No commit yet (per global constraint). Continue to Task 2.

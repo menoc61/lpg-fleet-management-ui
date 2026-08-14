@@ -21,7 +21,9 @@ export function getCookie(name: string): string | undefined {
 }
 
 /**
- * Set a cookie with name, value, and optional max age
+ * Set a cookie with name, value, and optional max age.
+ * Flags: SameSite=Lax (CSRF protection) and Secure when served over HTTPS.
+ * HttpOnly cannot be set from client JS — that must be done server-side.
  */
 export function setCookie(
   name: string,
@@ -30,7 +32,8 @@ export function setCookie(
 ): void {
   if (typeof document === 'undefined') return
 
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}`
+  const secure = typeof location !== 'undefined' && location.protocol === 'https:'
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax${secure ? '; Secure' : ''}`
 }
 
 /**
@@ -39,5 +42,5 @@ export function setCookie(
 export function removeCookie(name: string): void {
   if (typeof document === 'undefined') return
 
-  document.cookie = `${name}=; path=/; max-age=0`
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`
 }
