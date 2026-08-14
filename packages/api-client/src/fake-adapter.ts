@@ -173,6 +173,7 @@ export function createFakeAdapter(): ApiAdapter {
           org_name: org?.name,
           org_type: org?.type,
           site_ids,
+          mfa_status: (user as any)?.mfa_status,
         },
       })
     },

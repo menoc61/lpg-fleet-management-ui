@@ -10,6 +10,7 @@ export interface AuthUser {
   org_name?: string
   org_type?: OrgType
   site_ids?: string[]
+  mfa_status?: string
 }
 
 export interface AuthResult {
