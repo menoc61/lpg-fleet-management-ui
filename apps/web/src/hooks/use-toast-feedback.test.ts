@@ -14,6 +14,30 @@ describe('extractErrorMessage', () => {
       'Une erreur est survenue. Réessayez.',
     )
   })
+
+  it('maps an axios-like 403 to the French access-denied message', () => {
+    const fakeAxiosError = {
+      isAxiosError: true,
+      message: 'Request failed with status code 403',
+      response: { status: 403, data: {} },
+    }
+    expect(extractErrorMessage(fakeAxiosError)).toBe('Accès refusé.')
+  })
+
+  it('maps an axios-like 409 to the French conflict message', () => {
+    const fakeAxiosError = {
+      isAxiosError: true,
+      message: 'Request failed with status code 409',
+      response: { status: 409, data: { title: 'Le enregistrement a été modifié' } },
+    }
+    expect(extractErrorMessage(fakeAxiosError)).toBe('Le enregistrement a été modifié')
+  })
+
+  it('still surfaces a plain error message before the network fallback', () => {
+    expect(extractErrorMessage(new Error('Transition interdite'))).toBe(
+      'Transition interdite',
+    )
+  })
 })
 
 describe('describeFeedback', () => {
