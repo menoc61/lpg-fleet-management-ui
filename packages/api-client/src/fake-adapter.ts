@@ -105,6 +105,7 @@ export function createFakeAdapter(): ApiAdapter {
         return delay(coll[idx] as unknown as T)
       }
 
+      // No restore endpoint is documented; deleted rows are recoverable only in DB.
       // DELETE (soft): set deleted_at so the row is excluded from default reads.
       if (method === 'DELETE' && id) {
         const coll = COLLECTIONS[collection] as unknown as any[]
