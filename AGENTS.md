@@ -75,6 +75,14 @@ Rules:
   (e.g. site director of a MARKETEUR org). They never see organization-level
   entity views (`/marketers`, `/organizations`); their home view is `/overview`.
   Org-level entity management belongs to SUPERADMIN/ADMIN/AGENT.
+- **Site-level data isolation (scope):** MARKETEUR users see only their own
+  site's data + what they created; TRANSPORTEUR users see only their org's
+  assigned tours/crew; AGENT users see only their assigned sites
+  (`user_site_assignments`). Only REGULATEUR-org staff (SUPERADMIN/ADMIN,
+  plus SUPERVISOR/INTEGRATEUR) get the organizational view. There is **no**
+  org-level view for non-regulateurs. Implemented via `features/scope`
+  (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`); every feature data
+  builder applies the scope of the authenticated user.
 - **File storage:** all images, certificates, and proofs live in MinIO
   (S3-compatible); only URL references are kept in the database.
 - **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
