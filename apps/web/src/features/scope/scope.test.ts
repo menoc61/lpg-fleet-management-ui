@@ -24,6 +24,19 @@ describe('getScope', () => {
     const scope = getScope(authUser({ id: 'u1', system_role: 'SUPERADMIN', org_type: 'REGULATEUR' }))
     expect(scope.view).toBe('org')
   })
+  it('agent in a REGULATEUR org sees only their assigned sites', () => {
+    const scope = getScope(
+      authUser({ id: 'user-0005-csph-investigator', system_role: 'AGENT', org_type: 'REGULATEUR', site_ids: ['site-1'] }),
+    )
+    expect(scope.view).toBe('agent')
+    expect(scope.siteIds).toEqual(['site-1'])
+  })
+  it('regulateur staff keep the org view even in a non-regulateur org', () => {
+    for (const system_role of ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTEGRATEUR'] as const) {
+      const scope = getScope(authUser({ id: `u-${system_role}`, system_role, org_type: 'MARKETEUR' }))
+      expect(scope.view).toBe('org')
+    }
+  })
   it('marketeur with one site gets the site view', () => {
     const scope = getScope(authUser({ id: 'u7', system_role: 'MARKETEUR', org_type: 'MARKETEUR', site_ids: ['site-1'] }))
     expect(scope.view).toBe('site')

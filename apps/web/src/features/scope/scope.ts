@@ -1,5 +1,4 @@
 import type { AuthUser } from '@lpg/api-client'
-import type { OrgType } from '@lpg/types'
 
 export type ScopeView = 'org' | 'site' | 'transporter' | 'agent' | 'livreur'
 
@@ -10,7 +9,6 @@ export interface UserScope {
   userId?: string
 }
 
-const REGULATEUR_ORG: OrgType = 'REGULATEUR'
 const REGULATEUR_ROLES = ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTEGRATEUR']
 
 export function getScope(user: AuthUser | null): UserScope {
@@ -20,7 +18,7 @@ export function getScope(user: AuthUser | null): UserScope {
     siteIds: user.site_ids ?? [],
     userId: user.id,
   }
-  if (user.org_type === REGULATEUR_ORG || REGULATEUR_ROLES.includes(user.system_role)) {
+  if (REGULATEUR_ROLES.includes(user.system_role)) {
     return { ...base, view: 'org' }
   }
   if (user.system_role === 'MARKETEUR') return { ...base, view: 'site' }
