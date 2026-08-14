@@ -1,5 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import { useToursStore } from './tours-store'
+import { useAuthStore } from './auth-store'
+import { PERMISSION_DENIED } from '@/lib/security/guards'
 import { curated } from '@lpg/mock-data'
 import type { DeliveryTour } from '@lpg/types'
 import { tourStatusLabels, getTourCargo, getTourVolume } from '@/features/tours/data/tour-activity'
@@ -9,6 +11,20 @@ const TRANSPORTEUR_ORG = 'org-0011-expressgpl--000000000001'
 const VEHICLE_ID = 'veh-0001-lt1123ub'
 const DRIVER_ID = 'driver-0003-youssouf-hamadou'
 const LIVREUR_ID = 'user-0010-sctm-livreur1'
+
+const SUPERADMIN_USER = {
+  id: 'u-super',
+  email: 's@csph.cm',
+  first_name: 'S',
+  last_name: 'A',
+  system_role: 'SUPERADMIN' as const,
+  org_type: 'REGULATEUR' as const,
+  site_ids: [] as string[],
+}
+
+function setAuthUser(system_role: 'SUPERADMIN' | 'AGENT') {
+  useAuthStore.setState({ user: { ...SUPERADMIN_USER, id: `u-${system_role.toLowerCase()}`, system_role } })
+}
 
 function freshSeed() {
   return {
@@ -46,10 +62,40 @@ function inject(tour: Partial<DeliveryTour> & Pick<DeliveryTour, 'id'>) {
 describe('tours store', () => {
   beforeEach(() => {
     useToursStore.setState(freshSeed())
+    // Guards read the live auth state: a SUPERADMIN clears every permission
+    // check so the mutation tests exercise the business logic, not the guard.
+    setAuthUser('SUPERADMIN')
     // Validate against a copy of curated with VRAC certs refreshed to one year
     // out — the seeded fixture has expired dates (the demo data simulates
     // renewals due, which would otherwise fail the cert check).
     Object.assign(curated, freshCuratedWithActiveCerts())
+  })
+
+  describe('permission guards', () => {
+    it('throws PERMISSION_DENIED for createTour when the role lacks tours.create', () => {
+      // AGENT holds only tours.read (packages/permissions AGENT_GRANTS); it is
+      // genuinely denied tours.create, unlike LIVREUR whose tours.write implies
+      // tours.create.
+      setAuthUser('AGENT')
+      expect(() =>
+        useToursStore.getState().createTour({
+          marketeur_org_id: MARKETEUR_ORG,
+          execution_mode: 'INTERNAL',
+          type: 'VRAC',
+          requested_quantity: 1000,
+          vehicle_id: VEHICLE_ID,
+          driver_id: DRIVER_ID,
+          livreur_user_id: LIVREUR_ID,
+        }),
+      ).toThrow(PERMISSION_DENIED)
+    })
+
+    it('throws PERMISSION_DENIED for performAction when the role lacks the action permission', () => {
+      setAuthUser('AGENT')
+      expect(() => useToursStore.getState().performAction('tour-005', 'acknowledge')).toThrow(
+        PERMISSION_DENIED,
+      )
+    })
   })
 
   describe('createTour', () => {

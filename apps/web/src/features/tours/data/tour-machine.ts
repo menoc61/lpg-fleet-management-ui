@@ -1,5 +1,6 @@
 import type { DeliveryTour, Setting, TourneeStatus, ExecutionMode } from '@lpg/types'
 import { curated } from '@lpg/mock-data'
+import type { PermissionCode } from '@lpg/permissions'
 
 export type TourAction =
   | 'send-to-transporter'
@@ -16,6 +17,19 @@ export const TOUR_ACTION_LABELS: Record<TourAction, string> = {
   start: 'Démarrer',
   close: 'Clôturer',
   cancel: 'Annuler',
+}
+
+/**
+ * Action → permission code. Consumed by the UI (button gating) and by the
+ * store-level guard (`performAction`) so direct calls are permission-gated too.
+ */
+export const ACTION_PERMISSION: Record<TourAction, PermissionCode> = {
+  'send-to-transporter': 'tours.create',
+  acknowledge: 'tours.assign',
+  plan: 'tours.write',
+  start: 'tours.write',
+  close: 'tours.write',
+  cancel: 'tours.write',
 }
 
 const TERMINAL_STATUSES: ReadonlySet<TourneeStatus> = new Set(['CLOSED', 'CANCELLED'])

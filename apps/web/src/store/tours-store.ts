@@ -1,13 +1,17 @@
 import { create } from 'zustand'
 import { curated } from '@lpg/mock-data'
 import type { DeliveryTour, Checkpoint, ExecutionMode, TourneeType } from '@lpg/types'
+import { type Role } from '@lpg/permissions'
 import { toTourActivities, type TourActivity, type TourSlice } from '@/features/tours/data/tour-activity'
 import {
+  ACTION_PERMISSION,
   applyAction,
   tourActions,
   validateTour,
   type TourAction,
 } from '@/features/tours/data/tour-machine'
+import { assertPermission } from '@/lib/security/guards'
+import { useAuthStore } from '@/store/auth-store'
 
 /**
  * Payload for creating a tour. Mirrors the schema's `chk_tournee_internal` /
@@ -40,6 +44,12 @@ export const useToursStore = create<ToursState>()((set, get) => ({
   checkpoints: curated.checkpoints.map((c) => ({ ...c })),
 
   createTour(draft: TourDraft) {
+    // Defense in depth: the UI already gates the create button; a direct store
+    // call must be permission-gated too. An unauthenticated caller defaults to
+    // LIVREUR. Site-level access (assertSiteAccess) is intentionally not wired
+    // here yet — TourDraft has no sourceSiteId; it lands with Plan 5.
+    const role: Role = useAuthStore.getState().user?.system_role ?? 'LIVREUR'
+    assertPermission(role, 'tours.create')
     const now = new Date().toISOString()
     // Initial status follows the schema §3.1 entry point per mode:
     //   INTERNAL → DRAFT (marketeur assigns crew → PLANNED)
@@ -77,6 +87,8 @@ export const useToursStore = create<ToursState>()((set, get) => ({
   },
 
   performAction(id: string, action: TourAction) {
+    const role: Role = useAuthStore.getState().user?.system_role ?? 'LIVREUR'
+    assertPermission(role, ACTION_PERMISSION[action])
     const tours = get().tours
     const index = tours.findIndex((t) => t.id === id)
     if (index === -1) {
