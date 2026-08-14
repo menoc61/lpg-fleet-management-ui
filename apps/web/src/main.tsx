@@ -12,6 +12,7 @@ import { handleServerError } from '@/lib/handle-server-error'
 import { NotFoundError } from '@/features/errors/not-found-error'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
+import { PermissionsProvider } from './context/PermissionsProvider'
 import { ThemeProvider } from './context/theme-provider'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
@@ -89,7 +90,9 @@ if (!rootElement.innerHTML) {
         <ThemeProvider defaultTheme='light'>
           <FontProvider>
             <DirectionProvider>
-              <RouterProvider router={router} />
+              <PermissionsProvider>
+                <RouterProvider router={router} />
+              </PermissionsProvider>
             </DirectionProvider>
           </FontProvider>
         </ThemeProvider>
