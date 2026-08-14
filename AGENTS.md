@@ -86,6 +86,10 @@ Rules:
 - **File storage:** all images, certificates, and proofs live in MinIO
   (S3-compatible); only URL references are kept in the database.
 - **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
+- **Soft delete:** DELETE on any table with `deleted_at` sets `deleted_at =
+  now()` (never a hard row removal). Reads exclude rows where
+  `deleted_at IS NOT NULL`. The frontend fake adapter mirrors this; no
+  restore endpoint is documented.
 - **Status lifecycles** come from the schema (device, RFID, pickup, tour, site) —
   never invent new status strings.
 - **Workflows** resolve against TODO.md §5 (onboarding, geo-verification, certificates,
