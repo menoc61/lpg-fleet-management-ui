@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { curated } from '@lpg/mock-data'
 import type { PickupRequest, PickupStatus } from '@lpg/types'
+import { type Role } from '@lpg/permissions'
+import { assertPermission, assertSiteAccess } from '@/lib/security/guards'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 
 /**
  * Payload for creating a Flux-1 pickup request. Mirrors the schema's
@@ -53,6 +57,14 @@ export const usePickupsStore = create<PickupsState>()((set, get) => ({
   pickups: curated.pickup_requests.map((p) => ({ ...p })),
 
   createPickup(draft: PickupDraft) {
+    // Defense in depth: the UI already gates the create button; a direct store
+    // call must be permission-gated too. An unauthenticated caller defaults to
+    // LIVREUR. Site-level access is enforced against the source site: a
+    // non-REGULATEUR user must hold source_site_id in their assigned scope.
+    const role = (useAuthStore.getState().user?.system_role ?? 'LIVREUR') as Role
+    assertPermission(role, 'pickups.create')
+    const scope = getScope(useAuthStore.getState().user)
+    assertSiteAccess(scope, draft.source_site_id)
     const validation = validatePickup(draft)
     if (!validation.valid) {
       throw new Error(validation.errors[0])
