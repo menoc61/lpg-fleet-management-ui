@@ -30,6 +30,18 @@ describe('fake-adapter write support (CRUD integration seam)', () => {
     await expect(api.clients.patch('does-not-exist', {} as never)).rejects.toThrow()
     await expect(api.clients.remove('does-not-exist')).rejects.toThrow()
   })
+
+  it('soft-deletes by setting deleted_at and hides the row from list', async () => {
+    const created = await api.clients.create({ name: 'Soft' } as any)
+    await api.clients.remove(created.id)
+    // The row must remain in the collection with deleted_at set (soft delete),
+    // and be excluded from default list reads.
+    const all = await api.clients.list({ include_deleted: 'true' })
+    const row = all.data.find((c: any) => c.id === created.id)
+    expect(row?.deleted_at).toBeTruthy()
+    const visible = await api.clients.list()
+    expect(visible.data.some((c: any) => c.id === created.id)).toBe(false)
+  })
 })
 
 describe('fake-adapter login', () => {
