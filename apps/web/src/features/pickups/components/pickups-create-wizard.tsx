@@ -26,6 +26,8 @@ import {
 import { curated, organizations, sites } from '@lpg/mock-data'
 import { useAuthStore } from '@/store/auth-store'
 import { usePickupsStore } from '@/store/pickups-store'
+import { getScope } from '@/features/scope/scope'
+import { PERMISSION_DENIED } from '@/lib/security/guards'
 import type { PickupRequest, VehicleType } from '@lpg/types'
 import { recommendVehicles, type VehicleRecommendation } from '../lib/vehicle-recommendation'
 import { pickupWizardSchema, type PickupWizardValues } from '../lib/pickup-wizard-schema'
@@ -52,7 +54,13 @@ const DEFAULT_VALUES: PickupWizardValues = {
 }
 
 function defaultValues(): PickupWizardValues {
-  return { ...DEFAULT_VALUES, marketeur_org_id: defaultMarketeurOrg() }
+  const values = { ...DEFAULT_VALUES, marketeur_org_id: defaultMarketeurOrg() }
+  const scope = getScope(useAuthStore.getState().user)
+  if (scope.view !== 'org' && scope.siteIds.length > 0) {
+    const firstSite = sites.find((s) => s.id === scope.siteIds[0] && s.is_active !== false)
+    if (firstSite) values.source_site_id = firstSite.id
+  }
+  return values
 }
 
 export function PickupsCreateWizard({
@@ -77,10 +85,20 @@ export function PickupsCreateWizard({
   const requestedQuantity = form.watch('requested_quantity')
   const marketeurOrgId = form.watch('marketeur_org_id')
 
-  const sourceOptions = useMemo(
-    () => sites.filter((s) => s.is_active !== false),
-    [],
-  )
+  const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
+  const canChooseOrg = scope.view === 'org'
+
+  const marketeurOptions = useMemo(() => {
+    if (canChooseOrg) return MARKET_EUR_ORGS
+    return MARKET_EUR_ORGS.filter((o) => o.id === scope.orgId)
+  }, [canChooseOrg, scope.orgId])
+
+  const sourceOptions = useMemo(() => {
+    const active = sites.filter((s) => s.is_active !== false)
+    if (canChooseOrg) return active
+    const siteIds = new Set(scope.siteIds)
+    return active.filter((s) => siteIds.has(s.id))
+  }, [canChooseOrg, scope.siteIds])
   const destOptions = useMemo(
     () => sites.filter((s) => s.is_active !== false && s.id !== sourceSiteId),
     [sourceSiteId],
@@ -123,7 +141,8 @@ export function PickupsCreateWizard({
       onOpenChange(false)
       reset()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Impossible de créer la requête')
+      const message = err instanceof Error ? err.message : 'Impossible de créer la requête'
+      toast.error(message === PERMISSION_DENIED ? 'Accès refusé pour ce site.' : message)
     } finally {
       setSubmitting(false)
     }
@@ -205,12 +224,12 @@ export function PickupsCreateWizard({
                   <FormItem>
                     <FormLabel>Marketeur</FormLabel>
                     <FormControl>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select value={field.value} onValueChange={field.onChange} disabled={!canChooseOrg}>
                         <SelectTrigger className='w-full'>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {MARKET_EUR_ORGS.map((o) => (
+                          {marketeurOptions.map((o) => (
                             <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
                           ))}
                         </SelectContent>
@@ -230,6 +249,7 @@ export function PickupsCreateWizard({
                     <FormControl>
                       <Select
                         value={field.value || undefined}
+                        disabled={!canChooseOrg}
                         onValueChange={(v) => {
                           field.onChange(v)
                           form.setValue('destination_site_id', '')

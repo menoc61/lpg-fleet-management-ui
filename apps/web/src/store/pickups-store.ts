@@ -62,9 +62,10 @@ export const usePickupsStore = create<PickupsState>()((set, get) => ({
     // call must be permission-gated too. An unauthenticated caller defaults to
     // LIVREUR. Site-level access is enforced against the source site: a
     // non-REGULATEUR user must hold source_site_id in their assigned scope.
-    const role = (useAuthStore.getState().user?.system_role ?? 'LIVREUR') as Role
+    const user = useAuthStore.getState().user
+    const role = (user?.system_role ?? 'LIVREUR') as Role
     assertPermission(role, 'pickups.create')
-    const scope = getScope(useAuthStore.getState().user)
+    const scope = getScope(user)
     assertSiteAccess(scope, draft.source_site_id)
     const validation = validatePickup(draft)
     if (!validation.valid) {
@@ -82,7 +83,7 @@ export const usePickupsStore = create<PickupsState>()((set, get) => ({
       created_at: now,
       updated_at: now,
       deleted_at: null,
-      created_by: null,
+      created_by: user?.id ?? null,
       updated_by: null,
     }
     // Optimistic apply with rollback: snapshot the rows before the write, and
