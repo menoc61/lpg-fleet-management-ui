@@ -21,6 +21,8 @@ import {
 } from '@tanstack/react-table'
 import { EntityFormSheet, useEntityPermission } from '@/components/entity-crud'
 import { Plus } from 'lucide-react'
+import { assertPermission } from '@/lib/security/guards'
+import { useAuthStore } from '@/store/auth-store'
 
 const REGION_OPTIONS = [{ label: 'CENTRE', value: 'CENTRE' }, { label: 'LITTORAL', value: 'LITTORAL' }, { label: 'NORD', value: 'NORD' }, { label: 'EXTREMENORD', value: 'EXTREMENORD' }, { label: 'OUEST', value: 'OUEST' }, { label: 'SUDOUEST', value: 'SUDOUEST' }, { label: 'EST', value: 'EST' }, { label: 'ADAMAOUA', value: 'ADAMAOUA' }]
 const STATUS_VALUES = ['UNASSIGNED', 'ASSIGNED', 'ACTIVE', 'VERIFIED', 'SUSPENDED', 'REJECTED']
@@ -66,6 +68,14 @@ export function SitesScreen({ kind, role }: { kind: 'site' | 'client_site'; role
   )
   const [creating, setCreating] = useState(false)
   const handleAction = (row: SiteRow, request: TransitionRequest) => {
+    const role = useAuthStore.getState().user?.system_role ?? 'LIVREUR'
+    const required = request.kind === 'verify' ? 'sites.verify' : 'sites.write'
+    try {
+      assertPermission(role, required)
+    } catch {
+      toast.error('Accès refusé pour cette action.')
+      return
+    }
     const nextStatus: Record<string, SiteRow['status']> = { verify: 'VERIFIED', suspend: 'SUSPENDED', reject: 'REJECTED', reassign: 'ASSIGNED' }
     setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, status: nextStatus[request.kind]! } : r)))
     const labels: Record<string, string> = { verify: 'vérifié', suspend: 'suspendu', reject: 'rejeté', reassign: 'réassigné' }
