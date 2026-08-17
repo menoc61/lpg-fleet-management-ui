@@ -78,13 +78,17 @@ Rules:
 - **Site-level data isolation (scope):** MARKETEUR users see only their own
   site's data + what they created; TRANSPORTEUR users see only their org's
   assigned tours/crew; AGENT users see only their assigned sites
-  (`user_site_assignments`). Only REGULATEUR-org staff (SUPERADMIN/ADMIN,
-  plus SUPERVISOR/INTEGRATEUR) get the organizational view. There is **no**
+  (`user_site_assignments`); LIVREUR users see only their assigned missions'
+  sites. Only REGULATEUR-org staff (SUPERADMIN/ADMIN, plus
+  SUPERVISOR/INTEGRATEUR) get the organizational view. There is **no**
   org-level view for non-regulateurs. Implemented via `features/scope`
-  (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`); the pickups, tours,
-  declarations, vehicles, trucks and dashboard data builders apply the
-  authenticated user's scope. (Other builders — sites, users, anomalies —
-  are organization-level screens; scope them when per-site semantics land.)
+  (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`/`scopeWithOrgId`); the
+  pickups, tours, declarations, vehicles, trucks and dashboard data builders
+  apply the authenticated user's scope. `scopeWithOrgId` adds the org id to
+  the site set only for `site`/`transporter` views (where the org IS the
+  operational scope); `agent`/`livreur` never see org-wide rows. (Other
+  builders — sites, users, anomalies — are organization-level screens;
+  scope them when per-site semantics land.)
 - **Defense-in-depth RBAC:** every mutation is gated at three layers — the UI
   button (`hasPermission`), the store (`lib/security/guards`), and the form
   (site-scoped fields). No store writes may bypass the guards.

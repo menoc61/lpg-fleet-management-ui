@@ -47,4 +47,30 @@ describe('scopeWithOrgId', () => {
     const noOrg: UserScope = { view: 'site', siteIds: ['site-1'] }
     expect(scopeWithOrgId(noOrg)).toBe(noOrg)
   })
+
+  it('does NOT add the org for agent views (assigned sites only)', () => {
+    const scope: UserScope = { view: 'agent', orgId: 'org-2', siteIds: ['site-1'], userId: 'user-9' }
+    const extended = scopeWithOrgId(scope)
+    expect(extended.siteIds).not.toContain('org-2')
+    const filtered = scopeBySiteOrCreator(rows, extended, (r) => r.org_id, (r) => r.created_by)
+    // No row's org_id is in the site set (site-1 only) → no org-wide rows leak.
+    expect(filtered).toEqual([])
+  })
+
+  it('does NOT add the org for livreur views (assigned sites only)', () => {
+    const scope: UserScope = { view: 'livreur', orgId: 'org-2', siteIds: ['site-1'], userId: 'user-9' }
+    const extended = scopeWithOrgId(scope)
+    expect(extended.siteIds).not.toContain('org-2')
+  })
+
+  it('still adds the org for transporter views', () => {
+    const scope: UserScope = {
+      view: 'transporter',
+      orgId: 'org-2',
+      siteIds: ['site-1'],
+      userId: 'user-9',
+    }
+    const extended = scopeWithOrgId(scope)
+    expect(extended.siteIds).toContain('org-2')
+  })
 })
