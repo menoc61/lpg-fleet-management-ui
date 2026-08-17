@@ -4,9 +4,11 @@ import { invalidateResource } from '@/lib/api/invalidation'
 
 const EVENT_TO_RESOURCES: Record<string, string[]> = {
   'tour:update': ['tours'],
+  'pickup:update': ['pickups'],
   'anomaly:new': ['anomalies'],
   'anomaly:assigned': ['anomalies'],
   'device:telemetry': ['devices'],
+  'contract:update': ['transporter-contracts'],
 }
 
 export function mapWsEventToInvalidation(event: string): string[] {

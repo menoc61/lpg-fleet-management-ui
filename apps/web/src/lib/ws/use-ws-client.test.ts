@@ -11,6 +11,12 @@ describe('mapWsEventToInvalidation', () => {
   it('maps device:telemetry to devices', () => {
     expect(mapWsEventToInvalidation('device:telemetry')).toEqual(['devices'])
   })
+  it('maps pickup:update to pickups', () => {
+    expect(mapWsEventToInvalidation('pickup:update')).toEqual(['pickups'])
+  })
+  it('maps contract:update to transporter-contracts', () => {
+    expect(mapWsEventToInvalidation('contract:update')).toEqual(['transporter-contracts'])
+  })
   it('unknown events return []', () => {
     expect(mapWsEventToInvalidation('position:update')).toEqual([])
   })
