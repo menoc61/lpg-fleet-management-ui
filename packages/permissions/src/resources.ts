@@ -1,8 +1,7 @@
 /**
  * Schema table → permission resource. Every table in csph_gpl_schema_v6_2.sql
  * must resolve to a resource with a `*.read` code (and, where the table has
- * write columns, `*.write`/`*.create`/`*.delete`). The completeness test in
- * `permission-resources.test.ts` fails if a table is missing.
+ * write columns, `*.write`). `resources.test.ts` fails if a table is missing.
  *
  * Notes:
  *  - `regions` is surfaced in the UI as "Zones" (feature `features/zones`,

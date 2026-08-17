@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { PERMISSION_CATALOG, ROLE_GRANTS, type Role, type PermissionCode } from '@lpg/permissions'
-import { SCHEMA_TABLES, TABLE_TO_RESOURCE } from './permission-resources'
+import { PERMISSION_CATALOG, ROLE_GRANTS, type Role, type PermissionCode } from './index'
+import { SCHEMA_TABLES, TABLE_TO_RESOURCE } from './resources'
 
 const ALL_CODES = new Set<string>(PERMISSION_CATALOG.map((e) => e.code))
 
-describe('permission-resources completeness', () => {
+describe('table→resource completeness', () => {
   it('every schema table maps to a permission resource', () => {
     for (const table of SCHEMA_TABLES) {
       expect(TABLE_TO_RESOURCE[table], `table ${table}`).toBeDefined()

@@ -565,3 +565,5 @@ export function roleLabel(role: Role): string {
 }
 
 export type { Role } from '@lpg/types'
+
+export { SCHEMA_TABLES, TABLE_TO_RESOURCE } from './resources'
