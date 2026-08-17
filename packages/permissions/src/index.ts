@@ -61,7 +61,7 @@ export const PERMISSION_CATALOG = [
   { code: 'permissions.write', category: 'identity', label: 'Modifier les permissions' },
   { code: 'permissions.manage', category: 'identity', label: 'Gérer les permissions' },
   { code: 'custom-roles.manage', category: 'identity', label: 'Gérer les rôles personnalisés' },
-  // ---- governance (14) ----------------------------------------------------
+  // ---- governance (26) ----------------------------------------------------
   { code: 'orgs.read', category: 'governance', label: 'Voir les organisations' },
   { code: 'orgs.write', category: 'governance', label: 'Modifier les organisations' },
   { code: 'orgs.create', category: 'governance', label: 'Créer des organisations' },
@@ -81,6 +81,13 @@ export const PERMISSION_CATALOG = [
   { code: 'clients.create', category: 'governance', label: 'Créer des clients' },
   { code: 'clients.delete', category: 'governance', label: 'Supprimer des clients' },
   { code: 'clients.manage', category: 'governance', label: 'Gérer les clients' },
+  { code: 'contracts.read', category: 'governance', label: 'Voir les contrats' },
+  { code: 'contracts.write', category: 'governance', label: 'Modifier les contrats' },
+  { code: 'contracts.create', category: 'governance', label: 'Créer des contrats' },
+  { code: 'contracts.delete', category: 'governance', label: 'Supprimer des contrats' },
+  { code: 'contracts.manage', category: 'governance', label: 'Gérer les contrats' },
+  { code: 'contracts.validate', category: 'governance', label: 'Valider les contrats' },
+  { code: 'contracts.suspend', category: 'governance', label: 'Suspendre les contrats' },
   // ---- sites (13) ----------------------------------------------------------
   { code: 'sites.read', category: 'sites', label: 'Voir les sites' },
   { code: 'sites.write', category: 'sites', label: 'Modifier les sites' },
@@ -122,10 +129,11 @@ export const PERMISSION_CATALOG = [
   { code: 'rfid.read', category: 'fleet', label: 'Voir les tags RFID' },
   { code: 'rfid.write', category: 'fleet', label: 'Modifier les tags RFID' },
   { code: 'rfid.delete', category: 'fleet', label: 'Supprimer les tags RFID' },
-  // ---- supply (8) ------------------------------------------------------------
+  // ---- supply (9) ------------------------------------------------------------
   { code: 'pickups.read', category: 'supply', label: 'Voir les enlèvements' },
   { code: 'pickups.write', category: 'supply', label: 'Modifier les enlèvements' },
   { code: 'pickups.create', category: 'supply', label: 'Créer des enlèvements' },
+  { code: 'pickups.validate', category: 'supply', label: 'Valider les enlèvements' },
   { code: 'pickups.manage', category: 'supply', label: 'Gérer les enlèvements' },
   { code: 'quotas.read', category: 'supply', label: 'Voir les quotas' },
   { code: 'quotas.write', category: 'supply', label: 'Modifier les quotas' },
@@ -238,6 +246,7 @@ export type Action =
   | 'generate'
   | 'export'
   | 'edit'
+  | 'suspend'
 
 export type AppAbility = MongoAbility<[Action, Resource]>
 
@@ -261,7 +270,7 @@ export function parseCode(code: string): { resource: Resource; action: Action } 
 
 /** Grants each action implies (what `can(action, …)` accepts). */
 const ACTION_IMPLICATIONS: Record<Action, readonly Action[]> = {
-  manage: ['manage', 'read', 'write', 'create', 'delete', 'invite', 'reset', 'validate', 'verify', 'affect', 'sync', 'assign', 'reconcile', 'investigate', 'generate', 'export', 'edit'],
+  manage: ['manage', 'read', 'write', 'create', 'delete', 'invite', 'reset', 'validate', 'verify', 'affect', 'sync', 'assign', 'reconcile', 'investigate', 'generate', 'export', 'edit', 'suspend'],
   read: ['read'],
   write: ['write', 'create'],
   create: ['create'],
@@ -278,6 +287,7 @@ const ACTION_IMPLICATIONS: Record<Action, readonly Action[]> = {
   generate: ['generate'],
   export: ['export'],
   edit: ['edit', 'write', 'create'],
+  suspend: ['suspend'],
 }
 
 const ADMIN_GRANTS = [
@@ -289,6 +299,7 @@ const ADMIN_GRANTS = [
   'transporters.read', 'transporters.write', 'transporters.manage',
   'zones.read', 'zones.write', 'zones.manage',
   'clients.read', 'clients.write', 'clients.create', 'clients.delete', 'clients.manage',
+  'contracts.read', 'contracts.write', 'contracts.create', 'contracts.delete', 'contracts.manage', 'contracts.validate', 'contracts.suspend',
   'sites.read', 'sites.write', 'sites.create', 'sites.delete', 'sites.manage', 'sites.validate',
   'certificates.read', 'certificates.write', 'certificates.manage',
   'site-types.read', 'site-types.write',
@@ -297,6 +308,7 @@ const ADMIN_GRANTS = [
   'devices.read', 'devices.write', 'devices.create', 'devices.delete',
   'livreurs.read', 'tours.read', 'deliveries.read',
   'declarations.read', 'declarations.write', 'declarations.validate',
+  'pickups.read', 'pickups.write', 'pickups.validate',
   'reconciliations.read', 'reconciliations.write', 'reconciliations.manage',
   'redressements.read', 'redressements.write', 'redressements.manage',
   'subsidies.read', 'subsidies.write', 'invoices.read', 'invoices.write',
@@ -343,7 +355,7 @@ const AGENT_GRANTS = [
   'sites.read', 'sites.verify', 'certificates.read',
   'reports.read', 'metrics.read',
   'deliveries.read', 'tours.read',
-  'markets.read', 'transporters.read', 'livreurs.read', 'quotas.read', 'clients.read',
+  'markets.read', 'transporters.read', 'livreurs.read', 'quotas.read', 'clients.read', 'contracts.read',
   'notification-groups.read', 'notification-rules.read',
   'overview.read',
 ] as const satisfies readonly PermissionCode[]
@@ -358,6 +370,7 @@ const MARKETEUR_GRANTS = [
   'checkpoints.read', 'scans.read',
   'pickups.read', 'pickups.write', 'pickups.create', 'pickups.manage',
   'quotas.read', 'quotas.write', 'quotas.manage', 'supply.manage',
+  'contracts.read', 'contracts.write', 'contracts.create', 'contracts.delete', 'contracts.manage',
   'declarations.read', 'declarations.write',
   'subsidies.read', 'invoices.read',
   'sites.read',
@@ -380,6 +393,7 @@ const TRANSPORTEUR_GRANTS = [
   'rfid.read', 'rfid.write',
   'devices.read',
   'pickups.read', 'quotas.read',
+  'contracts.read', 'contracts.validate',
   'declarations.read', 'subsidies.read',
   'anomalies.read', 'risks.read', 'alerts.read',
   'reports.read', 'metrics.read',
