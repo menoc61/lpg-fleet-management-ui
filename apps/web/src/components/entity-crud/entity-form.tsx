@@ -103,14 +103,34 @@ export function EntityForm({
     }
     return defaults
   }, [fields, isRegulateur, scope.orgId])
+  const resetKey = useMemo(
+    () =>
+      JSON.stringify({
+        initial,
+        autoDefaults,
+        fields: fields.map(({ name, defaultValue, autoOrg, hidden }) => ({
+          name,
+          defaultValue,
+          autoOrg,
+          hidden,
+        })),
+      }),
+    [fields, initial, autoDefaults],
+  )
+  const resetValues = useMemo(
+    () => buildInitial(fields, initial, autoDefaults),
+    // resetKey intentionally replaces object identity as the dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resetKey],
+  )
   const form = useForm<FormValues>({
     resolver: zodResolver(zodSchemaFromFields(fields)),
     defaultValues: buildInitial(fields, initial, autoDefaults),
   })
 
   useEffect(() => {
-    form.reset(buildInitial(fields, initial, autoDefaults))
-  }, [form, fields, initial, autoDefaults])
+    form.reset(resetValues)
+  }, [form, resetKey, resetValues])
 
   const submit = form.handleSubmit(async (values) => {
     await onSubmit(applyTransforms(fields, values, isEdit, initial))
