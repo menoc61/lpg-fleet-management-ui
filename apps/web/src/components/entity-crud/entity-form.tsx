@@ -8,9 +8,10 @@
  * toasts live in the callers, not here.
  */
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { UploadCloud, X } from 'lucide-react'
 import {
   Button,
   Checkbox,
@@ -30,6 +31,8 @@ import {
   Switch,
   Textarea,
 } from '@lpg/ui'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 import { zodSchemaFromFields } from './field-schema'
 import type { FieldConfig } from './field-config'
 import { FormSection, SubmitButton } from './form-ui'
@@ -48,11 +51,15 @@ export interface EntityFormProps {
   submitLabel?: string
 }
 
-function buildInitial(fields: FieldConfig[], initial?: FormValues | null): FormValues {
+function buildInitial(
+  fields: FieldConfig[],
+  initial?: FormValues | null,
+  autoDefaults: FormValues = {},
+): FormValues {
   const out: FormValues = {}
   for (const f of fields) {
     const v = initial?.[f.name]
-    out[f.name] = v !== undefined ? v : (f.defaultValue ?? (f.type === 'switch' ? false : ''))
+    out[f.name] = v !== undefined ? v : (autoDefaults[f.name] ?? (f.defaultValue ?? (f.type === 'switch' ? false : '')))
   }
   return out
 }
@@ -85,9 +92,19 @@ export function EntityForm({
   submitLabel = 'Enregistrer',
 }: EntityFormProps) {
   const isEdit = Boolean(initial && initial.id)
+  const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
+  const isRegulateur = scope.view === 'org'
+  const autoDefaults = useMemo(() => {
+    const defaults: FormValues = {}
+    if (isRegulateur || !scope.orgId) return defaults
+    for (const f of fields) {
+      if (f.autoOrg) defaults[f.name] = scope.orgId
+    }
+    return defaults
+  }, [fields, isRegulateur, scope.orgId])
   const form = useForm<FormValues>({
     resolver: zodResolver(zodSchemaFromFields(fields)),
-    defaultValues: buildInitial(fields, initial),
+    defaultValues: buildInitial(fields, initial, autoDefaults),
   })
 
   const submit = form.handleSubmit(async (values) => {
@@ -115,7 +132,7 @@ export function EntityForm({
       <div className='flex-1 space-y-4 overflow-y-auto px-4 pb-2'>
         {sections.map(([title, sectionFields]) => (
           <FormSection key={title} title={title}>
-            {sectionFields.map((f) => (
+            {sectionFields.filter((f) => !(f.autoOrg && !isRegulateur) && !f.hidden).map((f) => (
               <Controller
                 key={f.name}
                 control={form.control}
@@ -158,6 +175,7 @@ function Field({
   error?: string
 }) {
   const id = `field-${config.name}`
+  const [fileError, setFileError] = useState<string>()
 
   if (config.type === 'switch') {
     return (
@@ -228,6 +246,71 @@ function Field({
         </div>
         {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
         {error ? <p className='text-sm text-destructive'>{error}</p> : null}
+      </div>
+    )
+  }
+
+  if (config.type === 'file') {
+    return (
+      <div className='space-y-1.5'>
+        <Label>{config.label}</Label>
+        {value ? (
+          <div className='flex items-center justify-between gap-2 rounded-md border p-3'>
+            <span className='flex min-w-0 items-center gap-2 text-sm'>
+              <UploadCloud className='size-4 shrink-0 text-emerald-500' />
+              <span className='truncate font-medium'>Preuve PDF jointe</span>
+            </span>
+            <Button
+              type='button'
+              variant='ghost'
+              size='sm'
+              onClick={() => {
+                setFileError(undefined)
+                onChange('')
+              }}
+            >
+              <X className='size-3.5' />
+              <span className='sr-only'>Retirer</span>
+            </Button>
+          </div>
+        ) : (
+          <label
+            htmlFor={id}
+            className='flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed p-6 text-sm text-muted-foreground hover:bg-muted/40'
+          >
+            <UploadCloud className='size-4' />
+            Déposer le PDF ou cliquer
+            <input
+              id={id}
+              type='file'
+              accept={config.accept ?? 'application/pdf'}
+              className='hidden'
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                const maxBytes = (config.maxFileSizeMb ?? 5) * 1024 * 1024
+                if (file.type !== 'application/pdf') {
+                  setFileError('Seul un fichier PDF est accepté')
+                  e.currentTarget.value = ''
+                  return
+                }
+                if (file.size > maxBytes) {
+                  setFileError(`Le fichier doit faire au maximum ${config.maxFileSizeMb ?? 5} Mo`)
+                  onChange('')
+                  e.currentTarget.value = ''
+                  return
+                }
+                setFileError(undefined)
+                const reader = new FileReader()
+                reader.onload = () => onChange(String(reader.result))
+                reader.onerror = () => setFileError('Impossible de lire le fichier')
+                reader.readAsDataURL(file)
+              }}
+            />
+          </label>
+        )}
+        {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
+        {fileError || error ? <p className='text-sm text-destructive'>{fileError ?? error}</p> : null}
       </div>
     )
   }
