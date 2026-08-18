@@ -35,7 +35,7 @@ export const deviceFields: FieldConfig[] = [
   field.select('device_type', 'Type', deviceTypeOptions, { required: true }),
   field.select('status', 'Statut', deviceStatusOptions, { required: true, defaultValue: 'UNASSIGNED' }),
   field.select('org_id', 'Organisation', orgOptions),
-  field.number('battery_level', 'Niveau batterie (%)'),
+  field.number('battery_level', 'Niveau batterie (%)', { min: 0, max: 100 }),
   field.switchField('battery_critical', 'Batterie critique'),
 ]
 
