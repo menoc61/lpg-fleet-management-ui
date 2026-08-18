@@ -95,6 +95,13 @@ describe('zodSchemaFromFields', () => {
     expect(schema.safeParse({ count: 'abc' }).success).toBe(false)
   })
 
+  it('rejects empty required numbers and accepts empty optional numbers', () => {
+    const required = zodSchemaFromFields([field.number('qty', 'Quantité', { required: true })])
+    const optional = zodSchemaFromFields([field.number('qty', 'Quantité')])
+    expect(required.safeParse({ qty: '' }).success).toBe(false)
+    expect(optional.safeParse({ qty: '' }).success).toBe(true)
+  })
+
   it('accepts an empty string for an optional email but rejects malformed addresses', () => {
     const schema = zodSchemaFromFields([field.email('email', 'Email')])
     expect(schema.safeParse({ email: '' }).success).toBe(true)
