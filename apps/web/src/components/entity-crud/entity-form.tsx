@@ -8,7 +8,7 @@
  * toasts live in the callers, not here.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UploadCloud, X } from 'lucide-react'
@@ -92,7 +92,8 @@ export function EntityForm({
   submitLabel = 'Enregistrer',
 }: EntityFormProps) {
   const isEdit = Boolean(initial && initial.id)
-  const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
+  const user = useAuthStore((s) => s.user)
+  const scope = useMemo(() => getScope(user), [user])
   const isRegulateur = scope.view === 'org'
   const autoDefaults = useMemo(() => {
     const defaults: FormValues = {}
@@ -106,6 +107,10 @@ export function EntityForm({
     resolver: zodResolver(zodSchemaFromFields(fields)),
     defaultValues: buildInitial(fields, initial, autoDefaults),
   })
+
+  useEffect(() => {
+    form.reset(buildInitial(fields, initial, autoDefaults))
+  }, [form, fields, initial, autoDefaults])
 
   const submit = form.handleSubmit(async (values) => {
     await onSubmit(applyTransforms(fields, values, isEdit, initial))
@@ -251,9 +256,11 @@ function Field({
   }
 
   if (config.type === 'file') {
+    const fileErrorId = `${id}-error`
+    const hasFileError = Boolean(fileError || error)
     return (
       <div className='space-y-1.5'>
-        <Label>{config.label}</Label>
+        <Label htmlFor={id}>{config.label}</Label>
         {value ? (
           <div className='flex items-center justify-between gap-2 rounded-md border p-3'>
             <span className='flex min-w-0 items-center gap-2 text-sm'>
@@ -284,7 +291,9 @@ function Field({
               id={id}
               type='file'
               accept={config.accept ?? 'application/pdf'}
-              className='hidden'
+              className='sr-only'
+              aria-invalid={hasFileError}
+              aria-describedby={hasFileError ? fileErrorId : undefined}
               onChange={(e) => {
                 const file = e.target.files?.[0]
                 if (!file) return
@@ -310,7 +319,11 @@ function Field({
           </label>
         )}
         {config.help ? <p className='text-xs text-muted-foreground'>{config.help}</p> : null}
-        {fileError || error ? <p className='text-sm text-destructive'>{fileError ?? error}</p> : null}
+        {hasFileError ? (
+          <p id={fileErrorId} className='text-sm text-destructive'>
+            {fileError ?? error}
+          </p>
+        ) : null}
       </div>
     )
   }
