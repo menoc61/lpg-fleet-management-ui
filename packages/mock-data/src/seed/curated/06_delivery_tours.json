@@ -97,6 +97,23 @@
       "deleted_at": null,
       "created_by": "user-0020-aza-marketeur",
       "updated_by": "user-0020-aza-marketeur"
+    },
+    {
+      "id": "tc-006-camg-translog",
+      "marketeur_org_id": "org-0005-camg-0000-000000000001",
+      "transporter_org_id": "org-0010-translog----000000000001",
+      "is_primary": false,
+      "contract_reference": "CTR-CAMG-TL-2026-006",
+      "started_at": "2026-09-15T00:00:00Z",
+      "ended_at": "2027-12-31T23:59:59Z",
+      "is_active": true,
+      "contract_document_url": "data:application/pdf;base64,JVBERi0xLg==",
+      "transporter_accepted_at": "2026-08-18T09:00:00Z",
+      "created_at": "2026-08-18T08:00:00Z",
+      "updated_at": "2026-08-18T09:00:00Z",
+      "deleted_at": null,
+      "created_by": "user-0024-translog-admin",
+      "updated_by": "user-0024-translog-admin"
     }
   ],
   "pickup_requests": [
