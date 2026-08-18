@@ -380,6 +380,8 @@ export interface TransporterContract extends BaseEntity {
   started_at?: string | null
   ended_at?: string | null
   is_active: boolean
+  contract_document_url?: string | null
+  transporter_accepted_at?: string | null
 }
 
 export interface PickupRequest extends BaseEntity {
