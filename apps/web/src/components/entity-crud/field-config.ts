@@ -14,6 +14,7 @@ export type FieldType =
   | 'select'
   | 'switch'
   | 'date'
+  | 'file'
   | 'url'
   | 'checklist'
 
@@ -28,6 +29,17 @@ export interface FieldConfig {
   label: string
   type: FieldType
   required?: boolean
+  min?: number
+  max?: number
+  positive?: boolean
+  pattern?: string
+  patternMessage?: string
+  minDate?: string
+  maxDate?: string
+  accept?: string
+  maxFileSizeMb?: number
+  autoOrg?: boolean
+  hidden?: boolean
   placeholder?: string
   help?: string
   /** Select options (value must be string for the原生 Select). */
@@ -89,6 +101,27 @@ export const field = {
     name,
     label,
     type: 'date',
+    ...extra,
+  }),
+  file: (name: string, label: string, extra: Partial<FieldConfig> = {}): FieldConfig => ({
+    name,
+    label,
+    type: 'file',
+    accept: 'application/pdf',
+    maxFileSizeMb: 5,
+    ...extra,
+  }),
+  orgField: (
+    name: string,
+    options: FieldOption[],
+    extra: Partial<FieldConfig> = {},
+  ): FieldConfig => ({
+    name,
+    label: 'Organisation',
+    type: 'select',
+    options,
+    required: true,
+    autoOrg: true,
     ...extra,
   }),
   checklist: (
