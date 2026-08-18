@@ -108,20 +108,9 @@ export function EntityForm({
       JSON.stringify({
         initial,
         autoDefaults,
-        fields: fields.map(({ name, defaultValue, autoOrg, hidden }) => ({
-          name,
-          defaultValue,
-          autoOrg,
-          hidden,
-        })),
+        fields: fields.map(({ transform: _transform, ...fieldConfig }) => fieldConfig),
       }),
     [fields, initial, autoDefaults],
-  )
-  const resetValues = useMemo(
-    () => buildInitial(fields, initial, autoDefaults),
-    // resetKey intentionally replaces object identity as the dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [resetKey],
   )
   const form = useForm<FormValues>({
     resolver: zodResolver(zodSchemaFromFields(fields)),
@@ -129,8 +118,10 @@ export function EntityForm({
   })
 
   useEffect(() => {
-    form.reset(resetValues)
-  }, [form, resetKey, resetValues])
+    form.reset(buildInitial(fields, initial, autoDefaults))
+    // resetKey captures the serializable inputs while these values provide the current reset data.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, resetKey])
 
   const submit = form.handleSubmit(async (values) => {
     await onSubmit(applyTransforms(fields, values, isEdit, initial))
