@@ -1,15 +1,13 @@
 import { UserRound, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { Badge, Card, CardContent, CardHeader, CardTitle, Separator } from '@lpg/ui'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'
+} from '@lpg/ui'
 import { EntityDetailTabs } from '@/components/entity-table'
 import {
   getTruckTelemetry,

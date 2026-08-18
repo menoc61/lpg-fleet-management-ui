@@ -1,6 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Wrench } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@lpg/ui'
 import { useCallback, useState } from 'react'
 import { MaintenanceTable } from './components/maintenance-table'
 import { MaintenanceDetailsSheet } from './components/maintenance-details-sheet'

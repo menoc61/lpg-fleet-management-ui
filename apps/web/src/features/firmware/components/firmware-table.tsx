@@ -21,9 +21,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { Badge, Button } from '@lpg/ui'
+} from '@lpg/ui'
+import { DataTablePagination, DataTableToolbar, Badge, Button } from '@lpg/ui'
 import type { FirmwareView } from '../data/firmware'
 import { firmwareStatusLabel } from '../data/firmware'
 

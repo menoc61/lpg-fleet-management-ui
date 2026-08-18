@@ -1,5 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
+import { Button } from '@lpg/ui'
 
 export function NotFoundError() {
   const navigate = useNavigate()

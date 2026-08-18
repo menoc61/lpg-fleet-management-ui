@@ -1,7 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Building2, ArrowLeft, Package } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
 import { getMarketerById } from './data/marketers'
 import { MarketerOverview } from './components/marketer-overview'
 import { MarketerSites } from './components/marketer-sites'

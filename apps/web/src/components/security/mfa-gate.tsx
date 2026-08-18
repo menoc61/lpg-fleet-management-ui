@@ -1,12 +1,12 @@
 import { useMfaGate } from '@/hooks/use-mfa-gate'
-import { Button } from '@/components/ui/button'
+import { Button } from '@lpg/ui'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from '@lpg/ui'
 import { useAuthStore } from '@/store/auth-store'
 
 /**

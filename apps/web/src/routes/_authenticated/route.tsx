@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from '@lpg/ui'
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ location }) => {

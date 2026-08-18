@@ -10,7 +10,7 @@ import MapView from '@arcgis/core/views/MapView.js'
 import type { ClickEvent } from '@arcgis/core/views/input/types.js'
 import { AlertTriangle, Wifi } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@lpg/ui'
 import { getNationalMapView, type NationalMapView } from '@/features/map/data/national-map'
 import {
   getArcgisBasemap,

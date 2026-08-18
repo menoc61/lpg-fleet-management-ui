@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import { Sparkline } from './sparkline'
 

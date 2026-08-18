@@ -21,8 +21,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+} from '@lpg/ui'
+import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { type Organization } from '@lpg/types'
 import { getMarketersColumns } from './marketers-columns'
 

@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { api } from '@lpg/api-client'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
-import { Button } from '@/components/ui/button'
+import { Button, Badge, DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import type { SiteRole, SiteRow, TransitionRequest } from './lib/site-status-machine'
 import { SiteActionsMenu } from './components/site-actions-menu'
 import { SiteStatusBadge } from './components/site-status-badge'
@@ -12,9 +12,7 @@ import { clientSiteFields, clientSiteFromForm, siteFields, siteFromForm } from '
 import { cn } from '@/lib/utils'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@lpg/ui'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+} from '@lpg/ui'
 import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/react-table'
 import {
   flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable,
@@ -27,7 +25,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from '@lpg/ui'
 import { assertPermission } from '@/lib/security/guards'
 import { useAuthStore } from '@/store/auth-store'
 

@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@lpg/ui'
 
 export type EntityPageProps = {
   /** Lucide icon shown next to the heading. */

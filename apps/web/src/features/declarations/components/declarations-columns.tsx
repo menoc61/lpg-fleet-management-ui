@@ -1,6 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@lpg/ui'
-import { DataTableColumnHeader } from '@/components/data-table'
+import { Badge, DataTableColumnHeader } from '@lpg/ui'
 import {
   type DeclarationView,
   type DeclarationStatus,

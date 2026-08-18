@@ -1,19 +1,19 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@lpg/ui'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from '@lpg/ui'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@lpg/ui'
 import { executionModeLabels, type TourActivity } from '../data/tour-activity'
 
 type TourActiveHeaderProps = {

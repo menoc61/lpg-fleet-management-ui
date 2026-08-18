@@ -1,7 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
-import { Badge, Checkbox } from '@lpg/ui'
-import { DataTableColumnHeader } from '@lpg/ui'
+import { Badge, Checkbox, DataTableColumnHeader } from '@lpg/ui'
 import { type Organization } from '@lpg/types'
 import { CrudRowActions } from '@/components/entity-crud'
 

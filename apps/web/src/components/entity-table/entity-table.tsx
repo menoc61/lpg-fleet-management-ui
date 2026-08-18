@@ -6,9 +6,8 @@ import {
   Table as TanstackTable,
 } from '@tanstack/react-table'
 import { ChevronRightIcon, ChevronDownIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
   Table,
   TableBody,
@@ -16,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@lpg/ui'
 import type { NavigateFn } from '@/hooks/use-table-url-state'
 import {
   type EntityTableOptions,

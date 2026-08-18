@@ -1,14 +1,13 @@
 import { CalendarDays, CarFront, Route, UserRound, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'
+} from '@lpg/ui'
 import {
   driverStatusClasses,
   driverStatusLabels,

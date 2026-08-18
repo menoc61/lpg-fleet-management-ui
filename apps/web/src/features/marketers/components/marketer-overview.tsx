@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { Building2, Truck, Users } from 'lucide-react'
 import type { Organization } from '@lpg/types'
 

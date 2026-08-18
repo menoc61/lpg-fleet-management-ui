@@ -2,13 +2,12 @@ import { type Table } from '@tanstack/react-table'
 import { Download, Route, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { Button, DataTableBulkActions as BulkActionsToolbar } from '@lpg/ui'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
+} from '@lpg/ui'
 import { type Truck } from '../data/trucks'
 
 type DataTableBulkActionsProps<TData> = {

@@ -23,7 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@lpg/ui'
 import { SiteStatusBadge } from './site-status-badge'
 import { SiteActionsMenu } from './site-actions-menu'
 import { cn } from '@/lib/utils'

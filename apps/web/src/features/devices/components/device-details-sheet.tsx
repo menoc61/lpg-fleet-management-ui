@@ -1,7 +1,6 @@
 import { Battery, Cpu, MapPin, Radio, Signal } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { EntityDetailTabs } from '@/components/entity-table'
 import {
   Sheet,
@@ -9,7 +8,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet'
+} from '@lpg/ui'
 import {
   deviceStatusClasses,
   deviceStatusLabels,

@@ -1,7 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Truck as TruckIcon, ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
 import { getTransporterById } from './transporters'
 import { TransporterOverview } from './components/transporter-overview'
 import { TransporterTrucksList } from './components/transporter-trucks-list'

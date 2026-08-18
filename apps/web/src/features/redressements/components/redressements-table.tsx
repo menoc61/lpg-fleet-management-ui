@@ -12,7 +12,7 @@ import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
+} from '@lpg/ui'
 import { getRedressementColumns } from './redressements-columns'
 import { redressementStatusOptions, type RedressementView } from '../data/redressements'
 

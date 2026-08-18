@@ -1,7 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Building2, Plus } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge, Button } from '@lpg/ui'
 import { useCallback, useState } from 'react'
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { OrganizationsTable } from './components/organizations-table'

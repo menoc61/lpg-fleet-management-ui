@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 
 export type EntityDetailTab = {

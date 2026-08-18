@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { useMemo } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@lpg/ui'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
 import { SectionCard } from '@/components/layout/page'

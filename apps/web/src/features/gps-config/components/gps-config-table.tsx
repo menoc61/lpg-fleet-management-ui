@@ -21,10 +21,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from '@lpg/ui'
+import { DataTablePagination, DataTableToolbar, Badge, Button } from '@lpg/ui'
 import type { GpsConfigView } from '../data/gps-config'
 import { deviceStatusLabel } from '../data/gps-config'
 

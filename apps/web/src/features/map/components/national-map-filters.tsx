@@ -1,8 +1,7 @@
 import { LAYER_LABELS, type MapLayerKey } from '@/features/map/lib/layers'
 import { LegendSiteIcon } from '@/features/map/utils/legend'
 import type { MapTheme } from '@/features/map/utils/map-theme'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { Switch, Label } from '@lpg/ui'
 
 export type NationalMapFiltersProps = {
   layers: Record<MapLayerKey, boolean>

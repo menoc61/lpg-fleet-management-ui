@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import { LayoutDashboard } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@lpg/ui'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from '@lpg/ui'
 import { Main } from '@/components/layout/main'
 import { ROLE_LABELS } from '@/config/rbac/roles'
 import { useRoleStore } from '@/store/role-store'

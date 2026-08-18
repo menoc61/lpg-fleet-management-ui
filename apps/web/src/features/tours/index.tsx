@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { Button } from '@lpg/ui'
+import { Button, Tabs, TabsList, TabsTrigger } from '@lpg/ui'
 import { hasPermission } from '@lpg/permissions'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
@@ -77,22 +77,19 @@ export function ToursPage() {
         />
       )}
       <SectionCard>
-        <div className='mb-4 flex flex-wrap gap-2'>
-          {SLICES.map((s) => (
-            <button
-              key={s.value}
-              type='button'
-              onClick={() => { setSlice(s.value); setSelectedId(undefined) }}
-              className={
-                slice === s.value
-                  ? 'rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground'
-                  : 'rounded-full border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted'
-              }
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          value={slice}
+          onValueChange={(v) => { setSlice(v as TourSlice); setSelectedId(undefined) }}
+          className='mb-4'
+        >
+          <TabsList className='flex-wrap'>
+            {SLICES.map((s) => (
+              <TabsTrigger key={s.value} value={s.value}>
+                {s.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <ToursTable
           rows={tours}
           selectedTripId={selectedTrip?.id}
