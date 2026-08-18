@@ -30,7 +30,7 @@ export function zodSchemaFromFields(fields: FieldConfig[]): FieldValuesSchema {
         if (f.min !== undefined) num = num.min(f.min, `Doit être ≥ ${f.min}`)
         if (f.max !== undefined) num = num.max(f.max, `Doit être ≤ ${f.max}`)
         if (f.positive) num = num.positive('Doit être positif')
-        rule = z.preprocess((v) => (v === '' || v == null ? undefined : v), num)
+        rule = z.preprocess((v) => (v === '' || v == null ? undefined : v), f.required ? num : num.optional())
         break
       }
       case 'switch':
@@ -78,8 +78,6 @@ export function zodSchemaFromFields(fields: FieldConfig[]): FieldValuesSchema {
       if (f.type === 'email' || f.type === 'url') {
         rule = z.union([rule, z.literal('')])
       }
-    } else if (f.type === 'number' && !f.required) {
-      rule = rule.optional()
     }
 
     shape[f.name] = rule
