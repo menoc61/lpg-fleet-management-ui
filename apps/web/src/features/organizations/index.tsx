@@ -22,7 +22,7 @@ export function OrganizationsPage() {
   const navigate = route.useNavigate()
   const [detailsOrg, setDetailsOrg] = useState<Organization | null>(null)
   const crud = useEntityCrud<CuratedOrganization>('organizations', 'orgs', ['organizations'])
-  const orgs = getOrganizations()
+  const orgs = getOrganizations(crud.list.data)
 
   const handleViewDetails = useCallback((org: Organization) => {
     setDetailsOrg(org)

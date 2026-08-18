@@ -254,9 +254,9 @@ function Field({
                   else onChange(selected.filter((c) => c !== o.value))
                 }}
               />
-              <Label htmlFor={`${id}-${o.value}`} className='cursor-pointer font-mono text-xs'>
-                {o.value}
-              </Label>
+                <Label htmlFor={`${id}-${o.value}`} className='cursor-pointer font-mono text-xs'>
+                  {o.label}
+                </Label>
             </div>
           ))}
         </div>

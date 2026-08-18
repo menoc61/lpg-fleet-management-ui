@@ -32,6 +32,7 @@ import { Main } from '@/components/layout/main'
 import { formatTm, formatBtl } from '@/features/map/utils/format'
 import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
+import { useToursStore } from '@/store/tours-store'
 import {
   buildDashboardView,
   type DashboardActivityStatus,
@@ -45,9 +46,15 @@ import {
 
 export function DashboardPage({ role }: { role?: Role } = {}) {
   const user = useAuthStore((s) => s.user)
+  // Subscribe to the tours store so the command center refreshes after a tour
+  // is created/acknowledged/closed in-session (buildDashboardView reads the
+  // store imperatively via getRouteTripsView).
+  const storeTours = useToursStore((s) => s.tours)
+  const storeCheckpoints = useToursStore((s) => s.checkpoints)
   const dashboard = useMemo(
     () => buildDashboardView(role, getScope(user)),
-    [role, user]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [role, user, storeTours, storeCheckpoints]
   )
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')

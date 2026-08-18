@@ -85,7 +85,7 @@ export type {
 
 export * from './analytics.ts'
 
-export { getSetting, getSettingNumber } from './settings.ts'
+export { getSetting, getSettingNumber, getSettingFunctions } from './settings.ts'
 
 import { curated } from './curated.ts'
 

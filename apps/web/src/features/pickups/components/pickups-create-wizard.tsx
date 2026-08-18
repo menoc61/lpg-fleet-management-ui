@@ -27,6 +27,7 @@ import { curated, organizations, sites } from '@lpg/mock-data'
 import { useAuthStore } from '@/store/auth-store'
 import { usePickupsStore } from '@/store/pickups-store'
 import { getScope } from '@/features/scope/scope'
+import { isSupplyOrigin } from '@/features/sites/lib/site-functions'
 import { PERMISSION_DENIED } from '@/lib/security/guards'
 import type { PickupRequest, VehicleType } from '@lpg/types'
 import { recommendVehicles, type VehicleRecommendation } from '../lib/vehicle-recommendation'
@@ -57,7 +58,12 @@ function defaultValues(): PickupWizardValues {
   const values = { ...DEFAULT_VALUES, marketeur_org_id: defaultMarketeurOrg() }
   const scope = getScope(useAuthStore.getState().user)
   if (scope.view !== 'org' && scope.siteIds.length > 0) {
-    const firstSite = sites.find((s) => s.id === scope.siteIds[0] && s.is_active !== false)
+    // Enlèvement origin must be a supply point / filling centre. Prefer a site
+    // of that function within the actor's scope; fall back to any active site.
+    const supplyOrigin = sites.find(
+      (s) => scope.siteIds.includes(s.id) && s.is_active !== false && isSupplyOrigin(s),
+    )
+    const firstSite = supplyOrigin ?? sites.find((s) => s.id === scope.siteIds[0] && s.is_active !== false)
     if (firstSite) values.source_site_id = firstSite.id
   }
   return values
@@ -95,9 +101,9 @@ export function PickupsCreateWizard({
 
   const sourceOptions = useMemo(() => {
     const active = sites.filter((s) => s.is_active !== false)
-    if (canChooseOrg) return active
+    if (canChooseOrg) return active.filter(isSupplyOrigin)
     const siteIds = new Set(scope.siteIds)
-    return active.filter((s) => siteIds.has(s.id))
+    return active.filter((s) => siteIds.has(s.id) && isSupplyOrigin(s))
   }, [canChooseOrg, scope.siteIds])
   const destOptions = useMemo(
     () => sites.filter((s) => s.is_active !== false && s.id !== sourceSiteId),

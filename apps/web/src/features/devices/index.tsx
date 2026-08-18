@@ -36,10 +36,9 @@ export function DevicesPage() {
   const [searchText, setSearchText] = useState('')
   const [typeFilter, setTypeFilter] = useState<DeviceFilter>('all')
   const [detailsDevice, setDetailsDevice] = useState<DeviceView | null>(null)
-  const [, setVersion] = useState(0)
   const crud = useEntityCrud<Device>('devices', 'devices', ['devices'])
 
-  const allDevices = getDevicesView()
+  const allDevices = getDevicesView(crud.list.data)
 
   const handleViewDetails = useCallback((device: DeviceView) => {
     setDetailsDevice(device)
@@ -55,7 +54,6 @@ export function DevicesPage() {
         toast.success('Appareil créé.')
       }
       crud.close()
-      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -213,7 +211,6 @@ export function DevicesPage() {
           onEdit={(d) => crud.openEdit(d as unknown as Device)}
           onDelete={async (d) => {
             await crud.removeMut.mutateAsync(d.id)
-            setVersion((v) => v + 1)
           }}
         />
       </section>

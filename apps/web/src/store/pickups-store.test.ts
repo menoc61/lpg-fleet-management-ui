@@ -5,7 +5,7 @@ import { PERMISSION_DENIED } from '@/lib/security/guards'
 import { curated } from '@lpg/mock-data'
 
 const MARKETEUR_ORG = 'org-0002-sctm-0000-000000000001'
-const SOURCE_SITE = 'site-0030-scdp-garoua'
+const SOURCE_SITE = 'site-0001-sctm-bonaberi'
 const DEST_SITE = 'site-0004-sctm-garoua'
 
 const SUPERADMIN_USER = {

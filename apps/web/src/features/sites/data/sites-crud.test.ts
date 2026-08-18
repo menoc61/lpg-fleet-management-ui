@@ -72,4 +72,41 @@ describe('sites-crud config', () => {
       is_active: false,
     })
   })
+
+  it('leaves geo_point null when coordinates are omitted (site is not yet geolocalised)', () => {
+    const out = siteFromForm({
+      name: 'Site sans position',
+      org_id: 'org-0001',
+      region: 'CENTRE',
+      is_active: true,
+    })
+    expect(out.geo_point).toBeNull()
+  })
+
+  it('encodes geo_point as [longitude, latitude] when both coordinates are provided', () => {
+    const out = siteFromForm({
+      name: 'Dépôt Douala',
+      org_id: 'org-0001',
+      region: 'LITTORAL',
+      latitude: 4.0475,
+      longitude: 9.5625,
+      is_active: true,
+    })
+    expect(out.geo_point).toEqual([9.5625, 4.0475])
+  })
+
+  it('round-trips geo_point back into separate latitude/longitude fields', () => {
+    const form = siteToForm({
+      id: 'site-1',
+      name: 'Dépôt Douala',
+      org_id: 'org-0001',
+      region: 'LITTORAL',
+      geo_point: [9.5625, 4.0475],
+      status: 'ACTIVE',
+      is_active: true,
+      is_verified: true,
+    })
+    expect(form.latitude).toBe(4.0475)
+    expect(form.longitude).toBe(9.5625)
+  })
 })

@@ -23,6 +23,8 @@ export const settingCategoryLabels: Record<string, string> = {
   SECURITY: 'Sécurité',
   GPS: 'GPS',
   REPORT: 'Rapports',
+  RESERVE: 'Réserve',
+  FLUX1: 'Flux 1 (enlèvements)',
 }
 
 export function getSettings(): SettingView[] {

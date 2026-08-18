@@ -20,7 +20,7 @@ import type {
   Role,
   OrgType,
   Region as RegionEnum,
-  SiteType,
+  SiteFunction,
   SiteStatus,
   VehicleType,
   TourneeType,
@@ -126,7 +126,7 @@ export interface Site {
   org_id: string
   region: RegionEnum
   name: string
-  functions?: SiteType[] | null
+  functions?: SiteFunction[] | null
   address?: string
   geo_point?: number[] | [number, number] | null
   geo_confidence_score?: number

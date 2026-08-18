@@ -235,8 +235,8 @@ function buildView(vehicle: CuratedVehicle): VehicleView {
   }
 }
 
-export function getVehiclesView(): VehicleView[] {
-  return vehicles.map(buildView)
+export function getVehiclesView(source: CuratedVehicle[] = vehicles as CuratedVehicle[]): VehicleView[] {
+  return source.map(buildView)
 }
 
 export const fleetVehicles: readonly VehicleView[] = getVehiclesView()

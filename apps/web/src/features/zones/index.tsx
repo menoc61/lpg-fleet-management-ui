@@ -18,7 +18,7 @@ export function ZonesPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const [detailsZone, setDetailsZone] = useState<ZoneView | null>(null)
-  const crud = useEntityCrud<RegionEntity>('regions', 'zones', ['zones'])
+  const crud = useEntityCrud<RegionEntity>('regions', 'zones', ['regions'])
   const derivedZones = getZones()
   const derivedById = new Map(derivedZones.map((zone) => [zone.id, zone]))
   const zones = (crud.list.data ?? derivedZones).map((region) => {

@@ -7,12 +7,19 @@ import { PageHeader } from '@/components/layout/page-header'
 import { formatTm } from '@/features/map/utils/format'
 import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
+import { useToursStore } from '@/store/tours-store'
 import { buildDashboardView } from './data/dashboard'
 
 function useDashboard() {
   const user = useAuthStore((s) => s.user)
   const scope = useMemo(() => getScope(user), [user])
-  return useMemo(() => buildDashboardView(undefined, scope), [scope])
+  const storeTours = useToursStore((s) => s.tours)
+  const storeCheckpoints = useToursStore((s) => s.checkpoints)
+  return useMemo(
+    () => buildDashboardView(undefined, scope),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [scope, storeTours, storeCheckpoints]
+  )
 }
 
 export function FleetDetailPage() {

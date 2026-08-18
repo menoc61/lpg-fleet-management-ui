@@ -4,6 +4,7 @@ import type { PickupRequest, PickupStatus } from '@lpg/types'
 import { type Role } from '@lpg/permissions'
 import { assertPermission, assertSiteAccess } from '@/lib/security/guards'
 import { getScope } from '@/features/scope/scope'
+import { getPickupSourceFunctions } from '@/features/sites/lib/site-functions'
 import { useAuthStore } from '@/store/auth-store'
 import { emitWs } from '@/lib/ws/mock-ws'
 
@@ -26,7 +27,22 @@ export interface PickupValidationResult {
   errors: string[]
 }
 
-export function validatePickup(input: PickupDraft): PickupValidationResult {
+export interface PickupValidationOptions {
+  /** site_function values allowed as the enlèvement origin (settings-driven default). */
+  allowedSourceFunctions?: readonly string[]
+}
+
+const SOURCE_SITE_LOOKUP = new Map<string, { functions?: string[] | null }>()
+function buildSiteIndex() {
+  SOURCE_SITE_LOOKUP.clear()
+  for (const s of sites) SOURCE_SITE_LOOKUP.set(s.id, { functions: s.functions ?? null })
+}
+buildSiteIndex()
+
+export function validatePickup(
+  input: PickupDraft,
+  options?: PickupValidationOptions,
+): PickupValidationResult {
   const errors: string[] = []
 
   if (input.source_site_id && input.destination_site_id && input.source_site_id === input.destination_site_id) {
@@ -42,6 +58,18 @@ export function validatePickup(input: PickupDraft): PickupValidationResult {
   }
   if (!input.source_site_id || !input.destination_site_id) {
     errors.push('pickup_requests requires source_site_id and destination_site_id')
+  }
+
+  // Flux-1 rule: an enlèvement origin must be a supply point or a filling
+  // centre (settings-driven). Mirrors the schema's site_function constraint.
+  const allowed = options?.allowedSourceFunctions ?? getPickupSourceFunctions()
+  if (input.source_site_id) {
+    const source = SOURCE_SITE_LOOKUP.get(input.source_site_id)
+    if (source && !source.functions?.some((f) => allowed.includes(f))) {
+      errors.push(
+        'chk_pickup_source_function: source must be a supply point or filling centre (CENTREEMPLISSEUR/POINTAPPROVISIONABLE), not a storage-only ENTREPOT',
+      )
+    }
   }
 
   return { valid: errors.length === 0, errors }

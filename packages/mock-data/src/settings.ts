@@ -22,3 +22,21 @@ export function getSettingNumber(key: string): number | null {
   const parsed = Number(raw)
   return Number.isFinite(parsed) ? parsed : null
 }
+
+/**
+ * JSON-array business rule stored as a `setting_value` string, mirroring the
+ * `mfa.enforced_for_roles` pattern (e.g. `["ADMIN","SUPERADMIN"]`). Returns the
+ * parsed array, or `fallback` when the setting is absent / unparseable. Purely
+ * string-typed on disk, like every other setting.
+ */
+export function getSettingFunctions(key: string, fallback: string[]): string[] {
+  const raw = getSetting(key)
+  if (raw === null || raw === '') return fallback
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.map(String)
+  } catch {
+    /* fall through */
+  }
+  return fallback
+}

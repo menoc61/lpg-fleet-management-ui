@@ -67,3 +67,38 @@ export function getRedressementStatusRows(): FinanceStatusRow[] {
     }
   })
 }
+
+export interface FinanceMarketeurRow {
+  marketeur: string
+  declaredVolume: number
+  volumeGap: number
+  subsidyImpact: number
+  reconciliationCount: number
+}
+
+/** Per-marketeur aggregation over real reconciliation rows (no fabricated data). */
+export function getMarketeurImpactRows(): FinanceMarketeurRow[] {
+  const rows = getReconciliations()
+  const byMarketeur = new Map<string, FinanceMarketeurRow>()
+  for (const r of rows) {
+    const entry = byMarketeur.get(r.marketeur_name) ?? {
+      marketeur: r.marketeur_name,
+      declaredVolume: 0,
+      volumeGap: 0,
+      subsidyImpact: 0,
+      reconciliationCount: 0,
+    }
+    entry.declaredVolume += r.declared_volume
+    entry.volumeGap += Math.abs(r.volume_gap)
+    entry.subsidyImpact += r.subsidy_impact
+    entry.reconciliationCount += 1
+    byMarketeur.set(r.marketeur_name, entry)
+  }
+  return [...byMarketeur.values()].sort((a, b) => b.subsidyImpact - a.subsidyImpact)
+}
+
+/** Real reconciliation rows flagged as over the tolerance threshold. */
+export function getFlaggedReconciliations() {
+  const rows = getReconciliations()
+  return rows.filter((r) => r.gap_percentage > gapToleranceThreshold())
+}

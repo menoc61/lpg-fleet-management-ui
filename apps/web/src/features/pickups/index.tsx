@@ -13,6 +13,7 @@ import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
 import { usePickupsStore } from '@/store/pickups-store'
 import { extractErrorMessage } from '@/hooks/use-toast-feedback'
+import { hasPermission } from '@lpg/permissions'
 import type { PickupRequest } from '@lpg/types'
 import type { Role } from '@/config/rbac/roles'
 
@@ -27,6 +28,10 @@ export function PickupsPage({ role }: { role: Role }) {
   const [assignedVehicles, setAssignedVehicles] = useState<Record<string, string[]>>({})
   const [validateOpen, setValidateOpen] = useState<Pickup | null>(null)
   const [detailOpen, setDetailOpen] = useState<Pickup | null>(null)
+
+  const canCreate = hasPermission(role, 'pickups.create')
+  const canValidate = hasPermission(role, 'pickups.validate')
+  const canWrite = hasPermission(role, 'pickups.write')
 
   const summary = getPickupSummary(rows)
 
@@ -63,7 +68,7 @@ export function PickupsPage({ role }: { role: Role }) {
         title='Approvisionnements (Flux 1)'
         description={`${summary.total} requêtes — ${summary.draft} brouillon(s), ${summary.validated} validée(s), ${summary.inProgress} en cours, ${summary.completed} terminée(s).`}
         actions={
-          role === 'MARKETEUR' ? (
+          canCreate ? (
             <Button className='gap-2' onClick={() => setCreateOpen(true)}>
               <Plus className='size-4' /> Nouvelle requête
             </Button>
@@ -74,7 +79,7 @@ export function PickupsPage({ role }: { role: Role }) {
         <PickupsTable
           rows={rows}
           onOpenDetails={(row) => {
-            if ((role === 'ADMIN' || role === 'SUPERADMIN') && row.pickup_status === 'DRAFT') {
+            if (canValidate && row.pickup_status === 'DRAFT') {
               setValidateOpen(row)
             } else {
               setDetailOpen(row)
@@ -114,7 +119,7 @@ export function PickupsPage({ role }: { role: Role }) {
               )}
             </div>
           )}
-          {(role === 'MARKETEUR' || role === 'ADMIN' || role === 'SUPERADMIN') && detailOpen?.pickup_status !== 'CANCELLED' && detailOpen?.pickup_status !== 'COMPLETED' ? (
+          {canWrite && detailOpen?.pickup_status !== 'CANCELLED' && detailOpen?.pickup_status !== 'COMPLETED' ? (
             <DialogFooter>
               <Button variant='destructive' onClick={() => { if (detailOpen) handleCancel(detailOpen); setDetailOpen(null) }}>
                 Annuler la requête

@@ -112,8 +112,11 @@ function riskLevelFor(vehicleId: string, fallback: RiskLevel): RiskLevel {
   return row?.level ?? fallback
 }
 
-export function getTrucks(scope?: UserScope): Truck[] {
-  const vehicles = curated.vehicles as CuratedVehicle[]
+export function getTrucks(
+  scope?: UserScope,
+  source: CuratedVehicle[] = curated.vehicles as CuratedVehicle[],
+): Truck[] {
+  const vehicles = source
   const activeOrgs = organizations.filter((o) => o.is_active)
   const toursByVehicle = new Map<string, DeliveryTour>()
   for (const tour of delivery_tours) {

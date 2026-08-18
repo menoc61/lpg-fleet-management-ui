@@ -1,11 +1,12 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { FileCheck, Plus } from 'lucide-react'
 import { Badge, Button } from '@lpg/ui'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@lpg/api-client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEntityPermission } from '@/lib/permissions/use-entity-permission'
+import { vehiclesHooks } from '@/lib/api/use-resources'
 import { CertificatesTable } from './components/certificates-table'
 import { CertificateDetailsSheet } from './components/certificate-details-sheet'
 import { CertificateEditSheet } from './components/certificate-edit-sheet'
@@ -22,14 +23,15 @@ export function CertificatesPage() {
   const qc = useQueryClient()
   const [detailsCert, setDetailsCert] = useState<CertificateView | null>(null)
   const [editCert, setEditCert] = useState<CertificateView | null | 'new'>(null)
-  const { data: certificates = [] } = useQuery({
-    queryKey: ['certificates'],
-    queryFn: () => Promise.resolve(getCertificates()),
-  })
+  const vehiclesQuery = vehiclesHooks.useList({ limit: 100 })
+  const certificates = useMemo(
+    () => getCertificates(vehiclesQuery.data ?? []),
+    [vehiclesQuery.data],
+  )
   const deleteMut = useMutation({
     mutationFn: (certificate: CertificateView) =>
       api.vehicles.patch(certificate.vehicleId, certificateDeletePatch()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['certificates'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vehicles'] }),
   })
 
   const handleViewDetails = useCallback((certificate: CertificateView) => {
@@ -97,7 +99,7 @@ export function CertificatesPage() {
         onOpenChange={(open) => {
           if (!open) setEditCert(null)
         }}
-        onSaved={() => qc.invalidateQueries({ queryKey: ['certificates'] })}
+        onSaved={() => qc.invalidateQueries({ queryKey: ['vehicles'] })}
       />
     </main>
   )

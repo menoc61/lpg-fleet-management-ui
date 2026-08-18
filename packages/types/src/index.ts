@@ -32,7 +32,13 @@ export type Region =
   | 'SUD'
   | 'SUDOUEST'
 
-export type SiteType =
+/**
+ * Multi-valued function of a `sites` row (schema `site_function` enum).
+ * A site may cumulate several functions; the enlèvement source rule
+ * (`flux1.pickup_source_functions`) restricts which may serve as a pickup
+ * origin. Do not confuse with `OrgType` (organisation taxonomy).
+ */
+export type SiteFunction =
   | 'CENTREEMPLISSEUR'
   | 'ENTREPOT'
   | 'POINTAPPROVISIONABLE'
@@ -283,7 +289,7 @@ export interface Site extends BaseEntity {
   org_id: string
   region: Region
   name: string
-  functions?: SiteType[] | null
+  functions?: SiteFunction[] | null
   address?: string
   geo_point?: number[] | [number, number] | null
   geo_confidence_score?: number

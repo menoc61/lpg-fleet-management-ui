@@ -30,8 +30,9 @@ export interface ClientSiteView {
   verified: boolean
 }
 
-export function getClients(): ClientView[] {
-  const clients = curated.clients as CuratedClient[]
+export function getClients(
+  clients: CuratedClient[] = curated.clients as CuratedClient[],
+): ClientView[] {
   const orgs = curated.organizations as CuratedOrganization[]
   const clientSites = curated.client_sites as CuratedClientSite[]
 

@@ -6,8 +6,9 @@ export const transporterStatusOptions = [
   { label: 'Inactif', value: 'inactive' },
 ] as const
 
-export function getTransporters(): Organization[] {
-  const orgs = curated.organizations as Organization[]
+export function getTransporters(
+  orgs: Organization[] = curated.organizations as Organization[],
+): Organization[] {
   return orgs.filter((o) => o.type === 'TRANSPORTEUR')
 }
 

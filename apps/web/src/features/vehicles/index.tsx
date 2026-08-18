@@ -52,11 +52,10 @@ export function VehiclesPage() {
   const [searchText, setSearchText] = useState(q ?? '')
   const [statusFilter, setStatusFilter] = useState<VehicleStatusFilter>('all')
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleView | null>(null)
-  const [, setVersion] = useState(0)
   const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['vehicles'])
   const authUser = useAuthStore((s) => s.user)
   const scopeOrgId = authUser?.org_id
-  const allVehicles = getVehiclesView()
+  const allVehicles = getVehiclesView(crud.list.data)
   const scopedVehicles = useMemo(() => {
     const scope = getScope(authUser)
     return scopeBySiteOrCreator(
@@ -81,7 +80,6 @@ export function VehiclesPage() {
         toast.success('Véhicule créé.')
       }
       crud.close()
-      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -283,7 +281,6 @@ export function VehiclesPage() {
           onEdit={(v) => crud.openEdit(v as unknown as Vehicle)}
           onDelete={async (v) => {
             await crud.removeMut.mutateAsync(v.id)
-            setVersion((x) => x + 1)
           }}
         />
       </section>

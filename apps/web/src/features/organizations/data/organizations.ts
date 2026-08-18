@@ -42,8 +42,9 @@ function regionForOrg(orgId: string, idx: number): Region {
   return regions[idx % regions.length] ?? 'CENTRE'
 }
 
-export function getOrganizations(): Organization[] {
-  const orgs = curated.organizations as CuratedOrganization[]
+export function getOrganizations(
+  orgs: CuratedOrganization[] = curated.organizations as CuratedOrganization[],
+): Organization[] {
   return orgs.map((org, idx) => {
     const region = regionForOrg(org.id, idx)
     return {

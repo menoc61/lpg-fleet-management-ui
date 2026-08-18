@@ -47,8 +47,9 @@ function statusForExpiry(expiry: string): CertificateStatus {
   return 'VALID'
 }
 
-export function getCertificates(): CertificateView[] {
-  const vehicles = curated.vehicles as CuratedVehicle[]
+export function getCertificates(
+  vehicles: CuratedVehicle[] = curated.vehicles as CuratedVehicle[],
+): CertificateView[] {
   const orgById = new Map(curated.organizations.map((org) => [org.id, org.name]))
 
   const certificates: CertificateView[] = []

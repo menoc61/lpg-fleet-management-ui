@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, Clock3, Gauge, Plus, Search, Truck as TruckIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
@@ -39,12 +38,9 @@ export function TrucksPage() {
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
   const user = useAuthStore((s) => s.user)
   const scope = useMemo(() => getScope(user), [user])
-  const { data: trucks = [] } = useQuery({
-    queryKey: ['trucks', scope],
-    queryFn: () => Promise.resolve(getTrucks(scope)),
-  })
+  const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['vehicles'])
+  const trucks = useMemo(() => getTrucks(scope, crud.list.data), [scope, crud.list.data])
   const [activeTruckId, setActiveTruckId] = useState<string>(() => trucks[0]?.id ?? '')
-  const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['trucks'])
 
   const handleViewDetails = useCallback((truck: Truck) => {
     setDetailsTruck(truck)
@@ -134,6 +130,16 @@ export function TrucksPage() {
     visible.find((t) => t.id === activeTruckId) ?? visible[0] ?? trucks[0]
   const mapTheme = resolvedTheme === 'dark' ? 'dark' : 'light'
 
+  const driverCount = useMemo(
+    () =>
+      new Set(
+        trucks
+          .map((t) => t.assigned_driver)
+          .filter((d): d is string => Boolean(d && d !== '—')),
+      ).size,
+    [trucks],
+  )
+
   return (
     <main
       id='main-content'
@@ -150,8 +156,7 @@ export function TrucksPage() {
             <TopStat
               icon={Users}
               label='Chauffeurs'
-              value={`${trucks.length * 2}`}
-              hint='Estimation basee sur le parc'
+              value={`${driverCount}`}
             />
             <TopStat icon={Gauge} label='LPG moyen' value={`${avgLpg}%`} />
             <TopStat icon={Clock3} label='Ponctualite' value="94%" hint="Objectif SLA" />

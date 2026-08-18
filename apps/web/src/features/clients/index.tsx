@@ -38,7 +38,7 @@ export function ClientsPage() {
     }
   }
 
-  const clients = getClients()
+  const clients = getClients(crud.list.data)
 
   return (
     <main

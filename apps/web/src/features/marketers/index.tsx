@@ -13,7 +13,7 @@ const route = getRouteApi('/_authenticated/marketers/')
 export function MarketersPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
-  const crud = useEntityCrud<Organization>('organizations', 'markets', ['marketers'])
+  const crud = useEntityCrud<Organization>('organizations', 'markets', ['organizations'])
   const marketers = getMarketers(crud.list.data)
 
   const handleViewDetails = (marketer: Organization) => {

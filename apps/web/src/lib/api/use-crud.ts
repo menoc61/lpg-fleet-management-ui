@@ -44,7 +44,10 @@ export function useCrud<T extends { id: string }>(
 
   const list = useQuery<T[]>({
     queryKey: [...baseKey, 'list'],
-    queryFn: () => api[resource].list().then((r) => r.data as T[]),
+    // List pages paginate client-side (TanStack); fetch the full collection in
+    // one page. The fake adapter and mock server cap `limit` at 100, which
+    // covers every fixture collection today.
+    queryFn: () => api[resource].list({ limit: 100 } as never).then((r) => r.data as T[]),
   })
 
   const createMut = useMutation<T, Error, Partial<T>>({

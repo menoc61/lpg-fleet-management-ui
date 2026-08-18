@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { LayoutDashboard } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { ArrowRight, LayoutDashboard } from 'lucide-react'
 import { Badge } from '@lpg/ui'
 import {
   Card,
@@ -10,6 +11,7 @@ import {
 } from '@lpg/ui'
 import { Main } from '@/components/layout/main'
 import { ROLE_LABELS } from '@/config/rbac/roles'
+import { getSidebarData } from '@/config/rbac/sidebar-by-role'
 import { useRoleStore } from '@/store/role-store'
 import { getOverviewCards, type OverviewCard } from './data/overview'
 import { formatTm } from '@/features/map/utils/format'
@@ -27,6 +29,21 @@ export function OverviewPage({
   const activeRole = role ?? storeRole
   const cards = useMemo(() => getOverviewCards(activeRole), [activeRole])
   const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
+
+  const quickLinks = useMemo(() => {
+    const sidebar = getSidebarData(activeRole)
+    return sidebar.navGroups.flatMap((group) =>
+      group.items.flatMap((item) =>
+        'items' in item
+          ? (item.items ?? []).map((sub) => ({
+              title: sub.title,
+              url: sub.url,
+              icon: sub.icon,
+            }))
+          : [{ title: item.title, url: item.url, icon: item.icon }],
+      ),
+    )
+  }, [activeRole])
 
   return (
     <Main fluid className='space-y-6 bg-muted/20'>
@@ -69,6 +86,30 @@ export function OverviewPage({
         {cards.map((card) => (
           <OverviewCardItem key={card.id} card={card} />
         ))}
+      </section>
+
+      <section>
+        <div className='mb-3 flex items-center justify-between'>
+          <h2 className='text-lg font-semibold tracking-tight'>Accès rapides</h2>
+          <span className='text-xs text-muted-foreground'>
+            Raccourcis vers vos modules
+          </span>
+        </div>
+        <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+          {quickLinks.map((link) => (
+            <Link
+              key={String(link.url)}
+              to={link.url as never}
+              className='group flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-background px-3 py-2.5 transition-colors hover:bg-muted/50'
+            >
+              <span className='flex min-w-0 items-center gap-2 text-sm'>
+                {link.icon ? <link.icon className='size-4 shrink-0 text-primary' /> : null}
+                <span className='truncate'>{link.title}</span>
+              </span>
+              <ArrowRight className='size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5' />
+            </Link>
+          ))}
+        </div>
       </section>
     </Main>
   )
