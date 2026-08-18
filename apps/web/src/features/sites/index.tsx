@@ -21,6 +21,13 @@ import {
 } from '@tanstack/react-table'
 import { EntityFormSheet, useEntityPermission } from '@/components/entity-crud'
 import { Plus } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { assertPermission } from '@/lib/security/guards'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -154,9 +161,14 @@ export function SiteVerificationsScreen({ role }: { role: SiteRole }) {
       <PageHeader title='File de vérification' description={`${inbox.length} site(s) en attente de validation par AGENT/ADMIN/SUPERADMIN.`} />
       <SectionCard><SitesTableCore rows={inbox} role={role} onAction={handleAction} /></SectionCard>
       {openRow && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40' onClick={() => setOpenRow(null)}>
-          <div className='bg-background rounded-xl border p-6 max-w-md w-full' onClick={(e) => e.stopPropagation()}>
-            <h3 className='font-semibold mb-3'>{openRow.id}</h3>
+        <Dialog open onOpenChange={(open) => { if (!open) setOpenRow(null) }}>
+          <DialogContent className='max-w-md'>
+            <DialogHeader>
+              <DialogTitle>{openRow.id}</DialogTitle>
+              <DialogDescription>
+                Fiche synthétique du site dans la file de vérification.
+              </DialogDescription>
+            </DialogHeader>
             <div className='space-y-1 text-sm'>
               <p>Statut: <SiteStatusBadge row={openRow} thresholds={defaultThresholds} /></p>
               <p>Livraisons: {openRow.delivery_count}</p>
@@ -164,8 +176,8 @@ export function SiteVerificationsScreen({ role }: { role: SiteRole }) {
               <p>Région: {openRow.region}</p>
             </div>
             <Button variant='ghost' className='mt-4' onClick={() => setOpenRow(null)}>Fermer</Button>
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </PageShell>
   )

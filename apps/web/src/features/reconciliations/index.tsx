@@ -3,10 +3,12 @@ import { AlertTriangle, Coins, FileBarChart, Receipt } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
 import { ReconciliationsTable } from './components/reconciliations-table'
-import { getReconciliations, getReconciliationSummary, gapToleranceThreshold } from './data/reconciliations'
+import { reconciliationsToViews, getReconciliationSummary, gapToleranceThreshold } from './data/reconciliations'
+import { useComplianceStore } from '@/store/compliance-store'
 
 export function ReconciliationsPage() {
-  const rows = useMemo(() => getReconciliations(), [])
+  const entities = useComplianceStore((s) => s.reconciliations)
+  const rows = useMemo(() => reconciliationsToViews(entities), [entities])
   const summary = useMemo(() => getReconciliationSummary(rows), [rows])
   const tolerance = gapToleranceThreshold()
 

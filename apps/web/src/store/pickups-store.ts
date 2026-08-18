@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { curated } from '@lpg/mock-data'
+import { curated, organizations, sites } from '@lpg/mock-data'
 import type { PickupRequest, PickupStatus } from '@lpg/types'
 import { type Role } from '@lpg/permissions'
 import { assertPermission, assertSiteAccess } from '@/lib/security/guards'
 import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
+import { emitWs } from '@/lib/ws/mock-ws'
 
 /**
  * Payload for creating a Flux-1 pickup request. Mirrors the schema's
@@ -49,12 +50,56 @@ export function validatePickup(input: PickupDraft): PickupValidationResult {
 interface PickupsState {
   pickups: PickupRequest[]
   createPickup: (draft: PickupDraft) => PickupRequest
+  validatePickup: (id: string, approvedQuantity: number) => PickupRequest
+  cancelPickup: (id: string) => PickupRequest
   all: () => PickupRequest[]
   viewById: (id: string) => PickupRequest | undefined
 }
 
+function seededIndex(key: string, modulus: number): number {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
+  return h % modulus
+}
+
+/**
+ * Deterministic demo rows (DRAFT / VALIDATED / CANCELLED) that used to live in
+ * the pickups view builder. They now seed the store so the store is the single
+ * source of truth for the pickups screens while keeping the demo statuses.
+ */
+function demoSeed(): PickupRequest[] {
+  const statuses: readonly PickupStatus[] = ['DRAFT', 'VALIDATED', 'CANCELLED']
+  const marketeur = organizations.find((o) => o.type === 'MARKETEUR') ?? organizations[0]!
+  const times: readonly [string, string][] = [
+    ['2024-10-02T08:00:00Z', '2024-10-03T10:00:00Z'],
+    ['2024-10-08T08:00:00Z', '2024-10-09T09:00:00Z'],
+    ['2024-09-20T08:00:00Z', '2024-09-20T08:00:00Z'],
+  ]
+  return statuses.map((status, idx) => {
+    const source = sites[seededIndex(`src-${idx}`, Math.max(sites.length, 1))] ?? sites[0]!
+    const destination =
+      sites[seededIndex(`dst-${idx}`, Math.max(sites.length, 1))] ?? sites[Math.min(1, sites.length - 1)]!
+    const [requestedAt, updatedAt] = times[idx]!
+    const requested = 15 + seededIndex(`qty-${idx}`, 4)
+    return {
+      id: `pickup-extra-${idx}`,
+      marketeur_org_id: marketeur.id,
+      source_site_id: source.id,
+      destination_site_id: destination.id,
+      requested_quantity: requested,
+      approved_quantity: status === 'VALIDATED' ? requested : null,
+      status,
+      created_at: requestedAt,
+      updated_at: updatedAt,
+      deleted_at: null,
+      created_by: null,
+      updated_by: null,
+    }
+  })
+}
+
 export const usePickupsStore = create<PickupsState>()((set, get) => ({
-  pickups: curated.pickup_requests.map((p) => ({ ...p })),
+  pickups: [...curated.pickup_requests, ...demoSeed()].map((p) => ({ ...p })),
 
   createPickup(draft: PickupDraft) {
     // Defense in depth: the UI already gates the create button; a direct store
@@ -91,7 +136,78 @@ export const usePickupsStore = create<PickupsState>()((set, get) => ({
     const previous = get().pickups.map((p) => ({ ...p }))
     try {
       set({ pickups: [pickup, ...previous] })
+      emitWs('pickup:update', { id: pickup.id }, user?.id)
       return pickup
+    } catch (error) {
+      set({ pickups: previous })
+      throw error
+    }
+  },
+
+  validatePickup(id: string, approvedQuantity: number) {
+    const user = useAuthStore.getState().user
+    const role = (user?.system_role ?? 'LIVREUR') as Role
+    // Only regulateur staff validate Flux-1 requests (pickups.validate is not
+    // granted to MARKETEUR/TRANSPORTEUR/LIVREUR).
+    assertPermission(role, 'pickups.validate')
+    const index = get().pickups.findIndex((p) => p.id === id)
+    if (index === -1) {
+      throw new Error(`Requête introuvable : ${id}`)
+    }
+    const current = get().pickups[index]!
+    if (current.status !== 'DRAFT') {
+      throw new Error(`Seule une requête en brouillon peut être validée (état ${current.status})`)
+    }
+    if (!Number.isFinite(approvedQuantity) || approvedQuantity <= 0) {
+      throw new Error('La quantité approuvée doit être positive')
+    }
+    const previous = get().pickups.map((p) => ({ ...p }))
+    const now = new Date().toISOString()
+    try {
+      const next: PickupRequest = {
+        ...current,
+        status: 'VALIDATED',
+        approved_quantity: approvedQuantity,
+        updated_at: now,
+        updated_by: user?.id ?? null,
+      }
+      const rows = [...previous]
+      rows[index] = next
+      set({ pickups: rows })
+      emitWs('pickup:update', { id }, user?.id)
+      return next
+    } catch (error) {
+      set({ pickups: previous })
+      throw error
+    }
+  },
+
+  cancelPickup(id: string) {
+    const user = useAuthStore.getState().user
+    const role = (user?.system_role ?? 'LIVREUR') as Role
+    assertPermission(role, 'pickups.write')
+    const index = get().pickups.findIndex((p) => p.id === id)
+    if (index === -1) {
+      throw new Error(`Requête introuvable : ${id}`)
+    }
+    const current = get().pickups[index]!
+    if (current.status === 'CANCELLED' || current.status === 'COMPLETED') {
+      throw new Error(`Une requête ${current.status.toLowerCase()} ne peut pas être annulée`)
+    }
+    const previous = get().pickups.map((p) => ({ ...p }))
+    const now = new Date().toISOString()
+    try {
+      const next: PickupRequest = {
+        ...current,
+        status: 'CANCELLED',
+        updated_at: now,
+        updated_by: user?.id ?? null,
+      }
+      const rows = [...previous]
+      rows[index] = next
+      set({ pickups: rows })
+      emitWs('pickup:update', { id }, user?.id)
+      return next
     } catch (error) {
       set({ pickups: previous })
       throw error

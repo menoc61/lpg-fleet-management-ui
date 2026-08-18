@@ -1,52 +1,28 @@
-# Task 1 Report — Add `national-map.read` permission code (SUPERADMIN-only)
+# Task 1 Report — Scope `buildDashboardView` by role + scope
 
 **Status:** DONE
 
-## Files touched
+## What changed
 
-- `packages/permissions/src/index.ts` — block comment `(20)` → `(21)`; appended
-  `{ code: 'national-map.read', category: 'reporting', label: 'Voir la carte nationale (SUPERADMIN)' }`
-  to `PERMISSION_CATALOG`.
-- `packages/permissions/src/index.test.ts` — bumped catalog-length assertion
-  `140` → `141` (test title + `toHaveLength`); bumped category-counts assertion
-  `reporting: 20` → `reporting: 21`.
+- `apps/web/src/features/dashboard/data/dashboard.ts`
+  - Signature: `buildDashboardView(scope?: UserScope)` → `buildDashboardView(role?: Role, scope?: UserScope)`.
+  - Imported `Role` from `@/config/rbac/roles` (same source the page uses).
+  - Added optional `viewRole?: Role` on `DashboardView` and set `viewRole: role` on the returned view (threads the role for P7T5 without changing aggregate behavior).
+  - Scope threading unchanged: `getRouteTripsView('ALL', scope)`, `buildReserveSites(scope)`, `buildAlerts(..., scope)`, `buildFleetSummaries(..., scope)` all keep passing `scope` as before.
+  - No `scopeFilter` additions were needed on top of P1T7: trips are already org/site-scoped through `getTourActivity` → `scopeBySiteOrCreator` (site view keys by `marketeur_org_id` plus creator fallback; transporter view keys by `transporter_org_id`). The dashboard's `sites`/`trucks` remain full-set — the P7T5 role-aware filtering of sites/trucks/reserve is out of scope for this task.
+- `apps/web/src/features/dashboard/index.tsx` — `DashboardPage` now calls `buildDashboardView(role, getScope(useAuthStore.getState().user))`.
+- `apps/web/src/features/dashboard/dashboard-details.tsx` — the two other callers (`FleetDetailPage`, `ReserveSiteDetailPage`) updated to `buildDashboardView(undefined, getScope(...))` so `UserScope` stays in the second slot (kept typecheck green).
+- `apps/web/src/features/dashboard/data/dashboard.test.ts` — added the scoped test from the brief, verbatim (assertions held: scoped site view > 0, org view >= site view). The scope resolves because `scopeBySiteOrCreator` matches tours via `created_by === 'user-0007-sctm-marketeur'` even without an `orgId`, so `totalTransportedTM` for the site scope is non-zero.
 
-No other files. SUPERADMIN auto-includes the new code via `PERMISSION_CATALOG.map(...)`
-— no `*_GRANTS` array was edited. No commit.
+## Verification
 
-## Test command + output
+- Focused: `vitest run --browser=false src/features/dashboard/data/dashboard.test.ts` → 4/4 passed.
+- Full unit: `pnpm --filter @lpg/web run test:unit` → 84 files, 423/423 passed.
+- Typecheck: `tsc --noEmit -p tsconfig.app.json` → clean.
+- Lint: 0 errors (78 pre-existing react-refresh warnings, none from the files I touched).
 
-```
-npm test                              (from packages/permissions)
+## Notes / concerns
 
- RUN  v4.1.10 …/packages/permissions
- Test Files  1 passed (1)
-      Tests  17 passed (17)
-   Duration  273ms
-```
-
-## Typecheck command + output
-
-```
-npm run typecheck                     (from apps/web)
-
-> typecheck
-> tsc --noEmit -p tsconfig.app.json
-
-(0 errors)
-```
-
-## One-line test summary
-
-`packages/permissions` — 17/17 vitest tests pass after adding
-`national-map.read` to `PERMISSION_CATALOG` (category `reporting`) and bumping
-the two test assertions.
-
-## Concerns
-
-- None for Task 1 itself. The new code is `^[a-z-]+\.[a-z]+$`-conformant
-  (`resource = national-map`, `action = read`), and `read` is a registered
-  action in `ACTION_IMPLICATIONS`, so `defineAbilityFor('SUPERADMIN')` does not
-  crash (this was the failure mode of the previous `map.national.read` attempt).
-- Reminder for downstream tasks: this permission is plumbed into a feature that
-  must read it from `@lpg/permissions`, not by hardcoded string.
+- `role` is currently a no-op for aggregates (stored as `viewRole` only). P7T5 will consume it to filter `sites`/`trucks`/reserve by site vs org.
+- Brief's Step 5 says "commit" — per task instructions this was intentionally NOT committed; changes are left in the working tree.
+- Test file has no trailing newline (pre-existing style, unchanged).

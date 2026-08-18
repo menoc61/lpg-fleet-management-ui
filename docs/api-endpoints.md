@@ -239,12 +239,16 @@ Source: TODO.md §2 + the actual API client. The code catalogue from TODO.md §2
 
 | Method | Path | Actor | Implemented? | Notes |
 |---|---|---|---|---|
-| `GET` | `/api/v1/transporter-contracts` | SUPERADMIN, MARKETEUR, ADMIN | ✅ | List with active filter. |
-| `POST` | `/api/v1/transporter-contracts` | MARKETEUR | ✅ | Creates contract; only one `is_primary = true` per marketeur_org_id (partial unique index). |
-| `GET` | `/api/v1/transporter-contracts/:id` | ✅ | Single contract view. |
-| `PATCH` | `/api/v1/transporter-contracts/:id` | SUPERADMIN, MARKETEUR | ✅ | Update terms, active flag. |
-| `DELETE` | `/api/v1/transporter-contracts/:id` | SUPERADMIN only | ✅ | |
-| `POST` | `/api/v1/transporter-contracts/:id/set-primary` | SUPERADMIN, MARKETEUR | ✅ | Sets is_primary = true for this contract; auto-unsets prior primary. |
+| `GET` | `/api/v1/transporter-contracts` | SUPERADMIN, ADMIN, MARKETEUR, TRANSPORTEUR | ✅ | List with active filter, scoped to the user's organization. Requires `contracts.read`. |
+| `POST` | `/api/v1/transporter-contracts` | MARKETEUR | ✅ | Creates contract; one contract per `(marketeur_org_id, transporter_org_id)` pair and only one non-deleted `is_primary = true` contract per `marketeur_org_id` (partial unique index). Requires `contracts.create`. |
+| `GET` | `/api/v1/transporter-contracts/:id` | authenticated user | ✅ | Single contract view; requires `contracts.read`. |
+| `PATCH` | `/api/v1/transporter-contracts/:id` | SUPERADMIN, MARKETEUR | ✅ | Update terms, dates, and active flag. Requires `contracts.write`. |
+| `DELETE` | `/api/v1/transporter-contracts/:id` | SUPERADMIN, MARKETEUR | ✅ | Soft delete. Requires `contracts.delete`. |
+| `POST` | `/api/v1/transporter-contracts/:id/attach-proof` | MARKETEUR | ✅ | Attach or replace the PDF proof. Requires `contracts.write`. |
+| `POST` | `/api/v1/transporter-contracts/:id/accept` | TRANSPORTEUR | ✅ | Accepts a contract belonging to the transporter's organization; sets `transporter_accepted_at`. Requires `contracts.validate`. |
+| `POST` | `/api/v1/transporter-contracts/:id/suspend` | SUPERADMIN, ADMIN | ✅ | Suspends the contract. Requires `contracts.suspend`. |
+| `POST` | `/api/v1/transporter-contracts/:id/reactivate` | SUPERADMIN, ADMIN | ✅ | Reactivates the contract. Requires `contracts.suspend`. |
+| `POST` | `/api/v1/transporter-contracts/:id/set-primary` | SUPERADMIN, MARKETEUR | ✅ | Sets `is_primary = true` for this contract; auto-unsets prior primary within the marketeur scope. Requires `contracts.write`. |
 
 ---
 

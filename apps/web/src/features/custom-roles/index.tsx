@@ -149,13 +149,14 @@ function CustomRoleCard({
             </div>
             <div className='flex flex-wrap gap-1.5'>
               {role.permissions.map((code) => (
-                <span
+                <Badge
                   key={code}
-                  className='inline-flex items-center gap-1 rounded-full border bg-muted/40 px-2 py-0.5 font-mono text-xs'
+                  variant='outline'
+                  className='gap-1 font-mono text-xs'
                 >
                   <Check className='size-3 text-emerald-600' />
                   {code}
-                </span>
+                </Badge>
               ))}
             </div>
           </div>

@@ -9,7 +9,8 @@ import {
   applyAction,
   TOUR_ACTION_LABELS,
 } from './tour-machine'
-import type { DeliveryTour, Setting } from '@lpg/types'
+import type { DeliveryTour, Setting, TransporterContract } from '@lpg/types'
+import { curated } from '@lpg/mock-data'
 
 const THRESHOLDS = { transporterAckTimeoutHours: 4, unassignedAlertHours: 12 }
 
@@ -148,6 +149,28 @@ describe('tour-machine transitions', () => {
 })
 
 describe('tour-machine validation', () => {
+  it.each([
+    ['suspended', { is_active: false }],
+    ['unaccepted', { transporter_accepted_at: null }],
+    ['expired', { ended_at: '2026-01-01T00:00:00.000Z' }],
+    ['without proof', { contract_document_url: null }],
+  ])('rejects EXTERNAL with a %s contract', (_name, overrides) => {
+    const contract = {
+      ...curated.transporter_contracts[0],
+      ...overrides,
+      marketeur_org_id: 'org-0002-sctm-0000-000000000001',
+      transporter_org_id: 'org-0010-translog----000000000001',
+    } as TransporterContract
+    const result = validateTour(baseExternal(), { contracts: [contract] })
+    expect(result.valid).toBe(false)
+    expect(result.errors).toContain('Aucun contrat actif avec ce transporteur.')
+  })
+
+  it('accepts EXTERNAL with a derived ACTIVE contract', () => {
+    const result = validateTour(baseExternal(), { contracts: [curated.transporter_contracts[0]!] })
+    expect(result.valid).toBe(true)
+  })
+
   it('passes a fully-populated INTERNAL tour', () => {
     const tour = {
       execution_mode: 'INTERNAL',

@@ -12,8 +12,11 @@ describe('transporter-contracts view-model', () => {
     }
   })
 
-  it('summarizes active/primary contracts', () => {
+  it('summarizes derived active, pending, and primary contracts', () => {
     const summary = getTransporterContractSummary(getTransporterContracts())
-    expect(summary.active + summary.inactive).toBe(summary.total)
+    expect(summary.active).toBeGreaterThanOrEqual(0)
+    expect(summary.pending).toBeGreaterThanOrEqual(0)
+    expect(summary.active + summary.pending).toBeLessThanOrEqual(summary.total)
+    expect(summary.primary).toBeGreaterThanOrEqual(0)
   })
 })

@@ -1,11 +1,24 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { getRouteApi } from '@tanstack/react-router'
 import { MapIcon, Globe } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { NationalMap } from './components/national-map'
+import { useTheme } from '@/context/theme-provider'
+import { useRoleStore } from '@/store/role-store'
+import { ROLE_LABELS } from '@/config/rbac/roles'
 import { NationalMapFilters } from './components/national-map-filters'
 import { getInitialLayers, type MapLayerKey } from './lib/layers'
 
+const NationalMap = lazy(() =>
+  import('./components/national-map').then((m) => ({ default: m.NationalMap })),
+)
+
+const route = getRouteApi('/_authenticated/map/')
+
 export function NationalMapPage() {
+  const { zone } = route.useSearch()
+  const { resolvedTheme } = useTheme()
+  const activeRole = useRoleStore((s) => s.activeRole)
+  const mapTheme = resolvedTheme === 'dark' ? 'dark' : 'light'
   const [layers, setLayers] = useState<Record<MapLayerKey, boolean>>(
     getInitialLayers(),
   )
@@ -24,14 +37,35 @@ export function NationalMapPage() {
           <MapIcon className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold tracking-tight">Carte interactive</h1>
           <Badge variant="outline" className="ml-auto">
-            SUPERADMIN
+            {ROLE_LABELS[activeRole] ?? activeRole}
           </Badge>
         </div>
       </section>
 
       <section className="relative rounded-xl border-transparent bg-background/92 p-4 shadow-sm">
-        <NationalMapFilters layers={layers} onChange={toggleLayer} />
-        <NationalMap className="h-[700px] w-full rounded-lg" />
+        <NationalMapFilters
+          layers={layers}
+          mapTheme={mapTheme}
+          onChange={toggleLayer}
+        />
+        <Suspense
+          fallback={
+            <div
+              className='flex h-[700px] w-full items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground'
+              role='status'
+              aria-label='Chargement de la carte'
+            >
+              Chargement de la carte…
+            </div>
+          }
+        >
+          <NationalMap
+            className='h-[700px] w-full rounded-lg'
+            focusZone={zone}
+            layers={layers}
+            mapTheme={mapTheme}
+          />
+        </Suspense>
       </section>
 
       <section className="rounded-xl border-transparent bg-background/92 p-3 text-xs text-muted-foreground shadow-sm">

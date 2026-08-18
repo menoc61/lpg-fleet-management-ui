@@ -39,13 +39,14 @@ import {
   drivers,
   organizations,
   sites,
-  transporter_contracts,
   users,
   vehicles,
 } from '@lpg/mock-data'
 import type { ExecutionMode, TourneeType } from '@lpg/types'
 import { getScope } from '@/features/scope/scope'
+import { contractsEligibleForExternal } from '@/features/transporter-contracts/lib/contract-status'
 import { useAuthStore } from '@/store/auth-store'
+import { useContractsStore } from '@/store/contracts-store'
 import { useToursStore } from '@/store/tours-store'
 import { extractErrorMessage } from '@/hooks/use-toast-feedback'
 import type { TourActivity } from '../data/tour-activity'
@@ -193,6 +194,7 @@ export function TourCreateWizard({
   const sourceSiteId = form.watch('sourceSiteId')
   const executionMode = form.watch('execution_mode')
   const tourneeType = form.watch('type')
+  const contracts = useContractsStore((state) => state.contracts)
 
   useEffect(() => {
     if (!open) return
@@ -240,16 +242,19 @@ export function TourCreateWizard({
   )
 
   const transporterOptions = useMemo(() => {
+    const eligibleIds = new Set(
+      contractsEligibleForExternal(useContractsStore.getState().all(), marketeurOrgId),
+    )
     const seen = new Set<string>()
     const options: { orgId: string; reference?: string }[] = []
-    for (const contract of transporter_contracts) {
-      if (contract.marketeur_org_id !== marketeurOrgId || !contract.is_active) continue
+    for (const contract of contracts) {
+      if (contract.marketeur_org_id !== marketeurOrgId || !eligibleIds.has(contract.id)) continue
       if (seen.has(contract.transporter_org_id)) continue
       seen.add(contract.transporter_org_id)
       options.push({ orgId: contract.transporter_org_id, reference: contract.contract_reference })
     }
     return options
-  }, [marketeurOrgId])
+  }, [contracts, marketeurOrgId])
 
   const scopeView = useMemo(() => getScope(useAuthStore.getState().user).view, [])
   const canChooseOrg = scopeView === 'org'

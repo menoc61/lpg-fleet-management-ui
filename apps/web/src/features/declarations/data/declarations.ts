@@ -1,5 +1,5 @@
 import { declarations, organizations } from '@lpg/mock-data'
-import type { DeclarationStatus } from '@lpg/types'
+import type { Declaration, DeclarationStatus } from '@lpg/types'
 import type { UserScope } from '@/features/scope/scope'
 import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
 
@@ -33,15 +33,18 @@ function orgName(id: string): string {
   return organizations.find((o) => o.id === id)?.name ?? id
 }
 
-export function getDeclarations(scope?: UserScope): DeclarationView[] {
+export function declarationsToViews(
+  list: readonly Declaration[],
+  scope?: UserScope,
+): DeclarationView[] {
   const source = scope
     ? scopeBySiteOrCreator(
-        declarations,
+        [...list],
         scopeWithOrgId(scope),
         (d) => d.marketeur_org_id,
         (d) => d.created_by ?? undefined,
       )
-    : declarations
+    : list
   return source
     .map((d, i) => ({
       id: d.id,
@@ -56,6 +59,10 @@ export function getDeclarations(scope?: UserScope): DeclarationView[] {
       reconciled_at: d.status === 'RECONCILED' ? (d.updated_at ?? null) : null,
     }))
     .sort((a, b) => b.submitted_at.localeCompare(a.submitted_at))
+}
+
+export function getDeclarations(scope?: UserScope): DeclarationView[] {
+  return declarationsToViews(declarations, scope)
 }
 
 export function getDeclarationSummary(rows: DeclarationView[]) {

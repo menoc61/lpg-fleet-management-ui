@@ -19,12 +19,13 @@ type RecomputeFilterDef = { label: string; value: RecomputeFilter; count: number
 const recomputeRoute = getRouteApi('/_authenticated/recompute/')
 
 export function RecomputePage() {
-  const navigate = recomputeRoute.useNavigate()
-  const [search, setSearch] = useState('')
+const navigate = recomputeRoute.useNavigate()
+  const search = recomputeRoute.useSearch()
+  const [searchText, setSearchText] = useState('')
   const [levelFilter, setLevelFilter] = useState<RecomputeFilter>('all')
 
   const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     let items: RiskScoreView[] = [...recomputeView]
     if (query) {
       items = items.filter((item) => {
@@ -44,7 +45,7 @@ export function RecomputePage() {
       items = items.filter((item) => item.level === levelFilter)
     }
     return items
-  }, [search, levelFilter])
+  }, [searchText, levelFilter])
 
   const filterDefs: RecomputeFilterDef[] = useMemo(() => {
     const counts: Partial<Record<RiskScoreView['level'], number>> = {}
@@ -98,8 +99,8 @@ export function RecomputePage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher un score...'
                 className='h-9 ps-9'
               />
@@ -149,7 +150,7 @@ export function RecomputePage() {
         </div>
         <RecomputeTable
           data={filtered}
-          search={{}}
+          search={search}
           navigate={navigate}
         />
       </section>

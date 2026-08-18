@@ -15,7 +15,7 @@ export function MarketersPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const crud = useEntityCrud<Organization>('organizations', 'markets', ['marketers'])
-  const marketers = getMarketers()
+  const marketers = getMarketers(crud.list.data)
 
   const handleViewDetails = (marketer: Organization) => {
     navigate({ to: `/marketers/${marketer.id}` })

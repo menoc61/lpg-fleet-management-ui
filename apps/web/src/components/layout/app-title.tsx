@@ -22,7 +22,7 @@ export function AppTitle() {
               className='grid flex-1 text-start text-sm leading-tight'
             >
               <span className='truncate font-bold'>LPG Fleet</span>
-              <span className='truncate text-xs'>Tracking & delivery ops</span>
+              <span className='truncate text-xs'>Traçabilité GPL hors réseau</span>
             </Link>
             <Button
               data-sidebar='trigger'

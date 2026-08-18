@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { curated } from '@lpg/mock-data'
-import { getCreatableRoles } from '@lpg/permissions'
+import { getCreatableRoles, hasPermission } from '@lpg/permissions'
 import type { Role, User as CuratedUser } from '@lpg/types'
 import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
@@ -40,8 +40,11 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
     if (!creatable.includes(user.system_role)) {
       throw new Error('Impossible de créer ce rôle depuis le rôle courant.')
     }
+    if (user.system_role === 'LIVREUR' && !hasPermission(role, 'livreurs.write')) {
+      throw new Error('Accès refusé.')
+    }
     const scope = getScope(authUser)
-    if (scope.view !== 'org' && user.org_id && user.org_id !== scope.orgId) {
+    if (scope.view !== 'org' && user.org_id !== scope.orgId) {
       throw new Error('Accès refusé.')
     }
     const id = `user-${crypto.randomUUID().slice(0, 8)}`
@@ -54,6 +57,17 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
   updateUser(id, patch) {
     const authUser = useAuthStore.getState().user
     const role = (authUser?.system_role ?? 'LIVREUR') as Role
+    const target = get().users.find((user) => user.id === id)
+    if (!target) return
+    if (target.system_role === 'LIVREUR' || role === 'LIVREUR') {
+      if (!hasPermission(role, 'livreurs.write')) throw new Error('Accès refusé.')
+      if (patch.system_role && patch.system_role !== 'LIVREUR') {
+        throw new Error('Le rôle LIVREUR est verrouillé.')
+      }
+      assertLivreurOrgScope(authUser, target.org_id)
+    } else if (!hasPermission(role, 'users.write')) {
+      throw new Error('Accès refusé.')
+    }
     const creatable = getCreatableRoles(role)
     if (patch.system_role && !creatable.includes(patch.system_role)) {
       throw new Error('Impossible de créer ce rôle depuis le rôle courant.')
@@ -70,6 +84,15 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
   },
 
   setStatus(id, active) {
+    const target = get().users.find((user) => user.id === id)
+    const authUser = useAuthStore.getState().user
+    const role = (authUser?.system_role ?? 'LIVREUR') as Role
+    if (target?.system_role === 'LIVREUR' || role === 'LIVREUR') {
+      if (!hasPermission(role, 'livreurs.write')) throw new Error('Accès refusé.')
+      if (target) assertLivreurOrgScope(authUser, target.org_id)
+    } else if (!hasPermission(role, 'users.write')) {
+      throw new Error('Accès refusé.')
+    }
     set((s) => ({
       users: s.users.map((u) =>
         u.id === id ? { ...u, is_active: active } : u,
@@ -78,17 +101,33 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
   },
 
   deleteUser(id) {
+    const target = get().users.find((user) => user.id === id)
+    if (!target) return
+    const authUser = useAuthStore.getState().user
+    const role = (authUser?.system_role ?? 'LIVREUR') as Role
+    if (target.system_role === 'LIVREUR' || role === 'LIVREUR') {
+      if (!hasPermission(role, 'livreurs.manage')) throw new Error('Accès refusé.')
+      assertLivreurOrgScope(authUser, target.org_id)
+    } else if (!hasPermission(role, 'users.delete')) {
+      throw new Error('Accès refusé.')
+    }
+    const now = new Date().toISOString()
     set((s) => ({
-      users: s.users.filter((u) => u.id !== id),
+      users: s.users.map((u) =>
+        u.id === id ? { ...u, deleted_at: now, updated_at: now } : u,
+      ),
     }))
   },
 
   resetPassword(id) {
     const u = get().users.find((x) => x.id === id)
     if (!u) return
+    const role = (useAuthStore.getState().user?.system_role ?? 'LIVREUR') as Role
+    if (!hasPermission(role, 'users.reset')) throw new Error('Accès refusé.')
   },
 
   lockUntil(id, iso) {
+    assertUsersWrite()
     const stamp = iso ?? new Date(Date.now() + 15 * 60 * 1000).toISOString()
     set((s) => ({
       users: s.users.map((u) =>
@@ -98,6 +137,7 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
   },
 
   unlock(id) {
+    assertUsersWrite()
     set((s) => ({
       users: s.users.map((u) =>
         u.id === id ? { ...u, locked_until: null } : u,
@@ -105,6 +145,18 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
     }))
   },
 }))
+
+function assertUsersWrite() {
+  const role = (useAuthStore.getState().user?.system_role ?? 'LIVREUR') as Role
+  if (!hasPermission(role, 'users.write')) throw new Error('Accès refusé.')
+}
+
+function assertLivreurOrgScope(authUser: Parameters<typeof getScope>[0], targetOrgId: string) {
+  const scope = getScope(authUser)
+  if (scope.view !== 'org' && scope.orgId !== targetOrgId) {
+    throw new Error('Accès refusé.')
+  }
+}
 
 export function listOrgsForRole(role: Role): string[] {
   const seen = new Set<string>()

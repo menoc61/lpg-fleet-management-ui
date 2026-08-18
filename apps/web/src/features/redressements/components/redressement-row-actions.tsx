@@ -25,8 +25,7 @@ export function RedressementRowActions({ row }: { row: RedressementView }) {
 
   function handlePay() {
     try {
-      const ref = `TXN-${Date.now().toString(36).toUpperCase()}`
-      markRedressementPaid(row.id, ref)
+      const ref = markRedressementPaid(row.id)
       toast.success(`${row.reference} - Marque paye (${ref})`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action impossible')

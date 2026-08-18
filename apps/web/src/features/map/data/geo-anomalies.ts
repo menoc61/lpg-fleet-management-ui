@@ -10,20 +10,21 @@ export interface GeoAnomalyView {
   entity_type?: string | null
   entity_id?: string | null
   entity_label?: string | null
+  region: string
   latitude: number
   longitude: number
 }
 
-function resolveGeo(anomaly: Anomaly): { lat: number; lng: number } | null {
+function resolveGeo(anomaly: Anomaly): { lat: number; lng: number; region: string } | null {
   if (anomaly.site_id) {
     const site = curated.sites.find((s) => s.id === anomaly.site_id)
     const geo = site?.geo_point as [number, number] | null | undefined
-    if (geo) return { lat: geo[1], lng: geo[0] }
+    if (geo && site) return { lat: geo[1], lng: geo[0], region: site.region }
   }
   if (anomaly.client_site_id) {
     const cs = curated.client_sites.find((c) => c.id === anomaly.client_site_id)
     const geo = cs?.geo_point as [number, number] | null | undefined
-    if (geo) return { lat: geo[1], lng: geo[0] }
+    if (geo && cs) return { lat: geo[1], lng: geo[0], region: cs.region }
   }
   // Vehicle / tour / marketeur anomalies: not geo-resolvable from a single point
   // in the current fixture — drop them from the map layer.
@@ -56,6 +57,7 @@ export function getGeoAnomalies(): readonly GeoAnomalyView[] {
         entity_type: a.entity_type ?? null,
         entity_id: a.entity_id ?? null,
         entity_label: entityLabel(a),
+        region: geo.region,
         latitude: geo.lat,
         longitude: geo.lng,
       }

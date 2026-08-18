@@ -1,5 +1,3 @@
-import type { TransporterContract } from '@lpg/types'
-
 export type ContractStatus =
   | 'CANCELLED'
   | 'SUSPENDED'
@@ -9,29 +7,38 @@ export type ContractStatus =
   | 'UPCOMING'
   | 'ACTIVE'
 
-export const contractStatusLabels: Record<ContractStatus, string> = {
-  CANCELLED: 'Annulé',
-  SUSPENDED: 'Suspendu',
-  PENDING: 'Document PDF requis',
-  PENDINGTRANSPORTERACK: 'En attente d’acceptation',
-  EXPIRED: 'Expiré',
-  UPCOMING: 'À venir',
-  ACTIVE: 'Actif',
+export type ContractStatusInput = {
+  deleted_at?: string | null
+  is_active: boolean
+  contract_document_url?: string | null
+  transporter_accepted_at?: string | null
+  started_at?: string | null
+  ended_at?: string | null
 }
 
-export const contractStatusClasses: Record<ContractStatus, string> = {
-  CANCELLED: 'bg-slate-100 text-slate-700',
-  SUSPENDED: 'bg-amber-100 text-amber-800',
-  PENDING: 'bg-orange-100 text-orange-800',
-  PENDINGTRANSPORTERACK: 'bg-blue-100 text-blue-800',
-  EXPIRED: 'bg-red-100 text-red-800',
-  UPCOMING: 'bg-violet-100 text-violet-800',
-  ACTIVE: 'bg-emerald-100 text-emerald-800',
+export const CONTRACT_STATUS_LABELS: Record<ContractStatus, string> = {
+  PENDING: 'Preuve manquante',
+  PENDINGTRANSPORTERACK: 'En attente du transporteur',
+  ACTIVE: 'Actif',
+  UPCOMING: 'À venir',
+  EXPIRED: 'Expiré',
+  SUSPENDED: 'Suspendu',
+  CANCELLED: 'Annulé',
+}
+
+export const CONTRACT_STATUS_CLASSES: Record<ContractStatus, string> = {
+  PENDING: 'bg-amber-100 text-amber-900',
+  PENDINGTRANSPORTERACK: 'bg-amber-100 text-amber-900',
+  ACTIVE: 'bg-emerald-100 text-emerald-900',
+  UPCOMING: 'bg-sky-100 text-sky-900',
+  EXPIRED: 'bg-rose-100 text-rose-900',
+  SUSPENDED: 'bg-slate-200 text-slate-800',
+  CANCELLED: 'bg-slate-200 text-slate-800 line-through',
 }
 
 export function deriveContractStatus(
-  contract: TransporterContract,
-  now: Date,
+  contract: ContractStatusInput,
+  now: Date = new Date(),
 ): ContractStatus {
   if (contract.deleted_at) return 'CANCELLED'
   if (!contract.is_active) return 'SUSPENDED'
@@ -49,13 +56,18 @@ export function deriveContractStatus(
 }
 
 export function contractsEligibleForExternal(
-  contracts: TransporterContract[],
+  contracts: readonly (ContractStatusInput & {
+    id: string
+    marketeur_org_id: string
+  })[],
   marketeurOrgId: string,
-  now: Date,
-): TransporterContract[] {
-  return contracts.filter(
-    (contract) =>
-      contract.marketeur_org_id === marketeurOrgId &&
-      deriveContractStatus(contract, now) === 'ACTIVE',
-  )
+  now: Date = new Date(),
+): string[] {
+  return contracts
+    .filter(
+      (contract) =>
+        contract.marketeur_org_id === marketeurOrgId &&
+        deriveContractStatus(contract, now) === 'ACTIVE',
+    )
+    .map((contract) => contract.id)
 }

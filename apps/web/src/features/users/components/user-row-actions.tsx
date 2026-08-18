@@ -27,11 +27,12 @@ export function UserRowActions({ user, onEdit }: UserRowActionsProps) {
   const canDelete = hasPermission(activeRole, 'users.delete')
   const canReset = hasPermission(activeRole, 'users.reset')
 
-  if (!canWrite && !canDelete && !canReset) return null
-
-  const u = useUsersStore.getState().users.find((x) => x.id === user.id)
-  const lockedUntil = u?.locked_until ?? null
+  const lockedUntil = useUsersStore(
+    (s) => s.users.find((x) => x.id === user.id)?.locked_until,
+  )
   const isLocked = lockedUntil !== null && lockedUntil !== undefined
+
+  if (!canWrite && !canDelete && !canReset) return null
 
   function handleReset() {
     try {

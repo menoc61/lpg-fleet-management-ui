@@ -137,7 +137,12 @@ export function PickupsCreateWizard({
         requested_quantity: data.requested_quantity,
       })
       onCreated(created, selectedVehicles)
-      toast.success(`Requête ${created.id} créée en brouillon`)
+      toast.success(
+        `Requête ${created.id} créée en brouillon` +
+          (selectedVehicles.length > 0
+            ? ` — ${selectedVehicles.length} véhicule(s) assigné(s)`
+            : ''),
+      )
       onOpenChange(false)
       reset()
     } catch (err) {

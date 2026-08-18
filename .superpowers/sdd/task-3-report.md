@@ -1,55 +1,50 @@
-# Task 3 Report: Fix cross-feature consumers of the re-sourced Truck type
+# Task 3 + Task 4 Report — Plan 6 (forms overhaul)
 
-**Status:** DONE
-**Commit:** `fb1ace2` on top of `1aa6355`
-**Branch:** `fix/cleanup-corrigee`
+**Status:** COMPLETE — no commit (working tree only).
 
-## What I implemented
+## Task 3 — Shared SubmitButton + FormSection (+ Spinner)
 
-Migrated all app-wide consumers of the re-sourced `Truck` type to use the new schema-backed field names. Verified each target file for live importers before editing; skipped dead duplicates (top-level `dashboard.ts` and `routes.ts` have live importers and were edited).
+### What was built
 
-### Files changed (10):
+New file `apps/web/src/components/entity-crud/form-ui.tsx` exporting three components:
 
-1. **`features/command-palette/global-search.tsx`** — `t.plateNumber` → `t.license_plate`, `t.tenantName` → `t.tenant_name`, `t.assignedDriver` → `t.assigned_driver`
-2. **`features/dashboard/dashboard.ts`** (top-level) — `truck.tenantName` → `truck.tenant_name`, `truck.riskLevel` → `truck.risk_level`, `truck.status` → `truck.tournee_status` (with proper `TourneeStatus` values), `getTruckTelemetry(id).lpgLevelPercent` → `quantityInfo(truck).percent`, `trip.truck.tenantName` → `trip.truck.tenant_name`; import swap (`getTruckTelemetry` removed, `quantityInfo` added)
-3. **`features/dashboard/data/dashboard.ts`** — same pattern as above
-4. **`features/routes/data/routes.ts`** — `truck.latitude` → `truck.lat`, `truck.longitude` → `truck.lng`; removed camelCase alias fields from fallback synthesis
-5. **`features/routes/routes.ts`** — same `latitude/longitude` → `lat/lng`; removed camelCase aliases from fallback
-6. **`features/routes/components/routes-columns.tsx`** — `truck.plateNumber` → `truck.license_plate`, `truck.assignedDriver` → `truck.assigned_driver`
-7. **`features/routes/components/route-corridor-map.tsx`** — `trip.truck.plateNumber` → `trip.truck.license_plate`, `trip.truck.currentLocation` → `trip.truck.current_location`
-8. **`features/routes/components/route-lpg-variation-panel.tsx`** — `trip.truck.currentLocation` → `trip.truck.current_location`
-9. **`roles/super-admin/map-screen.tsx`** — `TruckStatus` → `TourneeStatus` (DRAFT/PLANNED/PENDINGTRANSPORTERACK/ACKNOWLEDGED/INPROGRESS...), `truck.status` → `truck.tournee_status`, `truck.latitude/longitude` → `truck.lat/lng`, `truck.plateNumber` → `truck.license_plate`, `getTruckTelemetry` removed, `quantityInfo` imported; truckColors keyed by `TourneeStatus`
-10. **`roles/marketeur/delivery-tours-screen.tsx`** — `t.truck.plateNumber` → `t.truck.license_plate`
+- `Spinner({ className })` — no `Spinner` exists in `components/ui` (verified by grep); added a small one using `Loader2` from `lucide-react` (confirmed available in `apps/web` + `@lpg/ui` deps) with `animate-spin`, exported from `form-ui.tsx`.
+- `SubmitButton({ pending, children, ...props })` — thin wrapper over `@lpg/ui` `Button`, `type='submit'`, `disabled={pending || disabled}`, renders `<Spinner>` when `pending`.
+- `FormSection({ title, children })` — `animate-in fade-in slide-in-from-bottom-1 duration-200` wrapper. Verified these utilities exist: the app is Tailwind v4 + `tw-animate-css` (in `apps/web/package.json`), and `animate-in`/`fade-in`/`slide-in-from-*` are already used across `apps/web/src/components/ui/*` (dialog, popover, select, etc.). No custom CSS file needed.
 
-### Naming discipline verified
-- Zero banned shadow fields (`plateNumber`, `tenantName`, `riskLevel`, `status` lowercase, `latitude`/`longitude`, `lpgLevelPercent`, `currentLocation`, `assignedDriver`) in any edited file.
-- All new field names match `@lpg/types` schema: `license_plate`, `tenant_name`, `risk_level`, `tournee_status`, `lat`/`lng`, `current_location`, `assigned_driver`.
-- LPG percent derivation uses the shared `quantityInfo` helper (VRAC → TM via `max_volume`, BOUTEILLES50KG → bottles via `max_bottle_count`).
+### Wiring into EntityForm
 
-## Build output
+- `field-config.ts`: added optional `section?: string` to `FieldConfig` (used only as a group key; nothing else changed).
+- `entity-form.tsx`: fields are grouped by `field.section ?? 'Informations'` via a `useMemo`, each group rendered in a `FormSection`; the footer submit button now uses `SubmitButton pending={submitting}`.
+  - Note: the plain `Button` "Enregistrement…" label was replaced by a spinner + static label — small intentional visual change.
 
-### `pnpm build`
-```
-> lpg-fleet-platform@0.0.0 build
-> turbo run build
+## Task 4 — Pickups wizard on RHF + zod
 
-@lpg/ui:build: > tsc --noEmit   (cache hit — clean)
-@lpg/web:build: > tsc -b && vite build
-```
-**Exit: 2** — but zero errors reference removed Truck fields. Remaining errors are pre-existing in features NOT touched by this task (activity, transporters' own data, marketers, sites, module-screen, recharts import, lib/utils, settings, fake-adapter, roles/*).
+`apps/web/src/features/pickups/components/pickups-create-wizard.tsx` rewritten:
 
-### `pnpm lint`
-**Exit: 0** — `✖ 28 problems (0 errors, 28 warnings)`. All warnings pre-existing.
+- Replaced the raw `<input>`/`<select>` + `inputClass` and the manual `safeParse` → red `<ul>` error list with `useForm<PickupWizardValues>` + `zodResolver(pickupWizardSchema)` and shadcn `FormField`/`FormItem`/`FormLabel`/`FormControl`/`FormMessage` for `type`, `requested_quantity`, `marketeur_org_id`, `source_site_id`, `destination_site_id`. Errors render inline (French messages straight from the schema) via `FormMessage`.
+- Step 1 advance uses `await form.trigger()` (validates the whole schema incl. the `superRefine` site-difference rule — unchanged, not edited). Valid → step 2.
+- Step 2 (vehicle recommendation cards) is untouched — still plain-state `selectedVehicles` toggles; the "Créer la requête" button stays disabled until ≥1 vehicle selected. Submit path preserved exactly: `usePickupsStore.getState().createPickup({ marketeur_org_id, source_site_id, destination_site_id, requested_quantity })` (same 4-field `PickupDraft` payload as before — `type` is collected but not sent, unchanged behavior) + `toast.success`/`toast.error` + `onCreated(created, selectedVehicles)` + `reset()`.
+- Swapped to `@lpg/ui` `Input`/`Select` (matches `entity-form.tsx` conventions); kept the two-column type/quantity row, full-width selectors, and step-2 layout/classes to avoid visual regressions.
+- Default values computed lazily per mount/reset (`defaultValues()` + `form.reset(defaultValues())`), preserving the original's `useState`-initializer/reset semantics for the MARKETEUR org.
 
-## Self-review findings
+## Tests
 
-- All 10 files edited; no dead duplicates touched (all had live importers).
-- `routes.ts` top-level and `data/routes.ts` both edited — both have live importers (router config and data consumers).
-- `map-screen.tsx` `truckColors` now keyed by `TourneeStatus` enum values (DRAFT/PLANNED/PENDINGTRANSPORTERACK/ACKNOWLEDGED/INPROGRESS/CHECKPOINTACTIVE/CLOSED/CANCELLED) — matches `statusLabels`/`statusClasses` in `trucks.ts`.
-- `delivery-tours-screen.tsx` only had `plateNumber` to fix — clean single rename.
+- No pickups-wizard UI test exists — only `features/pickups/lib/vehicle-recommendation.test.ts` (untouched, still passing).
+- `entity-form.test.ts` only covers the pure `applyTransforms` fn — unaffected by the FormSection/SubmitButton wiring.
+
+## Verification (all run from repo root)
+
+- `pnpm --filter @lpg/web exec tsc --noEmit -p tsconfig.app.json` → PASS (no errors).
+- `pnpm --filter @lpg/web exec eslint src/components/entity-crud/form-ui.tsx src/components/entity-crud/entity-form.tsx src/features/pickups/components/pickups-create-wizard.tsx` → 0 errors, 1 warning.
+- `pnpm --filter @lpg/web run test:unit` → 84 files, 422 tests PASS.
 
 ## Concerns
 
-1. **Build still has ~195 pre-existing errors** in features outside the trucks scope (activity 44, transporters 33, marketers/sites 3, module-screen 8, lib/utils 2, settings/fake-adapter 2, roles 7). These are tracked for follow-up plans but block full app launchability.
-2. **`roles/manifest.ts`** has an unrelated pre-existing change (`Object.entries` → `Object.entries` destructuring) that was already in the working tree before this task — not part of Task 3.
-3. **`routes.test.ts`** and `data/routes.test.ts` have `trips[0]!` changes that were pre-existing in the working tree (from the earlier session) — not part of Task 3.
+1. **eslint warning (only 1):** `react-hooks/incompatible-library` on `form.watch(...)` in the wizard. This is a warning, not an error, and is the exact same pre-existing pattern in `features/tours/components/tour-create-wizard.tsx` (verified) — accepted codebase convention.
+2. **Prettier not verifiable:** `prettier --check` fails with "Cannot find package '@trivago/prettier-plugin-sort-imports'" even on untouched files (`src/store/auth-store.ts`) — pre-existing environment issue (missing plugin dep), not caused by these changes.
+3. **FormSection heading:** entity sheets that don't set `field.section` now render a single "Informations" heading (per brief's "else wrap all in one section"). Minor visual addition; easy to drop if unwanted.
+4. **SubmitButton label change:** EntityForm footer now shows spinner + static label instead of "Enregistrement…" while pending.
+5. **SubmitButton unused elsewhere:** currently only consumed by EntityForm; exported for reuse by later tasks.
+
+Report path: `.superpowers/sdd/task-3-report.md` (covers both Task 3 and Task 4).

@@ -201,6 +201,10 @@ POST   /transporter-contracts                  MARKETEUR creates
 GET    /transporter-contracts/:id
 PATCH  /transporter-contracts/:id
 DELETE /transporter-contracts/:id
+POST   /transporter-contracts/:id/attach-proof  MARKETEUR attaches contract_document_url
+POST   /transporter-contracts/:id/accept        TRANSPORTEUR sets transporter_accepted_at
+POST   /transporter-contracts/:id/suspend       ADMIN/SUPERADMIN sets is_active=false
+POST   /transporter-contracts/:id/reactivate    ADMIN/SUPERADMIN sets is_active=true
 POST   /transporter-contracts/:id/set-primary   only one is_primary=true per marketeur_org_id
                                                  ⚠️ enforce via partial unique index + app transaction
 ```

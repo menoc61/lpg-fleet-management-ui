@@ -49,8 +49,9 @@ const vehiclesRoute = getRouteApi('/_authenticated/vehicles/')
 
 export function VehiclesPage() {
   const navigate = vehiclesRoute.useNavigate()
+  const search = vehiclesRoute.useSearch()
   const { q } = vehiclesRoute.useSearch()
-  const [search, setSearch] = useState(q ?? '')
+  const [searchText, setSearchText] = useState(q ?? '')
   const [statusFilter, setStatusFilter] = useState<VehicleStatusFilter>('all')
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleView | null>(null)
   const [, setVersion] = useState(0)
@@ -100,7 +101,7 @@ export function VehiclesPage() {
   )
 
   const filteredVehicles = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     if (!query) return [...scopedVehicles]
     return scopedVehicles.filter((vehicle) => {
       const haystack = [
@@ -115,7 +116,7 @@ export function VehiclesPage() {
         .toLowerCase()
       return haystack.includes(query)
     })
-  }, [search, scopedVehicles])
+  }, [searchText, scopedVehicles])
 
   const visible =
     statusFilter === 'all'
@@ -223,8 +224,8 @@ export function VehiclesPage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher plaque, entreprise, chauffeur…'
                 className='h-9 ps-9'
               />
@@ -277,7 +278,7 @@ export function VehiclesPage() {
         </div>
         <VehiclesTable
           data={[...visible]}
-          search={{}}
+          search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onOpenActiveTour={handleOpenActiveTour}

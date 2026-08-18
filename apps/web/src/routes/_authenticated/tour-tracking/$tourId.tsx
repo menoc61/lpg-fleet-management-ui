@@ -9,12 +9,20 @@ import { getTourActivityById } from '@/features/tours/data/tour-activity'
 import { TourActiveHeader } from '@/features/tours/components/tour-active-header'
 import { TourDetailView } from '@/features/tours/components/tour-detail-view'
 import { useAuthStore } from '@/store/auth-store'
+import { useToursStore } from '@/store/tours-store'
 import { getScope } from '@/features/scope/scope'
 
 function TourTrackingDetailPage() {
   const { tourId } = Route.useParams()
   const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
-  const trip = getTourActivityById(tourId, scope)
+  // Subscribe to the store so actions on this tour (start/close/ack) refresh
+  // the detail immediately.
+  const storeTours = useToursStore((s) => s.tours)
+  const storeCheckpoints = useToursStore((s) => s.checkpoints)
+  const trip = useMemo(
+    () => getTourActivityById(tourId, scope),
+    [tourId, scope, storeTours, storeCheckpoints],
+  )
 
   if (!trip) {
     return (

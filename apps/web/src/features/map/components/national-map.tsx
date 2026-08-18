@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Graphic from '@arcgis/core/Graphic.js'
 import ArcGISMap from '@arcgis/core/Map.js'
 import '@arcgis/core/assets/esri/themes/light/main.css'
+import '@arcgis/core/assets/esri/themes/dark/main.css'
 import esriConfig from '@arcgis/core/config.js'
 import Point from '@arcgis/core/geometry/Point.js'
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js'
@@ -20,10 +21,16 @@ import {
 import type { MapTheme } from '@/features/map/utils/map-theme'
 import { LegendSiteIcon } from '@/features/map/utils/legend'
 import { formatTm } from '@/features/map/utils/format'
-import { getInitialLayers, type MapLayerKey } from '@/features/map/lib/layers'
+import {
+  getInitialLayers,
+  LAYER_LABELS,
+  type MapLayerKey,
+} from '@/features/map/lib/layers'
 import {
   buildClientSitePopupContent,
   buildRegionPopupContent,
+  buildZonePopupContent,
+  buildVracPopupContent,
   buildAnomalyPopupContent,
 } from '@/features/map/utils/popup'
 import { createSiteGraphics } from '@/features/sites/utils/site-graphics'
@@ -41,16 +48,22 @@ const CAMEROON_CENTER: [number, number] = [8.7, 12.3]
 export type NationalMapProps = {
   mapTheme?: MapTheme
   className?: string
+  focusZone?: string
+  layers?: Record<MapLayerKey, boolean>
 }
 
 export function NationalMap({
   mapTheme = 'light',
   className,
+  focusZone,
+  layers = getInitialLayers(),
 }: NationalMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<ArcGISMap | null>(null)
   const viewRef = useRef<MapView | null>(null)
   const layersRef = useRef<Record<string, GraphicsLayer>>({})
+  const focusLayerRef = useRef<GraphicsLayer | null>(null)
+  const initialMapThemeRef = useRef(mapTheme)
   const [isReady, setIsReady] = useState(false)
   const [loadFailed, setLoadFailed] = useState(false)
   const [data] = useState<NationalMapView | null>(() => getNationalMapView())
@@ -61,15 +74,17 @@ export function NationalMap({
     const perLayer: Record<string, GraphicsLayer> = {}
     const initialToggles = getInitialLayers()
     for (const key of Object.keys(initialToggles) as MapLayerKey[]) {
-      if (key === 'vrac') continue
-      perLayer[key] = new GraphicsLayer({ title: `LPG ${key}` })
+      perLayer[key] = new GraphicsLayer({ title: LAYER_LABELS[key] })
     }
     layersRef.current = perLayer
 
     const map = new ArcGISMap({
-      basemap: getArcgisBasemap(mapTheme),
+      basemap: getArcgisBasemap(initialMapThemeRef.current),
       layers: Object.values(perLayer),
     })
+    const focusLayer = new GraphicsLayer({ title: 'Zone sélectionnée' })
+    map.add(focusLayer)
+    focusLayerRef.current = focusLayer
 
     const view = new MapView({
       container: mapContainerRef.current,
@@ -77,7 +92,7 @@ export function NationalMap({
       center: CAMEROON_CENTER,
       constraints: { minZoom: 4 },
       popup: { dockEnabled: false },
-      theme: getArcgisViewTheme(mapTheme),
+      theme: getArcgisViewTheme(initialMapThemeRef.current),
       zoom: 7,
     })
 
@@ -112,6 +127,9 @@ export function NationalMap({
     return () => {
       handle.remove()
       view.destroy()
+      focusLayer.removeAll()
+      map.remove(focusLayer)
+      focusLayerRef.current = null
       mapRef.current = null
       viewRef.current = null
       setIsReady(false)
@@ -200,17 +218,143 @@ export function NationalMap({
         },
       }),
     )
+    const zoneGraphics = data.zones.flatMap((zone) => {
+      const region = data.regions.find((candidate) => candidate.code === zone.code)
+      if (!region) return []
+      return [
+        new Graphic({
+          geometry: new Point({
+            longitude: region.longitude,
+            latitude: region.latitude,
+            spatialReference: { wkid: 4326 },
+          }),
+          symbol: {
+            type: 'simple-marker',
+            style: 'circle',
+            color: rgbaFromTuple([99, 102, 241, 0.35]),
+            size: 14,
+            outline: {
+              color: rgbaFromTuple([99, 102, 241, 0.9]),
+              width: 1.5,
+            },
+          },
+          attributes: { kind: 'zone', zoneCode: zone.code },
+          popupTemplate: {
+            title: zone.name,
+            content: buildZonePopupContent(zone, mapTheme),
+          },
+        }),
+      ]
+    })
+    const vracCentroid = (() => {
+      const points = data.sites.filter((s) => s.longitude && s.latitude)
+      if (points.length === 0) return CAMEROON_CENTER
+      return [
+        points.reduce((sum, s) => sum + s.longitude, 0) / points.length,
+        points.reduce((sum, s) => sum + s.latitude, 0) / points.length,
+      ] as [number, number]
+    })()
+    const vracGraphics = [
+      new Graphic({
+        geometry: new Point({
+          longitude: vracCentroid[0],
+          latitude: vracCentroid[1],
+          spatialReference: { wkid: 4326 },
+        }),
+        symbol: {
+          type: 'simple-marker',
+          style: 'diamond',
+          color: rgbaFromTuple([245, 158, 11, 0.75]),
+          size: 22,
+          outline: {
+            color: rgbaFromTuple([245, 158, 11, 1]),
+            width: 2,
+          },
+        },
+        attributes: { kind: 'vrac' },
+        popupTemplate: {
+          title: LAYER_LABELS.vrac,
+          content: buildVracPopupContent(data.vrac, mapTheme),
+        },
+      }),
+    ]
 
     layers.sites?.removeAll()
     layers.clientSites?.removeAll()
     layers.regions?.removeAll()
+    layers.zones?.removeAll()
     layers.anomalies?.removeAll()
+    layers.vrac?.removeAll()
 
     layers.sites?.addMany(siteGraphics)
     layers.clientSites?.addMany(clientGraphics)
     layers.regions?.addMany(regionGraphics)
+    layers.zones?.addMany(zoneGraphics)
     layers.anomalies?.addMany(anomalyGraphics)
+    layers.vrac?.addMany(vracGraphics)
   }, [isReady, mapTheme, data])
+
+  useEffect(() => {
+    const perLayer = layersRef.current
+    if (!isReady) return
+    for (const key of Object.keys(layers) as MapLayerKey[]) {
+      const layer = perLayer[key]
+      if (layer) layer.visible = layers[key]
+    }
+  }, [isReady, layers])
+
+  useEffect(() => {
+    const view = viewRef.current
+    const focusLayer = focusLayerRef.current
+    if (!isReady || !data || !view || !focusLayer) return
+
+    let active = true
+    focusLayer.removeAll()
+    const region = data.regions.find((candidate) => candidate.code === focusZone)
+    if (!region) {
+      return () => {
+        active = false
+        focusLayer.removeAll()
+      }
+    }
+
+    const focusGraphic = new Graphic({
+      geometry: new Point({
+        longitude: region.longitude,
+        latitude: region.latitude,
+        spatialReference: { wkid: 4326 },
+      }),
+      symbol: {
+        type: 'simple-marker',
+        style: 'circle',
+        color: [245, 158, 11, 0.3],
+        size: 42,
+        outline: {
+          color: [245, 158, 11, 1],
+          width: 3,
+        },
+      },
+      attributes: { kind: 'focused-region', regionCode: region.code },
+      popupTemplate: {
+        title: region.name,
+        content: buildRegionPopupContent(region, mapTheme),
+      },
+    })
+    if (!active) return
+    focusLayer.add(focusGraphic)
+
+    const navigation = view.goTo({
+      center: [region.longitude, region.latitude],
+      zoom: 8,
+    }) as Promise<void> & { cancel?: () => void }
+    void navigation.catch(() => undefined)
+
+    return () => {
+      active = false
+      navigation.cancel?.()
+      focusLayer.remove(focusGraphic)
+    }
+  }, [data, focusZone, isReady, mapTheme])
 
   if (!arcgisApiKey) {
     return (
@@ -240,6 +384,8 @@ export function NationalMap({
         className,
       )}
       data-map-theme={mapTheme}
+      role='img'
+      aria-label='Carte nationale du réseau GPL'
     >
       <div
         ref={mapContainerRef}
@@ -292,7 +438,7 @@ export function NationalMap({
       ) : null}
 
       {data && data.sites.length > 0 ? (
-        <div className="pointer-events-none absolute bottom-20 left-4 max-w-[240px] rounded-2xl bg-background/70 p-3 text-xs shadow-sm backdrop-blur-md">
+        <div className="pointer-events-none absolute right-4 bottom-20 max-w-[240px] rounded-2xl bg-background/70 p-3 text-xs shadow-sm backdrop-blur-md">
           <p className="font-medium text-foreground/90">Réseau logistique</p>
           <div className="mt-2 space-y-2">
             {Object.entries(

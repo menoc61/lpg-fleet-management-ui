@@ -132,6 +132,21 @@ Rules:
   TRANSPORTEUR acknowledges by assigning **their own org's** vehicle/driver/
   livreur (→ ACKNOWLEDGED). LIVREUR starts/closes. Transitions follow
   `features/tours/data/tour-machine.ts`; no step is skipped.
+- **Contrats marketeur↔transporteur:** MARKETEUR declares contracts with PDF
+  proof, `started_at`/`ended_at`, and `is_primary`; the TRANSPORTEUR must
+  accept via `transporter_accepted_at` before use. Status is derived by
+  `features/transporter-contracts/lib/contract-status.ts`:
+  `PENDING`, `PENDINGTRANSPORTERACK`, `ACTIVE`, `UPCOMING`, `EXPIRED`,
+  `SUSPENDED`, or `CANCELLED` (including `deleted_at` soft-delete input).
+  EXTERNAL tours are eligible only when the contract status is `ACTIVE`. The
+  centralized `contracts.*` permissions in
+  `@lpg/permissions` govern the workflow: MARKETEUR manages its contracts,
+  TRANSPORTEUR reads and accepts, and ADMIN/SUPERADMIN suspend or reactivate.
+  TRANSPORTEUR creates and assigns only livreurs belonging to its own
+  organization; MARKETEUR does not create or assign transporter livreurs.
+  API actions are `GET`/`POST`/`PATCH`/`DELETE` on
+  `/api/v1/transporter-contracts`, plus `attach-proof`, `accept`, `suspend`,
+  `reactivate`, and `set-primary` actions; `DELETE` is a soft delete.
 - **Workflows** resolve against TODO.md §5 (onboarding, geo-verification, certificates,
   device lifecycle, flux 1 / 2a / 2b, reconciliation, anomalies, risk, reporting);
   **monitoring/security** against TODO.md §6–§7.

@@ -2,12 +2,13 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { useUsersStore } from './users-store'
 import { useAuthStore } from './auth-store'
 import { curated } from '@lpg/mock-data'
+import { getLivreurs } from '@/features/livreurs/data/livreurs'
 
 const USER_FIXTURE_ID = 'user-0001-csph-super'
 const USER_FIXTURE_EMAIL = 'b.ndoumbetane@csph.cm'
 const USER_ACTIVE_ID = 'user-0007-sctm-marketeur'
 const SCTM_ORG = 'org-0002-sctm-0000-000000000001'
-const OTHER_ORG = 'org-0001-csph-0000-000000000001'
+const OTHER_ORG = 'org-0003-total-0000-000000000001'
 
 const AUTH_BASE = {
   id: 'u-auth',
@@ -17,9 +18,16 @@ const AUTH_BASE = {
   site_ids: [] as string[],
 }
 
-function setAuthUser(system_role: 'SUPERADMIN' | 'MARKETEUR', org_id?: string) {
+function setAuthUser(
+  system_role: 'SUPERADMIN' | 'ADMIN' | 'AGENT' | 'MARKETEUR' | 'TRANSPORTEUR',
+  org_id?: string,
+) {
   const org_type =
-    system_role === 'MARKETEUR' ? ('MARKETEUR' as const) : ('REGULATEUR' as const)
+    system_role === 'MARKETEUR'
+      ? ('MARKETEUR' as const)
+      : system_role === 'TRANSPORTEUR'
+        ? ('TRANSPORTEUR' as const)
+        : ('REGULATEUR' as const)
   useAuthStore.setState({
     user: { ...AUTH_BASE, id: `u-${system_role.toLowerCase()}`, system_role, org_type, org_id },
   })
@@ -36,6 +44,14 @@ function newUser(overrides: Partial<Record<'system_role' | 'org_id', string>> = 
   }
 }
 
+function livreurId(orgId = SCTM_ORG) {
+  const livreur = curated.users.find(
+    (user) => user.system_role === 'LIVREUR' && user.org_id === orgId,
+  )
+  if (!livreur) throw new Error(`No livreur fixture for ${orgId}`)
+  return livreur.id
+}
+
 function freshSeed() {
   return {
     users: (curated.users as ReturnType<typeof useUsersStore.getState>['users']).map(
@@ -47,6 +63,7 @@ function freshSeed() {
 describe('users store', () => {
   beforeEach(() => {
     useUsersStore.setState(freshSeed())
+    setAuthUser('SUPERADMIN')
   })
 
   it('seeds with the curated users', () => {
@@ -172,20 +189,66 @@ describe('users store', () => {
   })
 
   describe('deleteUser', () => {
-    it('removes the row', () => {
-      const lenBefore = useUsersStore.getState().users.length
-      useUsersStore.getState().deleteUser(USER_FIXTURE_ID)
-      const lenAfter = useUsersStore.getState().users.length
-      expect(lenAfter).toBe(lenBefore - 1)
-      expect(
-        useUsersStore.getState().users.find((u) => u.id === USER_FIXTURE_ID),
-      ).toBeUndefined()
+    it('soft-deletes a livreur and hides it from the livreur view', () => {
+      setAuthUser('SUPERADMIN')
+      const id = livreurId()
+      const lenBefore = getLivreurs().length
+
+      useUsersStore.getState().deleteUser(id)
+
+      const deleted = useUsersStore.getState().users.find((u) => u.id === id)
+      expect(deleted?.deleted_at).toBeTruthy()
+      expect(getLivreurs()).toHaveLength(lenBefore - 1)
     })
 
     it('does nothing on a missing id', () => {
       const lenBefore = useUsersStore.getState().users.length
       useUsersStore.getState().deleteUser('does-not-exist')
       expect(useUsersStore.getState().users.length).toBe(lenBefore)
+    })
+  })
+
+  describe('livreur permissions and scope', () => {
+    it('allows a marketeur to create and update only livreurs in its own org', () => {
+      setAuthUser('MARKETEUR', SCTM_ORG)
+      const before = useUsersStore.getState().users.length
+
+      useUsersStore.getState().createUser({
+        ...newUser({ system_role: 'LIVREUR', org_id: SCTM_ORG }),
+      } as never)
+      expect(useUsersStore.getState().users).toHaveLength(before + 1)
+
+      expect(() =>
+        useUsersStore.getState().createUser({
+          ...newUser({ system_role: 'LIVREUR', org_id: OTHER_ORG }),
+        } as never),
+      ).toThrow('Accès refusé.')
+
+      expect(() =>
+        useUsersStore.getState().updateUser(livreurId(OTHER_ORG), {
+          email: 'cross-org@example.cm',
+        }),
+      ).toThrow('Accès refusé.')
+    })
+
+    it('rejects livreur mutations for an agent with read-only access', () => {
+      setAuthUser('AGENT')
+      const id = livreurId()
+
+      expect(() => useUsersStore.getState().setStatus(id, false)).toThrow('Accès refusé.')
+      expect(() => useUsersStore.getState().deleteUser(id)).toThrow('Accès refusé.')
+    })
+
+    it('allows an admin to manage livreurs across organizations', () => {
+      setAuthUser('ADMIN', OTHER_ORG)
+      const id = livreurId(SCTM_ORG)
+
+      useUsersStore.getState().updateUser(id, { email: 'admin-edit@example.cm' })
+      useUsersStore.getState().setStatus(id, false)
+
+      const updated = useUsersStore.getState().users.find((user) => user.id === id)
+      expect(updated?.email).toBe('admin-edit@example.cm')
+      expect(updated?.is_active).toBe(false)
     })
   })
 

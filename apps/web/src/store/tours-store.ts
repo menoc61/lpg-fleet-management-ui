@@ -16,6 +16,7 @@ import { assertPermission, PERMISSION_DENIED } from '@/lib/security/guards'
 import { getScope, isRegulateurView } from '@/features/scope/scope'
 import { emitWs } from '@/lib/ws/mock-ws'
 import { useAuthStore } from '@/store/auth-store'
+import { useContractsStore } from '@/store/contracts-store'
 
 /**
  * Payload for creating a tour. Mirrors the schema's `chk_tournee_internal` /
@@ -103,6 +104,7 @@ export const useToursStore = create<ToursState>()((set, get) => ({
     // write; `checkpoints` carries the draft's site XOR client_site etc.
     const validation = validateTour(tour, {
       vehicles: curated.vehicles,
+      contracts: useContractsStore.getState().all(),
       checkpoints: draft.checkpoints,
     })
     if (!validation.valid) {
@@ -165,7 +167,10 @@ export const useToursStore = create<ToursState>()((set, get) => ({
     if (!allowed.includes(action)) {
       throw new Error(`Transition interdite à l'état ${current.status}`)
     }
-    const validation = validateTour(current, { vehicles: curated.vehicles })
+    const validation = validateTour(current, {
+      vehicles: curated.vehicles,
+      contracts: useContractsStore.getState().all(),
+    })
     if (!validation.valid && action !== 'cancel') {
       throw new Error(validation.errors[0])
     }

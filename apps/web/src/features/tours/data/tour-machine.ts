@@ -1,6 +1,8 @@
 import type { DeliveryTour, Setting, TourneeStatus, ExecutionMode } from '@lpg/types'
 import { curated } from '@lpg/mock-data'
 import type { PermissionCode } from '@lpg/permissions'
+import { deriveContractStatus } from '@/features/transporter-contracts/lib/contract-status'
+import type { TransporterContract } from '@lpg/types'
 
 export type TourAction =
   | 'send-to-transporter'
@@ -163,6 +165,7 @@ export function validateTour(
   options?: {
     now?: Date
     vehicles?: typeof curated.vehicles
+    contracts?: readonly TransporterContract[]
     checkpoints?: TourDraftCheckpoint[]
   },
 ): TourValidationResult {
@@ -171,6 +174,7 @@ export function validateTour(
     transporter_org_id, started_at, closed_at } = tour
   const now = options?.now ?? new Date()
   const vehicles = options?.vehicles ?? curated.vehicles
+  const contracts = options?.contracts ?? curated.transporter_contracts
   const checkpoints = options?.checkpoints
 
   if (checkpoints?.length) {
@@ -203,11 +207,11 @@ export function validateTour(
   if (execution_mode === 'EXTERNAL' && !transporter_org_id) {
     errors.push(`chk_tournee_external: an EXTERNAL tournee must be assigned to a transporter_org_id`)
   } else if (execution_mode === 'EXTERNAL') {
-    const contract = curated.transporter_contracts.find(
+    const contract = contracts.find(
       (c) =>
         c.marketeur_org_id === tour.marketeur_org_id &&
         c.transporter_org_id === transporter_org_id &&
-        c.is_active,
+        deriveContractStatus(c, now) === 'ACTIVE',
     )
     if (!contract) {
       errors.push('Aucun contrat actif avec ce transporteur.')

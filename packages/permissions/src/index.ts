@@ -306,7 +306,7 @@ const ADMIN_GRANTS = [
   'trucks.read',
   'drivers.read', 'drivers.write', 'drivers.create', 'drivers.delete',
   'devices.read', 'devices.write', 'devices.create', 'devices.delete',
-  'livreurs.read', 'tours.read', 'deliveries.read',
+  'livreurs.read', 'livreurs.write', 'livreurs.manage', 'tours.read', 'deliveries.read',
   'declarations.read', 'declarations.write', 'declarations.validate',
   'pickups.read', 'pickups.write', 'pickups.validate',
   'reconciliations.read', 'reconciliations.write', 'reconciliations.manage',

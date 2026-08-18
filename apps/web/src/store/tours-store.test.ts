@@ -5,6 +5,7 @@ import { PERMISSION_DENIED } from '@/lib/security/guards'
 import { curated } from '@lpg/mock-data'
 import type { DeliveryTour } from '@lpg/types'
 import { tourStatusLabels, getTourCargo, getTourVolume } from '@/features/tours/data/tour-activity'
+import { useContractsStore } from './contracts-store'
 
 const MARKETEUR_ORG = 'org-0002-sctm-0000-000000000001'
 const TRANSPORTEUR_ORG = 'org-0011-expressgpl--000000000001'
@@ -62,6 +63,13 @@ function inject(tour: Partial<DeliveryTour> & Pick<DeliveryTour, 'id'>) {
 describe('tours store', () => {
   beforeEach(() => {
     useToursStore.setState(freshSeed())
+    useContractsStore.setState((state) => ({
+      contracts: state.contracts.map((contract) =>
+        contract.transporter_org_id === TRANSPORTEUR_ORG
+          ? { ...contract, transporter_accepted_at: '2026-01-01T00:00:00.000Z' }
+          : contract,
+      ),
+    }))
     // Guards read the live auth state: a SUPERADMIN clears every permission
     // check so the mutation tests exercise the business logic, not the guard.
     setAuthUser('SUPERADMIN')

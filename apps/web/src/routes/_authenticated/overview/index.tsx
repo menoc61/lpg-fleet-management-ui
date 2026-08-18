@@ -5,6 +5,8 @@ import { useAuthStore } from '@/store/auth-store'
 import { getScope } from '@/features/scope/scope'
 import { buildDashboardView } from '@/features/dashboard/data/dashboard'
 import { OverviewPage } from '@/features/overview'
+import { RouteSkeleton } from '@/components/layout/route-skeleton'
+import { GeneralError } from '@/features/errors/general-error'
 
 function OverviewRouteComponent() {
   const role = useRoleStore((s) => s.activeRole)
@@ -16,4 +18,6 @@ function OverviewRouteComponent() {
 
 export const Route = createFileRoute('/_authenticated/overview/')({
   component: OverviewRouteComponent,
+  pendingComponent: RouteSkeleton,
+  errorComponent: GeneralError,
 })

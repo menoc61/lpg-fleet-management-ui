@@ -1,6 +1,9 @@
 import { curated } from '@lpg/mock-data'
 import type { User as CuratedUser } from '@lpg/types'
 import type { MfaStatus } from '@lpg/types'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
+import { useUsersStore } from '@/store/users-store'
 
 export type LivreurStatus = 'ACTIVE' | 'INACTIVE'
 
@@ -20,10 +23,18 @@ const ORG_NAME_BY_ID: Record<string, string> = Object.fromEntries(
   curated.organizations.map((org) => [org.id, org.name]),
 )
 
-export function getLivreurs(): LivreurView[] {
-  const users = curated.users as CuratedUser[]
+export function getLivreurs(
+  source = useUsersStore.getState().users,
+  scope = getScope(useAuthStore.getState().user),
+): LivreurView[] {
+  const users = source as CuratedUser[]
   return users
-    .filter((user) => user.system_role === 'LIVREUR')
+    .filter(
+      (user) =>
+        user.system_role === 'LIVREUR' &&
+        user.deleted_at == null &&
+        (scope.view === 'org' || user.org_id === scope.orgId),
+    )
     .map((user) => ({
       id: user.id,
       email: user.email,

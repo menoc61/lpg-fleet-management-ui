@@ -1,6 +1,7 @@
 import { curated } from '@lpg/mock-data'
 import type { Region } from '@lpg/types'
 import { getZones } from '../../zones/data/zones'
+import { getGeoAnomalies, type GeoAnomalyView } from '../data/geo-anomalies'
 
 export interface RegionSummary {
   code: Region
@@ -12,7 +13,10 @@ export interface RegionSummary {
   latitude: number
 }
 
-export function getRegionSummary(code: Region): RegionSummary {
+export function getRegionSummary(
+  code: Region,
+  geoAnomalies: readonly GeoAnomalyView[] = getGeoAnomalies(),
+): RegionSummary {
   const region = curated.regions.find((r) => r.code === code)
   const zone = getZones().find((z) => z.region === code)!
   const points = [
@@ -34,12 +38,13 @@ export function getRegionSummary(code: Region): RegionSummary {
     name: region?.name ?? code,
     siteCount: zone.siteCount,
     clientSiteCount: zone.clientSiteCount,
-    anomalyCount: 0,
+    anomalyCount: geoAnomalies.filter((a) => a.region === code).length,
     longitude: centroid.lng,
     latitude: centroid.lat,
   }
 }
 
 export function regionsForMap(): readonly RegionSummary[] {
-  return curated.regions.map((r) => getRegionSummary(r.code as Region))
+  const geoAnomalies = getGeoAnomalies()
+  return curated.regions.map((r) => getRegionSummary(r.code as Region, geoAnomalies))
 }

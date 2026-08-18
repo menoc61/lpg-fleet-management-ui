@@ -1,3 +1,4 @@
+import { getSettingNumber } from '@lpg/mock-data'
 import {
   buildRouteSummary,
   getRouteTripsView,
@@ -526,8 +527,10 @@ function buildReserveSites(scope?: UserScope) {
       }).length
 
       const fillPercent = round((config.reserveTM / config.capacityTM) * 100)
+      const criticalFillPercent =
+        getSettingNumber('reserve.critical_fill_percent') ?? 35
       const status: DashboardReserveStatus =
-        fillPercent < 35
+        fillPercent < criticalFillPercent
           ? 'critical'
           : fillPercent < config.targetMinPercent
             ? 'watch'

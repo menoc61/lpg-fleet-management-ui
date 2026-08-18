@@ -1,5 +1,6 @@
 import { Link, useParams } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { useMemo } from 'react'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import { PageShell } from '@/components/layout/page'
 import { PageHeader } from '@/components/layout/page-header'
@@ -8,11 +9,17 @@ import { getScope } from '@/features/scope/scope'
 import { useAuthStore } from '@/store/auth-store'
 import { buildDashboardView } from './data/dashboard'
 
+function useDashboard() {
+  const user = useAuthStore((s) => s.user)
+  const scope = useMemo(() => getScope(user), [user])
+  return useMemo(() => buildDashboardView(undefined, scope), [scope])
+}
+
 export function FleetDetailPage() {
   const { fleetName } = useParams({ from: '/_authenticated/dashboard/fleets/$fleetName' })
-  const dashboard = buildDashboardView(undefined, getScope(useAuthStore.getState().user))
+  const dashboard = useDashboard()
   const fleet = dashboard.fleets.find(
-    (candidate) => candidate.fleetName === decodeURIComponent(fleetName)
+    (candidate) => candidate.fleetName === fleetName
   )
 
   return (
@@ -74,7 +81,7 @@ export function FleetDetailPage() {
 
 export function ReserveSiteDetailPage() {
   const { siteId } = useParams({ from: '/_authenticated/dashboard/sites/$siteId' })
-  const dashboard = buildDashboardView(undefined, getScope(useAuthStore.getState().user))
+  const dashboard = useDashboard()
   const site = dashboard.reserveSites.find((candidate) => candidate.siteId === siteId)
 
   return (

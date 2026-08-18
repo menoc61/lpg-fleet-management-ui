@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { Button } from '@lpg/ui'
@@ -12,6 +12,7 @@ import { getTourActivity, type TourSlice } from './data/tour-activity'
 import { getScope } from '@/features/scope/scope'
 import { useRoleStore } from '@/store/role-store'
 import { useAuthStore } from '@/store/auth-store'
+import { useToursStore } from '@/store/tours-store'
 
 const SLICES: { value: TourSlice; label: string }[] = [
   { value: 'ALL', label: 'Toutes' },
@@ -28,8 +29,19 @@ export function ToursPage() {
   const canCreate = hasPermission(activeRole, 'tours.create')
   const [slice, setSlice] = useState<TourSlice>('ALL')
   const [wizardOpen, setWizardOpen] = useState(false)
-  const tours = getTourActivity(slice, getScope(useAuthStore.getState().user))
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
+
+  // Subscribe to the tours store so created / updated tours surface in the
+  // table and header (the store is the single source of truth, seeded from
+  // the curated fixtures).
+  const storeTours = useToursStore((s) => s.tours)
+  const storeCheckpoints = useToursStore((s) => s.checkpoints)
+  const user = useAuthStore((s) => s.user)
+  const scope = useMemo(() => getScope(user), [user])
+  const tours = useMemo(
+    () => getTourActivity(slice, scope),
+    [slice, scope, storeTours, storeCheckpoints],
+  )
   const selectedTrip = tours.find((t) => t.id === selectedId) ?? tours[0]
 
   function openDetail(id: string) {
@@ -53,8 +65,8 @@ export function ToursPage() {
         open={wizardOpen}
         onOpenChange={setWizardOpen}
         onCreated={() => {
-          /* La tournée est écrite dans le store (tours-store) ; les vues
-             statiques de la page restent alimentées par les fixtures. */
+          /* The tour is written into the tours store, which the page reads
+             reactively — the new tour surfaces in the table automatically. */
         }}
       />
       {selectedTrip && (

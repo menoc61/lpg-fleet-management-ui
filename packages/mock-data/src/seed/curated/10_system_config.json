@@ -144,6 +144,18 @@
       "is_encrypted": false,
       "min_value": 0,
       "requires_restart": false
+    },
+    {
+      "id": "set-0012-reserve-critical",
+      "setting_key": "reserve.critical_fill_percent",
+      "setting_value": "35",
+      "value_type": "NUMBER",
+      "category": "RESERVE",
+      "description": "Site fill percent below which the useful reserve is flagged critical",
+      "is_encrypted": false,
+      "min_value": 0,
+      "max_value": 100,
+      "requires_restart": false
     }
   ],
   "reports": [

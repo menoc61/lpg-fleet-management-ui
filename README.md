@@ -26,11 +26,30 @@ avec un adaptateur mock qui simule l'API tant que le backend n'est pas branché
 | TRANSPORTEUR | TRANSPORTEUR | Tournées/équipages assignés à son organisation |
 | LIVREUR | opérateur | Ses missions |
 
-> **Isolation par site :** un MARKETeur voit uniquement les données de son site et ce
+> **Isolation par site :** un MARKETEUR voit uniquement les données de son site et ce
 > qu'il a créé ; un TRANSPORTEUR voit les tournées assignées à son organisation ; un
 > AGENT voit ses sites assignés. Seul le personnel d'une organisation REGULATEUR
 > (SUPERADMIN/ADMIN) dispose de la vue organisationnelle. Implémenté via
 > `apps/web/src/features/scope` (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`).
+
+## Contrats marketeur↔transporteur
+
+Le MARKETEUR déclare un contrat avec preuve PDF, `started_at`/`ended_at` et
+`is_primary` pour sélectionner le contrat principal. Le TRANSPORTEUR l'accepte
+via `transporter_accepted_at`. Le statut est dérivé de la preuve PDF, de
+`transporter_accepted_at`, de `started_at`/`ended_at`, de `is_active` et de
+`deleted_at` (suppression douce → `CANCELLED`) : `PENDING`,
+`PENDINGTRANSPORTERACK`, `ACTIVE`, `UPCOMING`, `EXPIRED`, `SUSPENDED` ou
+`CANCELLED`.
+
+Les tournées `EXTERNAL` ne sont éligibles que lorsque le contrat est `ACTIVE`.
+Les permissions centralisées `contracts.*` gouvernent le workflow : le
+MARKETEUR gère ses contrats, le TRANSPORTEUR les lit et les accepte, et
+l'ADMIN/SUPERADMIN peut les suspendre ou les réactiver. Le TRANSPORTEUR crée et
+assigne uniquement des livreurs de sa propre organisation.
+
+API : `GET`/`POST`/`PATCH`/`DELETE` sur `/api/v1/transporter-contracts`, ainsi
+que `attach-proof`, `accept`, `suspend`, `reactivate` et `set-primary`.
 
 ## Workflows
 

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { CalendarDays, Clock3, Gauge, Plus, Search, Truck as TruckIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
@@ -33,14 +34,18 @@ const trucksRoute = getRouteApi('/_authenticated/trucks/')
 
 export function TrucksPage() {
   const navigate = trucksRoute.useNavigate()
+  const search = trucksRoute.useSearch()
   const { resolvedTheme } = useTheme()
-  const [search, setSearch] = useState('')
+  const [searchText, setSearchText] = useState('')
   const [statusFilter, setStatusFilter] = useState<TruckFilter>('all')
   const [detailsTruck, setDetailsTruck] = useState<Truck | null>(null)
-  const [, setVersion] = useState(0)
-  const scope = useMemo(() => getScope(useAuthStore.getState().user), [])
-  const trucks = getTrucks(scope)
-  const [activeTruckId] = useState<string>(trucks[0]?.id ?? '')
+  const user = useAuthStore((s) => s.user)
+  const scope = useMemo(() => getScope(user), [user])
+  const { data: trucks = [] } = useQuery({
+    queryKey: ['trucks', scope],
+    queryFn: () => Promise.resolve(getTrucks(scope)),
+  })
+  const [activeTruckId, setActiveTruckId] = useState<string>(() => trucks[0]?.id ?? '')
   const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['trucks'])
 
   const handleViewDetails = useCallback((truck: Truck) => {
@@ -57,14 +62,13 @@ export function TrucksPage() {
         toast.success('Camion créé.')
       }
       crud.close()
-      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
   }
 
   const filteredTrucks = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     if (!query) return [...trucks]
     return trucks.filter((truck) => {
       const haystack = [
@@ -80,7 +84,7 @@ export function TrucksPage() {
         .toLowerCase()
       return haystack.includes(query)
     })
-  }, [search, trucks])
+  }, [searchText, trucks])
 
   const visible = statusFilter === 'all' ? filteredTrucks : filteredTrucks.filter((t) => t.tournee_status === statusFilter)
 
@@ -164,8 +168,8 @@ export function TrucksPage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher un camion, plaque, chauffeur…'
                 className='h-9 ps-9'
               />
@@ -206,7 +210,7 @@ export function TrucksPage() {
             selectedTruck={selectedTruck}
             mapTheme={mapTheme}
             showRoutes
-            onSelectTruck={() => {}}
+            onSelectTruck={(truck) => setActiveTruckId(truck.id)}
           />
         </section>
       ) : null}
@@ -229,13 +233,12 @@ export function TrucksPage() {
         </div>
         <TrucksTable
           data={[...visible]}
-          search={{}}
+          search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onEdit={(t) => crud.openEdit(t as unknown as Vehicle)}
           onDelete={async (t) => {
             await crud.removeMut.mutateAsync(t.id)
-            setVersion((v) => v + 1)
           }}
         />
       </section>

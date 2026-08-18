@@ -34,7 +34,8 @@ const devicesRoute = getRouteApi('/_authenticated/devices/')
 
 export function DevicesPage() {
   const navigate = devicesRoute.useNavigate()
-  const [search, setSearch] = useState('')
+  const search = devicesRoute.useSearch()
+  const [searchText, setSearchText] = useState('')
   const [typeFilter, setTypeFilter] = useState<DeviceFilter>('all')
   const [detailsDevice, setDetailsDevice] = useState<DeviceView | null>(null)
   const [, setVersion] = useState(0)
@@ -63,7 +64,7 @@ export function DevicesPage() {
   }
 
   const filteredDevices = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     const haystackDevices = query
       ? allDevices.filter((device) => {
           const haystack = [
@@ -82,7 +83,7 @@ export function DevicesPage() {
       : allDevices
     if (typeFilter === 'all') return haystackDevices
     return haystackDevices.filter((device) => device.type === typeFilter)
-  }, [search, typeFilter, allDevices])
+  }, [searchText, typeFilter, allDevices])
 
   const assignments = getAssignmentsCount()
 
@@ -154,8 +155,8 @@ export function DevicesPage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher un appareil, org, camion…'
                 className='h-9 ps-9'
               />
@@ -208,7 +209,7 @@ export function DevicesPage() {
         </div>
         <DevicesTable
           data={[...filteredDevices]}
-          search={{}}
+          search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onEdit={(d) => crud.openEdit(d as unknown as Device)}

@@ -15,7 +15,7 @@ import type { Role } from '@lpg/permissions'
 import { trucks } from '@/features/trucks/data/trucks'
 import { sites } from '@/features/sites/data/sites'
 import { transporters } from '@/features/transporters/transporters'
-import { marketers } from '@/features/marketers/data/marketers'
+import { getMarketers } from '@/features/marketers/data/marketers'
 import { getRouteTripsView } from '@/features/tours/data/tour-activity'
 import { TruckIcon, MapPin, Handshake, Building2, FileText, Home, Clock } from 'lucide-react'
 
@@ -154,7 +154,7 @@ function buildLiveIndex(role: Role): SearchItem[] {
     })
   }
 
-  for (const m of marketers) {
+  for (const m of getMarketers()) {
     items.push({
       category: 'Marketeurs',
       title: m.name,

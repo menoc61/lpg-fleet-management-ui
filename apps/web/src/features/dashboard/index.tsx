@@ -45,9 +45,10 @@ import {
 } from './data/dashboard'
 
 export function DashboardPage({ role }: { role?: Role } = {}) {
+  const user = useAuthStore((s) => s.user)
   const dashboard = useMemo(
-    () => buildDashboardView(role, getScope(useAuthStore.getState().user)),
-    [role]
+    () => buildDashboardView(role, getScope(user)),
+    [role, user]
   )
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')

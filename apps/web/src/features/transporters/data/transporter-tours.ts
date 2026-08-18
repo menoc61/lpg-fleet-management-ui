@@ -1,6 +1,8 @@
 import { curated } from '@lpg/mock-data'
 import type { DeliveryTour, TransporterContract, Organization, Vehicle, Driver, Checkpoint, Site, ClientSite } from '@lpg/types'
 import { format } from 'date-fns'
+import { useContractsStore } from '@/store/contracts-store'
+import { deriveContractStatus } from '@/features/transporter-contracts/lib/contract-status'
 
 export type TourStatus = DeliveryTour['status']
 
@@ -62,6 +64,7 @@ function tourProgress(status: DeliveryTour['status']): number {
 }
 
 function buildTransporterTourWithDetails(tour: DeliveryTour): TransporterTourWithDetails {
+  const contracts = useContractsStore.getState().all()
   const marketeur = curated.organizations.find((o) => o.id === tour.marketeur_org_id)
   const transporter = tour.transporter_org_id
     ? curated.organizations.find((o) => o.id === tour.transporter_org_id)
@@ -73,8 +76,11 @@ function buildTransporterTourWithDetails(tour: DeliveryTour): TransporterTourWit
     ? curated.drivers.find((d) => d.id === tour.driver_id)
     : undefined
   const contract = tour.transporter_org_id
-    ? curated.transporter_contracts.find(
-        (c) => c.marketeur_org_id === tour.marketeur_org_id && c.transporter_org_id === tour.transporter_org_id && c.is_active
+    ? contracts.find(
+        (c) =>
+          c.marketeur_org_id === tour.marketeur_org_id &&
+          c.transporter_org_id === tour.transporter_org_id &&
+          deriveContractStatus(c) === 'ACTIVE',
       )
     : undefined
 

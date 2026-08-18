@@ -28,8 +28,66 @@ function setAuthUser(system_role: 'SUPERADMIN' | 'AGENT' | 'MARKETEUR', site_ids
 
 function freshSeed() {
   return {
-    pickups: curated.pickup_requests.map((p) => ({ ...p })),
+    pickups: [...curated.pickup_requests, ...demoSeedRows()].map((p) => ({ ...p })),
   }
+}
+
+// Mirrors the store's own demo seed (DRAFT / VALIDATED / CANCELLED rows).
+function demoSeedRows() {
+  return [
+    {
+      id: 'pickup-extra-0',
+      marketeur_org_id: MARKETEUR_ORG,
+      source_site_id: SOURCE_SITE,
+      destination_site_id: DEST_SITE,
+      requested_quantity: 18,
+      approved_quantity: null,
+      status: 'DRAFT' as const,
+      created_at: '2024-10-02T08:00:00Z',
+      updated_at: '2024-10-02T08:00:00Z',
+      deleted_at: null,
+      created_by: null,
+      updated_by: null,
+    },
+    {
+      id: 'pickup-extra-1',
+      marketeur_org_id: MARKETEUR_ORG,
+      source_site_id: SOURCE_SITE,
+      destination_site_id: DEST_SITE,
+      requested_quantity: 18,
+      approved_quantity: 18,
+      status: 'VALIDATED' as const,
+      created_at: '2024-10-08T08:00:00Z',
+      updated_at: '2024-10-09T09:00:00Z',
+      deleted_at: null,
+      created_by: null,
+      updated_by: null,
+    },
+    {
+      id: 'pickup-extra-2',
+      marketeur_org_id: MARKETEUR_ORG,
+      source_site_id: SOURCE_SITE,
+      destination_site_id: DEST_SITE,
+      requested_quantity: 16,
+      approved_quantity: null,
+      status: 'CANCELLED' as const,
+      created_at: '2024-09-20T08:00:00Z',
+      updated_at: '2024-09-20T08:00:00Z',
+      deleted_at: null,
+      created_by: null,
+      updated_by: null,
+    },
+  ]
+}
+
+function createDraft(): string {
+  const created = usePickupsStore.getState().createPickup({
+    marketeur_org_id: MARKETEUR_ORG,
+    source_site_id: SOURCE_SITE,
+    destination_site_id: DEST_SITE,
+    requested_quantity: 9000,
+  })
+  return created.id
 }
 
 describe('pickups store', () => {
@@ -40,8 +98,10 @@ describe('pickups store', () => {
     setAuthUser('SUPERADMIN')
   })
 
-  it('seeds with the curated pickup requests', () => {
-    expect(usePickupsStore.getState().all().length).toBe(curated.pickup_requests.length)
+  it('seeds with the curated pickup requests plus the demo rows', () => {
+    expect(usePickupsStore.getState().all().length).toBe(
+      curated.pickup_requests.length + 3,
+    )
   })
 
   describe('permission guards', () => {
@@ -144,6 +204,68 @@ describe('pickups store', () => {
         requested_quantity: 5000,
       })
       expect(curated.pickup_requests.length).toBe(originalLength)
+    })
+  })
+
+  describe('validatePickup', () => {
+    it('validates a DRAFT request and stamps the approved quantity', () => {
+      const id = createDraft()
+      const updated = usePickupsStore.getState().validatePickup(id, 8000)
+      expect(updated.status).toBe('VALIDATED')
+      expect(updated.approved_quantity).toBe(8000)
+      expect(usePickupsStore.getState().viewById(id)?.status).toBe('VALIDATED')
+    })
+
+    it('throws when the request is not DRAFT', () => {
+      const completedId = curated.pickup_requests[0]!.id
+      expect(() =>
+        usePickupsStore.getState().validatePickup(completedId, 8000),
+      ).toThrow(/brouillon/)
+    })
+
+    it('throws when the approved quantity is not positive', () => {
+      const id = createDraft()
+      expect(() => usePickupsStore.getState().validatePickup(id, 0)).toThrow(
+        /positive/,
+      )
+    })
+
+    it('throws PERMISSION_DENIED for a role without pickups.validate', () => {
+      const id = createDraft()
+      setAuthUser('AGENT')
+      expect(() =>
+        usePickupsStore.getState().validatePickup(id, 8000),
+      ).toThrow(PERMISSION_DENIED)
+    })
+  })
+
+  describe('cancelPickup', () => {
+    it('cancels a DRAFT request', () => {
+      const id = createDraft()
+      const updated = usePickupsStore.getState().cancelPickup(id)
+      expect(updated.status).toBe('CANCELLED')
+    })
+
+    it('cancels a VALIDATED request', () => {
+      const id = createDraft()
+      usePickupsStore.getState().validatePickup(id, 8000)
+      const updated = usePickupsStore.getState().cancelPickup(id)
+      expect(updated.status).toBe('CANCELLED')
+    })
+
+    it('throws for a terminal (COMPLETED) request', () => {
+      const completedId = curated.pickup_requests[0]!.id
+      expect(() => usePickupsStore.getState().cancelPickup(completedId)).toThrow(
+        /ne peut pas être annulée/,
+      )
+    })
+
+    it('throws PERMISSION_DENIED for a role without pickups.write', () => {
+      const id = createDraft()
+      setAuthUser('AGENT')
+      expect(() => usePickupsStore.getState().cancelPickup(id)).toThrow(
+        PERMISSION_DENIED,
+      )
     })
   })
 })
