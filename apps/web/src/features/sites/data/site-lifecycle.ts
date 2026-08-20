@@ -26,8 +26,10 @@ function clientSiteStatus(site: ClientSite): SiteStatus {
 
 export const siteRows: SiteRow[] = curatedSites.map((site) => ({
   id: site.id,
+  name: site.name,
   status: site.status,
   region: site.region,
+  functions: site.functions ?? [],
   delivery_count: site.delivery_count ?? 0,
   geo_confidence_score: site.geo_confidence_score ?? 0,
   is_client_site: false,
@@ -35,8 +37,10 @@ export const siteRows: SiteRow[] = curatedSites.map((site) => ({
 
 export const clientSiteRows: SiteRow[] = curatedClientSites.map((site) => ({
   id: site.id,
+  name: site.name,
   status: clientSiteStatus(site),
   region: site.region,
+  functions: [],
   delivery_count: site.delivery_count ?? 0,
   geo_confidence_score: site.geo_confidence_score ?? 0,
   is_client_site: true,
@@ -49,8 +53,10 @@ export const REGIONS: readonly string[] = Array.from(
 export function getSiteRows(): SiteRow[] {
   return curatedSites.map((site) => ({
     id: site.id,
+    name: site.name,
     status: site.status,
     region: site.region,
+    functions: site.functions ?? [],
     delivery_count: site.delivery_count ?? 0,
     geo_confidence_score: site.geo_confidence_score ?? 0,
     is_client_site: false,
@@ -60,8 +66,10 @@ export function getSiteRows(): SiteRow[] {
 export function getClientSiteRows(): SiteRow[] {
   return curatedClientSites.map((site) => ({
     id: site.id,
+    name: site.name,
     status: clientSiteStatus(site),
     region: site.region,
+    functions: [],
     delivery_count: site.delivery_count ?? 0,
     geo_confidence_score: site.geo_confidence_score ?? 0,
     is_client_site: true,

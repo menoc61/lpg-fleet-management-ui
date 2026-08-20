@@ -32,7 +32,13 @@ export type Region =
   | 'SUD'
   | 'SUDOUEST'
 
-export type SiteType =
+/**
+ * Multi-valued function of a `sites` row (schema `site_function` enum).
+ * A site may cumulate several functions; the enlèvement source rule
+ * (`flux1.pickup_source_functions`) restricts which may serve as a pickup
+ * origin. Do not confuse with `OrgType` (organisation taxonomy).
+ */
+export type SiteFunction =
   | 'CENTREEMPLISSEUR'
   | 'ENTREPOT'
   | 'POINTAPPROVISIONABLE'
@@ -283,7 +289,7 @@ export interface Site extends BaseEntity {
   org_id: string
   region: Region
   name: string
-  functions?: SiteType[] | null
+  functions?: SiteFunction[] | null
   address?: string
   geo_point?: number[] | [number, number] | null
   geo_confidence_score?: number
@@ -380,6 +386,8 @@ export interface TransporterContract extends BaseEntity {
   started_at?: string | null
   ended_at?: string | null
   is_active: boolean
+  contract_document_url?: string | null
+  transporter_accepted_at?: string | null
 }
 
 export interface PickupRequest extends BaseEntity {
@@ -396,6 +404,7 @@ export interface DeliveryTour extends BaseEntity {
   id: string
   marketeur_org_id: string
   execution_mode: ExecutionMode
+  source_site_id?: string | null
   transporter_org_id?: string | null
   vehicle_id?: string | null
   driver_id?: string | null
@@ -418,6 +427,7 @@ export interface Checkpoint extends BaseEntity {
   site_id?: string | null
   client_site_id?: string | null
   sequence: number
+  expected_quantity?: number | null
   expected_arrival?: string | null
   actual_arrival?: string | null
   status: CheckpointStatus

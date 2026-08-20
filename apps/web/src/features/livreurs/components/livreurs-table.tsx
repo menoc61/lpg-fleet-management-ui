@@ -25,6 +25,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { CrudRowActions } from '@/components/entity-crud/crud-row-actions'
 import type { LivreurView } from '../data/livreurs'
 import {
   livreurStatusLabel,
@@ -36,6 +37,11 @@ type LivreursTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (livreur: LivreurView) => void
+  onEdit: (livreur: LivreurView) => void
+  onDelete: (livreur: LivreurView) => void
+  onToggleStatus: (livreur: LivreurView) => void
+  canWrite: boolean
+  canManage: boolean
 }
 
 export function LivreursTable({
@@ -43,6 +49,11 @@ export function LivreursTable({
   search,
   navigate,
   onViewDetails,
+  onEdit,
+  onDelete,
+  onToggleStatus,
+  canWrite,
+  canManage,
 }: LivreursTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -110,8 +121,25 @@ export function LivreursTable({
         ),
         meta: { label: 'Dernière connexion' },
       },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }: { row: { original: LivreurView } }) => (
+          <CrudRowActions
+            resource='livreurs'
+            itemLabel={`le livreur ${row.original.email}`}
+            onEdit={canWrite ? () => onEdit(row.original) : undefined}
+            onDelete={canManage ? () => onDelete(row.original) : undefined}
+            extra={canWrite ? [{
+              label: row.original.status === 'ACTIVE' ? 'Désactiver' : 'Activer',
+              onSelect: () => onToggleStatus(row.original),
+            }] : undefined}
+          />
+        ),
+        meta: { label: 'Actions' },
+      },
     ],
-    [onViewDetails],
+    [canManage, canWrite, onEdit, onDelete, onToggleStatus, onViewDetails],
   )
 
   const {

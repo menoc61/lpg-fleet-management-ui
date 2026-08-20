@@ -19,11 +19,12 @@ const supplyRoute = getRouteApi('/_authenticated/supply/')
 
 export function SupplyRequestPage() {
   const navigate = supplyRoute.useNavigate()
-  const [search, setSearch] = useState('')
+  const search = supplyRoute.useSearch()
+  const [searchText, setSearchText] = useState('')
   const [statusFilter, setStatusFilter] = useState<SupplyFilter>('all')
 
   const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     let items: SupplyRequest[] = [...supplyView]
     if (query) {
       items = items.filter((item) => {
@@ -43,7 +44,7 @@ export function SupplyRequestPage() {
       items = items.filter((item) => item.status === statusFilter)
     }
     return items
-  }, [search, statusFilter])
+  }, [searchText, statusFilter])
 
   const filterDefs: SupplyFilterDef[] = useMemo(() => {
     const counts: Partial<Record<SupplyRequest['status'], number>> = {}
@@ -97,8 +98,8 @@ export function SupplyRequestPage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher une demande...'
                 className='h-9 ps-9'
               />
@@ -148,7 +149,7 @@ export function SupplyRequestPage() {
         </div>
         <SupplyTable
           data={filtered}
-          search={{}}
+          search={search}
           navigate={navigate}
         />
       </section>

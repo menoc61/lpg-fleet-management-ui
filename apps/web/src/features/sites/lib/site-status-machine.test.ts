@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { canTransition, type SiteStatus } from './site-status-machine'
+import type { SiteFunction } from '@lpg/types'
 
 const baseRow = (status: SiteStatus) => ({
   id: 's-1',
+  name: 'Site test',
   status,
   region: 'CENTRE' as const,
+  functions: [] as SiteFunction[],
   delivery_count: 0,
   geo_confidence_score: 0,
   is_client_site: false,

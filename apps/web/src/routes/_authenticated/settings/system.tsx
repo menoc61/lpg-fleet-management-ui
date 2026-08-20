@@ -1,67 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@lpg/ui'
-import { curated } from '@lpg/mock-data'
+import { SystemSettingsPage } from '@/features/settings/system'
+import { RouteSkeleton } from '@/components/layout/route-skeleton'
+import { GeneralError } from '@/features/errors/general-error'
 
 export const Route = createFileRoute('/_authenticated/settings/system')({
+  pendingComponent: RouteSkeleton,
+  errorComponent: GeneralError,
   component: SystemSettingsPage,
 })
-
-function formatValue(setting: { value_type: string; setting_value: string }) {
-  if (setting.value_type === 'BOOLEAN') {
-    return setting.setting_value === 'true' ? 'Oui' : 'Non'
-  }
-  return setting.setting_value
-}
-
-function SystemSettingsPage() {
-  const settings = curated.settings
-
-  return (
-    <div className='mx-auto max-w-2xl p-6 flex flex-col gap-6'>
-      <div>
-        <h1 className='text-xl font-semibold tracking-tight'>Paramètres globaux</h1>
-        <p className='text-sm text-muted-foreground'>
-          Configuration clé/valeur de la plateforme (lecture seule).
-        </p>
-      </div>
-
-      {settings.length === 0 ? (
-        <Card>
-          <CardContent className='p-6 text-sm text-muted-foreground'>
-            Aucun paramètre configuré.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className='grid gap-3'>
-          {settings.map((setting) => (
-            <Card key={setting.id}>
-              <CardHeader className='pb-2'>
-                <div className='flex items-center gap-2'>
-                  <CardTitle className='font-mono text-sm'>
-                    {setting.setting_key}
-                  </CardTitle>
-                  <span className='rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
-                    {setting.category}
-                  </span>
-                </div>
-                {setting.description && (
-                  <CardDescription className='text-sm'>
-                    {setting.description}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className='text-sm'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-muted-foreground'>
-                    Valeur ({setting.value_type})
-                  </span>
-                  <span className='font-medium'>{formatValue(setting)}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}

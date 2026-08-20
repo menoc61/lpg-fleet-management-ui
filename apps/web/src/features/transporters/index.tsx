@@ -15,8 +15,8 @@ const route = getRouteApi('/_authenticated/transporters/')
 export function TransportersPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
-  const crud = useEntityCrud<Organization>('organizations', 'transporters', ['transporters'])
-  const allTransporters = getTransporters()
+  const crud = useEntityCrud<Organization>('organizations', 'transporters', ['organizations'])
+  const allTransporters = getTransporters(crud.list.data)
   const user = useAuthStore((s) => s.user)
   const role = user?.system_role ?? 'LIVREUR'
   // FILTER: TRANSPORTEUR only sees their own org's transporters

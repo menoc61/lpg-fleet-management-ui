@@ -42,8 +42,9 @@ function regionForOrg(orgId: string, idx: number): Region {
   return regions[idx % regions.length] ?? 'CENTRE'
 }
 
-export function getOrganizations(): Organization[] {
-  const orgs = curated.organizations as CuratedOrganization[]
+export function getOrganizations(
+  orgs: CuratedOrganization[] = curated.organizations as CuratedOrganization[],
+): Organization[] {
   return orgs.map((org, idx) => {
     const region = regionForOrg(org.id, idx)
     return {
@@ -84,3 +85,24 @@ export const ORG_STATUS_LABELS: Record<SiteStatus, string> = {
 export function orgStatusLabel(status: SiteStatus): string {
   return ORG_STATUS_LABELS[status]
 }
+
+const REGION_LABELS: Record<Region, string> = {
+  ADAMAOUA: 'Adamaoua',
+  CENTRE: 'Centre',
+  EST: 'Est',
+  EXTREMENORD: 'Extrême-Nord',
+  LITTORAL: 'Littoral',
+  NORD: 'Nord',
+  NORDOUEST: 'Nord-Ouest',
+  OUEST: 'Ouest',
+  SUD: 'Sud',
+  SUDOUEST: 'Sud-Ouest',
+}
+
+export function regionLabel(region: Region): string {
+  return REGION_LABELS[region] ?? region
+}
+
+export const orgRegionOptions: { label: string; value: string }[] = (
+  Object.keys(REGION_LABELS) as Region[]
+).map((value) => ({ label: REGION_LABELS[value], value }))

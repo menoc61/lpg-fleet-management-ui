@@ -3,10 +3,12 @@ import { CheckCircle2, Clock, Receipt } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiTile, PageShell, SectionCard } from '@/components/layout/page'
 import { RedressementsTable } from './components/redressements-table'
-import { getRedressements, getRedressementSummary } from './data/redressements'
+import { redressementsToViews, getRedressementSummary } from './data/redressements'
+import { useComplianceStore } from '@/store/compliance-store'
 
 export function RedressementsPage() {
-  const rows = useMemo(() => getRedressements(), [])
+  const entities = useComplianceStore((s) => s.redressements)
+  const rows = useMemo(() => redressementsToViews(entities), [entities])
   const summary = useMemo(() => getRedressementSummary(rows), [rows])
 
   return (

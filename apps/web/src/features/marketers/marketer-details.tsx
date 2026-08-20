@@ -1,20 +1,27 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { Building2, ArrowLeft, Package } from 'lucide-react'
+import { Building2, ArrowLeft, Package, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useCrud } from '@/components/entity-crud'
+import type { Organization } from '@lpg/types'
 import { getMarketerById } from './data/marketers'
 import { MarketerOverview } from './components/marketer-overview'
 import { MarketerSites } from './components/marketer-sites'
 import { MarketerBulkRoutes } from './components/marketer-bulk-routes'
 import { MarketerCylindersRoutes } from './components/marketer-cylinders-routes'
 import { MarketerPickupsList } from './components/marketer-pickups-list'
+import { OrgPersonnel } from '@/features/users/components/org-personnel'
 
 const route = getRouteApi('/_authenticated/marketers/$marketerId')
 
 export function MarketerDetailsPage() {
   const { marketerId } = route.useParams()
   const navigate = route.useNavigate()
-  const marketer = getMarketerById(marketerId)
+  const { list } = useCrud<Organization>('organizations', {
+    permissionResource: 'orgs',
+    queryKey: ['organizations'],
+  })
+  const marketer = getMarketerById(marketerId, list.data)
 
   if (!marketer) {
     return (
@@ -58,14 +65,17 @@ export function MarketerDetailsPage() {
 
       <Tabs defaultValue='overview' className='w-full'>
         <div className='overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0'>
-          <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4 lg:w-[600px]'>
+          <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5 lg:w-[750px]'>
             <TabsTrigger value='overview' className='whitespace-nowrap text-xs sm:text-sm'>Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value='sites' className='whitespace-nowrap text-xs sm:text-sm'>Sites & Dépôts</TabsTrigger>
+            <TabsTrigger value='sites' className='whitespace-nowrap text-xs sm:text-sm'>Sites </TabsTrigger>
             <TabsTrigger value='pickups' className='whitespace-nowrap text-xs sm:text-sm'>
               <Package className='h-3.5 w-3.5 inline mr-1' /> Enlèvements
             </TabsTrigger>
             <TabsTrigger value='bulk' className='whitespace-nowrap text-xs sm:text-sm'>Tournées Vrac</TabsTrigger>
             <TabsTrigger value='cylinders' className='whitespace-nowrap text-xs sm:text-sm'>Tournées 50 kg</TabsTrigger>
+            <TabsTrigger value='personnel' className='whitespace-nowrap text-xs sm:text-sm'>
+              <Users className='h-3.5 w-3.5 inline mr-1' /> Personnel
+            </TabsTrigger>
           </TabsList>
         </div>
         <div className='mt-4'>
@@ -83,6 +93,9 @@ export function MarketerDetailsPage() {
           </TabsContent>
           <TabsContent value='cylinders' className='m-0'>
             <MarketerCylindersRoutes marketer={marketer} />
+          </TabsContent>
+          <TabsContent value='personnel' className='m-0'>
+            <OrgPersonnel orgId={marketer.id} orgName={marketer.name} />
           </TabsContent>
         </div>
       </Tabs>

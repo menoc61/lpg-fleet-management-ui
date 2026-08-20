@@ -105,19 +105,25 @@ export function createFakeAdapter(): ApiAdapter {
         return delay(coll[idx] as unknown as T)
       }
 
-      // DELETE
+      // No restore endpoint is documented; deleted rows are recoverable only in DB.
+      // DELETE (soft): set deleted_at so the row is excluded from default reads.
       if (method === 'DELETE' && id) {
         const coll = COLLECTIONS[collection] as unknown as any[]
         const idx = coll.findIndex((x) => x.id === id)
         if (idx === -1) throw new Error('Introuvable')
-        coll.splice(idx, 1)
+        const supportsSoftDelete = coll.some((row: any) => 'deleted_at' in row)
+        if (supportsSoftDelete) {
+          coll[idx] = { ...coll[idx], deleted_at: new Date().toISOString() }
+        } else {
+          coll.splice(idx, 1)
+        }
         return delay(undefined as unknown as T)
       }
 
       // READ by id
       if (id) {
         const item = (COLLECTIONS[collection] as unknown as any[]).find((x) => x.id === id)
-        if (!item) throw new Error('Introuvable')
+        if (!item || item.deleted_at != null) throw new Error('Introuvable')
         return delay(item as unknown as T)
       }
 
@@ -134,17 +140,26 @@ export function createFakeAdapter(): ApiAdapter {
       const params = new URLSearchParams(qs)
       const page = Number(params.get('page') ?? 1)
       const limit = Number(params.get('limit') ?? 20)
-      return delay(paginate(items, page, limit))
+      const includeDeleted = params.get('include_deleted') === 'true'
+      const visible = items.filter((row: any) => {
+        if (includeDeleted) return true
+        return !('deleted_at' in row) || row.deleted_at == null
+      })
+      return delay(paginate(visible, page, limit))
     },
 
     async login(creds: Credentials): Promise<AuthResult> {
       const fixture =
         AUTH_FIXTURES.find((f) => f.email === creds.email) ?? AUTH_FIXTURES[0]
       if (!fixture) throw new Error('Fake adapter: no auth fixtures available')
-      const fullUser = (curated.users as any[]).find((u) => u.id === fixture.id)
-      const org = fullUser?.org_id
-        ? (curated.organizations as any[]).find((o) => o.id === fullUser.org_id)
+      const user = (curated.users as any[]).find((u) => u.id === fixture.id)
+      const org = user?.org_id
+        ? (curated.organizations as any[]).find((o) => o.id === user.org_id)
         : undefined
+      const assignments = (curated as any).user_site_assignments ?? []
+      const site_ids = assignments
+        .filter((a: any) => a.user_id === fixture.id)
+        .map((a: any) => a.site_id)
       return delay({
         access_token: fakeToken(fixture.id),
         refresh_token: fakeToken(fixture.id),
@@ -154,8 +169,11 @@ export function createFakeAdapter(): ApiAdapter {
           first_name: fixture.first_name,
           last_name: fixture.last_name,
           system_role: fixture.system_role as any,
-          org_id: fullUser?.org_id,
+          org_id: user?.org_id,
           org_name: org?.name,
+          org_type: org?.type,
+          site_ids,
+          mfa_status: (user as any)?.mfa_status,
         },
       })
     },

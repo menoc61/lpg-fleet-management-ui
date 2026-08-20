@@ -20,7 +20,7 @@ import type {
   Role,
   OrgType,
   Region as RegionEnum,
-  SiteType,
+  SiteFunction,
   SiteStatus,
   VehicleType,
   TourneeType,
@@ -47,6 +47,7 @@ import type {
   RfidTag,
   CustomRole,
   UserCustomRole,
+  UserSiteAssignment,
 } from '@lpg/types'
 
 export interface Region {
@@ -125,7 +126,7 @@ export interface Site {
   org_id: string
   region: RegionEnum
   name: string
-  functions?: SiteType[] | null
+  functions?: SiteFunction[] | null
   address?: string
   geo_point?: number[] | [number, number] | null
   geo_confidence_score?: number
@@ -483,6 +484,7 @@ export interface CuratedFixtures {
   sites: Site[]
   clients: Client[]
   client_sites: ClientSite[]
+  user_site_assignments: UserSiteAssignment[]
   vehicles: Vehicle[]
   drivers: Driver[]
   devices: Device[]
@@ -520,6 +522,7 @@ export const curated: CuratedFixtures = {
   sites: sitesJson.sites as Site[],
   clients: sitesJson.clients as Client[],
   client_sites: sitesJson.client_sites as ClientSite[],
+  user_site_assignments: sitesJson.user_site_assignments as UserSiteAssignment[],
   vehicles: vehiclesJson.vehicles as Vehicle[],
   drivers: vehiclesJson.drivers as Driver[],
   devices: devicesJson.devices as Device[],

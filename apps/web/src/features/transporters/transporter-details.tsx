@@ -1,19 +1,26 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { Truck as TruckIcon, ArrowLeft } from 'lucide-react'
+import { Truck as TruckIcon, ArrowLeft, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useCrud } from '@/components/entity-crud'
+import type { Organization } from '@lpg/types'
 import { getTransporterById } from './transporters'
 import { TransporterOverview } from './components/transporter-overview'
 import { TransporterTrucksList } from './components/transporter-trucks-list'
 import { TransporterHistory } from './components/transporter-history'
 import { TransporterPendingTours } from './components/transporter-pending-tours'
+import { OrgPersonnel } from '@/features/users/components/org-personnel'
 
 const route = getRouteApi('/_authenticated/transporters/$transporterId')
 
 export function TransporterDetailsPage() {
   const { transporterId } = route.useParams()
   const navigate = route.useNavigate()
-  const transporter = getTransporterById(transporterId)
+  const { list } = useCrud<Organization>('organizations', {
+    permissionResource: 'orgs',
+    queryKey: ['organizations'],
+  })
+  const transporter = getTransporterById(transporterId, list.data)
 
   if (!transporter) {
     return (
@@ -57,11 +64,14 @@ export function TransporterDetailsPage() {
 
       <Tabs defaultValue='overview' className='w-full'>
         <div className='overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0'>
-          <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-4 lg:w-[600px]'>
+          <TabsList className='inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5 lg:w-[750px]'>
             <TabsTrigger value='overview' className='whitespace-nowrap text-xs sm:text-sm'>Vue d'ensemble</TabsTrigger>
             <TabsTrigger value='trucks' className='whitespace-nowrap text-xs sm:text-sm'>Camions</TabsTrigger>
             <TabsTrigger value='pending' className='whitespace-nowrap text-xs sm:text-sm'>En attente d'accusé</TabsTrigger>
             <TabsTrigger value='history' className='whitespace-nowrap text-xs sm:text-sm'>Historique Tournées</TabsTrigger>
+            <TabsTrigger value='personnel' className='whitespace-nowrap text-xs sm:text-sm'>
+              <Users className='h-3.5 w-3.5 inline mr-1' /> Personnel
+            </TabsTrigger>
           </TabsList>
         </div>
         <div className='mt-4'>
@@ -76,6 +86,9 @@ export function TransporterDetailsPage() {
           </TabsContent>
           <TabsContent value='history' className='m-0'>
             <TransporterHistory transporter={transporter} />
+          </TabsContent>
+          <TabsContent value='personnel' className='m-0'>
+            <OrgPersonnel orgId={transporter.id} orgName={transporter.name} />
           </TabsContent>
         </div>
       </Tabs>

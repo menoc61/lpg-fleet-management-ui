@@ -10,6 +10,10 @@ import {
   PICKUP_STAGES,
   type PickupTrackView,
 } from './data/pickup-tracking'
+import { getPickups } from '@/features/pickups/data/pickups'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
+import { usePickupsStore } from '@/store/pickups-store'
 
 const STATUS_CLASS: Record<PickupTrackView['status'], string> = {
   DRAFT: 'bg-slate-200 text-slate-800',
@@ -106,9 +110,13 @@ function LivePickupCard({ pickup }: { pickup: PickupTrackView }) {
 }
 
 export function PickupTrackingPage() {
-  const live = useMemo(() => getLivePickupTrack(), [])
+  const user = useAuthStore((s) => s.user)
+  const storeRows = usePickupsStore((s) => s.pickups)
+  const scope = useMemo(() => getScope(user), [user])
+  const pickupRows = useMemo(() => getPickups(scope, storeRows), [scope, storeRows])
+  const live = useMemo(() => getLivePickupTrack(pickupRows), [pickupRows])
   const summary = useMemo(() => getPickupTrackSummary(live), [live])
-  const loads = useMemo(() => getSitePickupLoad(), [])
+  const loads = useMemo(() => getSitePickupLoad(pickupRows), [pickupRows])
 
   return (
     <PageShell>

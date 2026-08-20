@@ -1,5 +1,6 @@
-import { curated, reports } from '@lpg/mock-data'
+import { curated } from '@lpg/mock-data'
 import type { Report, ReportFormat, ReportStatus, ReportType } from '@lpg/types'
+import { useReportsStore } from './reports-store'
 
 export type { ReportFormat, ReportStatus, ReportType }
 
@@ -35,8 +36,8 @@ const USER_NAME_BY_ID: Record<string, string> = Object.fromEntries(
   curated.users.map((u) => [u.id, `${u.first_name} ${u.last_name}`.trim()]),
 )
 
-export function getReports(): ReportView[] {
-  return (reports as Report[]).map((report) => ({
+export function getReports(source?: Report[]): ReportView[] {
+  return (source ?? useReportsStore.getState().reports).map((report) => ({
     id: report.id,
     name: report.name,
     type: report.type,

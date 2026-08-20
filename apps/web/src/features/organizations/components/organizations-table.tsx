@@ -22,11 +22,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { DataTablePagination, DataTableColumnHeader, DataTableToolbar } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { Organization } from '../data/organizations'
-import { orgTypeLabel, orgStatusLabel } from '../data/organizations'
+import {
+  orgTypeLabel,
+  orgStatusLabel,
+  orgRegionOptions,
+  regionLabel,
+} from '../data/organizations'
 import { CrudRowActions } from '@/components/entity-crud'
 
 type OrganizationsTableProps = {
@@ -60,18 +65,11 @@ export function OrganizationsTable({
         ),
         meta: { label: 'ID' },
         enableHiding: false,
+        enableSorting: false,
       },
       {
         accessorKey: 'name',
-        header: ({ column }: { column: { toggleSorting: (asc?: boolean) => void; getIsSorted: () => boolean | 'asc' | 'desc' } }) => (
-          <Button
-            variant='ghost'
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className='h-8 px-2'
-          >
-            Nom
-          </Button>
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Nom' />,
         cell: ({ row }: { row: { original: Organization } }) => (
           <Button
             variant='link'
@@ -81,28 +79,32 @@ export function OrganizationsTable({
             {row.original.name}
           </Button>
         ),
+        meta: { label: 'Nom' },
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        sortingFn: (a, b) => orgTypeLabel(a.original.type).localeCompare(orgTypeLabel(b.original.type)),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
         cell: ({ row }: { row: { original: Organization } }) => <Badge variant='outline'>{orgTypeLabel(row.original.type)}</Badge>,
         meta: { label: 'Type' },
       },
       {
         accessorKey: 'status',
-        header: 'Statut',
+        sortingFn: (a, b) => orgStatusLabel(a.original.status).localeCompare(orgStatusLabel(b.original.status)),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Statut' />,
         cell: ({ row }: { row: { original: Organization } }) => <Badge variant='outline'>{orgStatusLabel(row.original.status)}</Badge>,
         meta: { label: 'Statut' },
       },
       {
         accessorKey: 'region',
-        header: 'Région',
-        cell: ({ row }: { row: { original: Organization } }) => <Badge variant='outline'>{row.original.region}</Badge>,
+        sortingFn: (a, b) => regionLabel(a.original.region).localeCompare(regionLabel(b.original.region)),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Région' />,
+        cell: ({ row }: { row: { original: Organization } }) => <Badge variant='outline'>{regionLabel(row.original.region)}</Badge>,
         meta: { label: 'Région' },
       },
       {
         accessorKey: 'sites',
-        header: 'Sites',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sites' />,
         cell: ({ row }: { row: { original: Organization } }) => row.original.sites,
         meta: { label: 'Sites' },
       },
@@ -139,9 +141,9 @@ export function OrganizationsTable({
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      { columnId: 'type', searchKey: 'type', type: 'string' },
-      { columnId: 'status', searchKey: 'status', type: 'string' },
-      { columnId: 'region', searchKey: 'region', type: 'string' },
+      { columnId: 'type', searchKey: 'type', type: 'array' },
+      { columnId: 'status', searchKey: 'status', type: 'array' },
+      { columnId: 'region', searchKey: 'region', type: 'array' },
     ],
   })
 
@@ -202,6 +204,11 @@ export function OrganizationsTable({
               { label: 'Suspendu', value: 'SUSPENDED' },
               { label: 'Rejeté', value: 'REJECTED' },
             ],
+          },
+          {
+            columnId: 'region',
+            title: 'Région',
+            options: orgRegionOptions,
           },
         ]}
       />

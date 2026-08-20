@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { sites } from '@lpg/mock-data'
+import { isSupplyOrigin } from '@/features/sites/lib/site-functions'
 import type { TourneeType } from '@lpg/types'
 
 export const pickupWizardSchema = z
@@ -16,6 +18,21 @@ export const pickupWizardSchema = z
         path: ['destination_site_id'],
         message: 'chk_pickup_sites_different: le site source et le site destination doivent différer',
       })
+    }
+    // Flux-1 enlèvement rule: an enlèvement origin must be a supply point
+    // (POINTAPPROVISIONABLE) or a filling centre (CENTREEMPLISSEUR). A
+    // pure storage depot (ENTREPOT) cannot be a pickup source.
+    if (val.source_site_id) {
+      const source = sites.find((s) => s.id === val.source_site_id)
+      if (source && !isSupplyOrigin(source)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['source_site_id'],
+          message:
+            'chk_pickup_source_function: l\'enlèvement démarre sur un centre emplisseur ' +
+            'ou un point d\'approvisionnement (CENTREEMPLISSEUR/POINTAPPROVISIONABLE), pas un entrepôt',
+        })
+      }
     }
   })
 

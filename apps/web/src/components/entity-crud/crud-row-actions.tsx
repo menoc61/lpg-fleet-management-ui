@@ -23,6 +23,7 @@ import {
 } from '@lpg/ui'
 import { useEntityPermission } from '@/lib/permissions/use-entity-permission'
 import type { Resource } from '@lpg/permissions'
+import { extractErrorMessage } from '@/hooks/use-toast-feedback'
 
 export interface CrudRowActionsProps {
   /** Permission resource used for gating. */
@@ -30,7 +31,7 @@ export interface CrudRowActionsProps {
   /** Optional human label for the delete confirmation. */
   itemLabel?: string
   onEdit?: () => void
-  onDelete?: () => void
+  onDelete?: () => void | Promise<void>
   /** Extra (non-destructive) menu items. */
   extra?: Array<{ label: string; onSelect: () => void }>
 }
@@ -92,9 +93,13 @@ export function CrudRowActions({
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-              onClick={() => {
-                onDelete?.()
-                toast.success('Supprimé.')
+              onClick={async () => {
+                try {
+                  await onDelete?.()
+                  toast.success('Supprimé.')
+                } catch (error) {
+                  toast.error(extractErrorMessage(error))
+                }
               }}
             >
               Supprimer

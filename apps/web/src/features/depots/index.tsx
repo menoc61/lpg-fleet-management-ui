@@ -18,8 +18,8 @@ export function DepotsPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const [detailsDepot, setDetailsDepot] = useState<DepotView | null>(null)
-  const crud = useEntityCrud<Organization>('organizations', 'orgs', ['depots'])
-  const depots = getDepots()
+  const crud = useEntityCrud<Organization>('organizations', 'orgs', ['organizations'])
+  const depots = getDepots(crud.list.data)
 
   const handleViewDetails = useCallback((depot: DepotView) => {
     setDetailsDepot(depot)

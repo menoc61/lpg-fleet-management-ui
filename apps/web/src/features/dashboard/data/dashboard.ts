@@ -1,3 +1,4 @@
+import { getSettingNumber } from '@lpg/mock-data'
 import {
   buildRouteSummary,
   getRouteTripsView,
@@ -8,6 +9,8 @@ import {
 import { sites } from '@/features/sites/data/sites'
 import { trucks } from '@/features/trucks/data/trucks'
 import { quantityInfo } from '@/features/trucks/lib/quantity'
+import type { UserScope } from '@/features/scope/scope'
+import type { Role } from '@/config/rbac/roles'
 
 export type DashboardPeriod = 'daily' | 'weekly' | 'monthly'
 export type DashboardMetricTone = 'sky' | 'emerald' | 'amber' | 'rose'
@@ -153,6 +156,7 @@ export type DashboardOverview = {
 }
 
 export type DashboardView = {
+  viewRole?: Role
   overview: DashboardOverview
   metrics: DashboardMetric[]
   trendByPeriod: Record<DashboardPeriod, DashboardTrendPoint[]>
@@ -478,8 +482,8 @@ function buildCadence(
   })
 }
 
-function buildReserveSites() {
-  const routeViews = getRouteTripsView()
+function buildReserveSites(scope?: UserScope) {
+  const routeViews = getRouteTripsView('ALL', scope)
 
   return Object.entries(reserveConfigBySiteId)
     .map(([siteId, config]) => {
@@ -523,8 +527,10 @@ function buildReserveSites() {
       }).length
 
       const fillPercent = round((config.reserveTM / config.capacityTM) * 100)
+      const criticalFillPercent =
+        getSettingNumber('reserve.critical_fill_percent') ?? 35
       const status: DashboardReserveStatus =
-        fillPercent < 35
+        fillPercent < criticalFillPercent
           ? 'critical'
           : fillPercent < config.targetMinPercent
             ? 'watch'
@@ -558,8 +564,8 @@ function buildReserveSites() {
     })
 }
 
-function buildFleetSummaries(totalTransportedTM: number) {
-  const routeViews = getRouteTripsView()
+function buildFleetSummaries(totalTransportedTM: number, scope?: UserScope) {
+  const routeViews = getRouteTripsView('ALL', scope)
   const fleets = new Map<
     string,
     Omit<DashboardFleetSummary, 'sharePercent' | 'color'>
@@ -723,8 +729,8 @@ function buildRouteContributions(
     .sort((left, right) => right.loadedQuantity - left.loadedQuantity)
 }
 
-function buildAlerts(reserveSites: readonly DashboardReserveSite[]) {
-  const routeViews = getRouteTripsView()
+function buildAlerts(reserveSites: readonly DashboardReserveSite[], scope?: UserScope) {
+  const routeViews = getRouteTripsView('ALL', scope)
   const alerts: DashboardAlert[] = []
 
   for (const site of reserveSites) {
@@ -895,11 +901,14 @@ function buildRecentActivities(
     .slice(0, 6)
 }
 
-export function buildDashboardView(): DashboardView {
-  const routeViews = getRouteTripsView()
+export function buildDashboardView(
+  role?: Role,
+  scope?: UserScope
+): DashboardView {
+  const routeViews = getRouteTripsView('ALL', scope)
   const routeSummary = buildRouteSummary(routeViews)
-  const reserveSites = buildReserveSites()
-  const alerts = buildAlerts(reserveSites)
+  const reserveSites = buildReserveSites(scope)
+  const alerts = buildAlerts(reserveSites, scope)
   const totalTransportedTM = routeViews.reduce(
     (total, trip) => total + trip.loadedQuantity,
     0
@@ -936,7 +945,7 @@ export function buildDashboardView(): DashboardView {
       ? trip.lastUpdatedAt
       : latest
   }, routeViews[0]?.lastUpdatedAt ?? new Date().toISOString())
-  const fleets = buildFleetSummaries(totalTransportedTM)
+  const fleets = buildFleetSummaries(totalTransportedTM, scope)
   const flowBreakdown = buildFlowBreakdown(fleets, totalTransportedTM)
   const reserveSummary = buildReserveSummary(reserveSites)
   const routeContributions = buildRouteContributions(
@@ -954,6 +963,7 @@ export function buildDashboardView(): DashboardView {
   const dailyPrevious = trendByPeriod.daily[trendByPeriod.daily.length - 2]!
 
   return {
+    viewRole: role,
     overview: {
       dateRangeLabel: '01 avr 2026 - 28 avr 2026',
       generatedAt,

@@ -1,3 +1,5 @@
+import type { SiteFunction } from '@lpg/types'
+
 export type SiteStatus =
   | 'UNASSIGNED'
   | 'ASSIGNED'
@@ -17,8 +19,10 @@ export type SiteRole =
 
 export interface SiteRow {
   id: string
+  name: string
   status: SiteStatus
   region: string
+  functions: SiteFunction[]
   delivery_count: number
   geo_confidence_score: number
   is_client_site: boolean

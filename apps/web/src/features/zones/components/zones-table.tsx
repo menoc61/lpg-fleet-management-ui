@@ -25,6 +25,7 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { CrudRowActions } from '@/components/entity-crud'
 import type { ZoneView } from '../data/zones'
 import { getZoneOptions } from '../data/zones'
 
@@ -33,6 +34,10 @@ type ZonesTableProps = {
   search: Record<string, unknown>
   navigate: NavigateFn
   onViewDetails: (zone: ZoneView) => void
+  onViewMap: (zone: ZoneView) => void
+  onEdit?: (zone: ZoneView) => void
+  onDelete?: (zone: ZoneView) => void | Promise<void>
+  canDelete?: boolean
 }
 
 export function ZonesTable({
@@ -40,6 +45,10 @@ export function ZonesTable({
   search,
   navigate,
   onViewDetails,
+  onViewMap,
+  onEdit,
+  onDelete,
+  canDelete = false,
 }: ZonesTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -90,8 +99,26 @@ export function ZonesTable({
         cell: ({ row }: { row: { original: ZoneView } }) => row.original.clientSiteCount,
         meta: { label: 'Sites clients' },
       },
+      {
+        id: 'actions',
+        header: '',
+        enableHiding: false,
+        enableSorting: false,
+        cell: ({ row }: { row: { original: ZoneView } }) => (
+          <div className='flex justify-end'>
+            <CrudRowActions
+              resource='zones'
+              itemLabel='cette zone'
+              onEdit={onEdit ? () => onEdit(row.original) : undefined}
+              onDelete={canDelete && onDelete ? () => onDelete(row.original) : undefined}
+              extra={[{ label: 'Voir sur la carte', onSelect: () => onViewMap(row.original) }]}
+            />
+          </div>
+        ),
+        meta: { label: 'Actions' },
+      },
     ],
-    [onViewDetails],
+    [canDelete, onDelete, onEdit, onViewDetails, onViewMap],
   )
 
   const {

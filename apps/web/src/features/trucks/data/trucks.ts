@@ -16,6 +16,7 @@ import type {
   Region,
   RiskLevel,
 } from '@lpg/types'
+import type { UserScope } from '@/features/scope/scope'
 
 export type TruckStatus = TourneeStatus
 
@@ -111,8 +112,11 @@ function riskLevelFor(vehicleId: string, fallback: RiskLevel): RiskLevel {
   return row?.level ?? fallback
 }
 
-export function getTrucks(): Truck[] {
-  const vehicles = curated.vehicles as CuratedVehicle[]
+export function getTrucks(
+  scope?: UserScope,
+  source: CuratedVehicle[] = curated.vehicles as CuratedVehicle[],
+): Truck[] {
+  const vehicles = source
   const activeOrgs = organizations.filter((o) => o.is_active)
   const toursByVehicle = new Map<string, DeliveryTour>()
   for (const tour of delivery_tours) {
@@ -121,7 +125,12 @@ export function getTrucks(): Truck[] {
     }
   }
 
-  return vehicles.map((v, idx): Truck => {
+  const scopeOrgId = scope && scope.view !== 'org' ? scope.orgId : undefined
+  const visibleVehicles = scopeOrgId
+    ? vehicles.filter((v) => v.org_id === scopeOrgId)
+    : vehicles
+
+  return visibleVehicles.map((v, idx): Truck => {
     const org: CuratedOrganization | undefined = activeOrgs[idx % Math.max(activeOrgs.length, 1)]
     const driver = drivers[Math.min(idx, drivers.length - 1)]
     const tour = toursByVehicle.get(v.id)

@@ -75,11 +75,78 @@ Rules:
   (e.g. site director of a MARKETEUR org). They never see organization-level
   entity views (`/marketers`, `/organizations`); their home view is `/overview`.
   Org-level entity management belongs to SUPERADMIN/ADMIN/AGENT.
+- **Site-level data isolation (scope):** MARKETEUR users see only their own
+  site's data + what they created; TRANSPORTEUR users see only their org's
+  assigned tours/crew; AGENT users see only their assigned sites
+  (`user_site_assignments`); LIVREUR users see only their assigned missions'
+  sites. Only REGULATEUR-org staff (SUPERADMIN/ADMIN, plus
+  SUPERVISOR/INTEGRATEUR) get the organizational view. There is **no**
+  org-level view for non-regulateurs. Implemented via `features/scope`
+  (`getScope`/`scopeFilter`/`scopeBySiteOrCreator`/`scopeWithOrgId`); the
+  pickups, tours, declarations, vehicles, trucks and dashboard data builders
+  apply the authenticated user's scope. `scopeWithOrgId` adds the org id to
+  the site set only for `site`/`transporter` views (where the org IS the
+  operational scope); `agent`/`livreur` never see org-wide rows. (Other
+  builders — sites, users, anomalies — are organization-level screens;
+  scope them when per-site semantics land.)
+- **Defense-in-depth RBAC:** every mutation is gated at three layers — the UI
+  button (`hasPermission`), the store (`lib/security/guards`), and the form
+  (site-scoped fields). No store writes may bypass the guards.
+- **Site-scoped writes:** MARKETEUR creates only for their site; TRANSPORTEUR
+  acknowledges with only their org's crew.
+- **MFA awareness:** `mfa.enforced_for_roles` (JSON array or comma-separated
+  string in the setting) gates the MFA setup prompt; never hardcode the role list.
 - **File storage:** all images, certificates, and proofs live in MinIO
   (S3-compatible); only URL references are kept in the database.
+- **Cache invalidation:** every mutation invalidates its API-resource query
+  key via `lib/api/invalidation`; WebSocket events (`tour:update`,
+  `anomaly:new`, `device:telemetry`) invalidate the matching keys.
+- **Async resources:** reports and risk recompute are polled to a terminal
+  state (`READY`/`FAILED`/`EXPIRED`); the UI shows a spinner and freshness.
+- **Optimistic updates:** low-risk status toggles use optimistic UI with
+  rollback on error; mutating buttons are disabled while pending.
+- **Forms:** every create/edit form uses react-hook-form + zod + shadcn Form
+  with inline per-field `FormMessage` errors (never toast validation errors).
+  Submitting buttons show a spinner and are disabled while pending.
+  Auto-collected fields (org_id from auth, status defaults, created_by,
+  timestamps) are hidden from the user.
+- **Toasts:** exactly one toast per outcome; inline validation errors are
+  never toasted. Use `hooks/use-toast-feedback` (`runMutation` /
+  `extractErrorMessage`).
+- **Notifications:** the center is driven by WS events + anomalies; unread
+  badge increments on `anomaly:new`/`tour:update` (`ws:notify`); a short
+  notification sound plays when enabled (`hooks/use-notification-sound`).
+- **Route UX:** data-heavy routes have a `pendingComponent` skeleton
+  (`components/layout/route-skeleton`) and an `errorComponent` reusing
+  `GeneralError`.
 - **API envelope:** every response is `{ success, message, data, pagination?, filters? }`.
+- **Soft delete:** DELETE on any table with `deleted_at` sets `deleted_at =
+  now()` (never a hard row removal). Reads exclude rows where
+  `deleted_at IS NOT NULL`. The frontend fake adapter mirrors this; no
+  restore endpoint is documented.
 - **Status lifecycles** come from the schema (device, RFID, pickup, tour, site) —
   never invent new status strings.
+- **Tournee workflow:** a MARKETEUR creates a tour via the step wizard —
+  INTERNAL requires the marketeur's crew (→ PLANNED); EXTERNAL requires a
+  transporter with an active contract (→ PENDINGTRANSPORTERACK). The
+  TRANSPORTEUR acknowledges by assigning **their own org's** vehicle/driver/
+  livreur (→ ACKNOWLEDGED). LIVREUR starts/closes. Transitions follow
+  `features/tours/data/tour-machine.ts`; no step is skipped.
+- **Contrats marketeur↔transporteur:** MARKETEUR declares contracts with PDF
+  proof, `started_at`/`ended_at`, and `is_primary`; the TRANSPORTEUR must
+  accept via `transporter_accepted_at` before use. Status is derived by
+  `features/transporter-contracts/lib/contract-status.ts`:
+  `PENDING`, `PENDINGTRANSPORTERACK`, `ACTIVE`, `UPCOMING`, `EXPIRED`,
+  `SUSPENDED`, or `CANCELLED` (including `deleted_at` soft-delete input).
+  EXTERNAL tours are eligible only when the contract status is `ACTIVE`. The
+  centralized `contracts.*` permissions in
+  `@lpg/permissions` govern the workflow: MARKETEUR manages its contracts,
+  TRANSPORTEUR reads and accepts, and ADMIN/SUPERADMIN suspend or reactivate.
+  TRANSPORTEUR creates and assigns only livreurs belonging to its own
+  organization; MARKETEUR does not create or assign transporter livreurs.
+  API actions are `GET`/`POST`/`PATCH`/`DELETE` on
+  `/api/v1/transporter-contracts`, plus `attach-proof`, `accept`, `suspend`,
+  `reactivate`, and `set-primary` actions; `DELETE` is a soft delete.
 - **Workflows** resolve against TODO.md §5 (onboarding, geo-verification, certificates,
   device lifecycle, flux 1 / 2a / 2b, reconciliation, anomalies, risk, reporting);
   **monitoring/security** against TODO.md §6–§7.
@@ -94,8 +161,7 @@ Rules:
 - The active actor determines which nav links show (actor point-of-view). Respect the
   role hierarchy: SUPERADMIN > ADMIN > SUPERVISOR/AGENT/INTEGRATEUR >
   MARKETEUR/TRANSPORTEUR > LIVREUR.
-- Post-login landing is per-role. Only SUPERADMIN lands on `/dashboard`; other roles land on
-  their own home feature (e.g. TRANSPORTEUR → `/transporters`, MARKETEUR → `/overview`).
+- Post-login landing is **`/overview` for every role** (personalized). 
 
 ## 6. Code naming & units
 

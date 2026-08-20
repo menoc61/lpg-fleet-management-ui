@@ -31,6 +31,9 @@ import {
 import { type Role } from '@/config/rbac/roles'
 import { Main } from '@/components/layout/main'
 import { formatTm, formatBtl } from '@/features/map/utils/format'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
+import { useToursStore } from '@/store/tours-store'
 import {
   buildDashboardView,
   type DashboardActivityStatus,
@@ -43,11 +46,22 @@ import {
 } from './data/dashboard'
 
 export function DashboardPage({ role }: { role?: Role } = {}) {
-  const dashboard = useMemo(() => buildDashboardView(), [])
+  const user = useAuthStore((s) => s.user)
+  // Subscribe to the tours store so the command center refreshes after a tour
+  // is created/acknowledged/closed in-session (buildDashboardView reads the
+  // store imperatively via getRouteTripsView).
+  const storeTours = useToursStore((s) => s.tours)
+  const storeCheckpoints = useToursStore((s) => s.checkpoints)
+  const dashboard = useMemo(
+    () => buildDashboardView(role, getScope(user)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [role, user, storeTours, storeCheckpoints]
+  )
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')
   const monthlySeries = dashboard.trendByPeriod.monthly
   const dailyAlerts = dashboard.trendByPeriod.daily
+  const panels = rolePanelVisibility(role)
 
   const heading =
     role === 'SUPERADMIN'
@@ -134,34 +148,62 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
         alerts={dashboard.alerts}
       />
 
-      <section className='grid gap-4 xl:grid-cols-[1.05fr_1fr_0.95fr]'>
-        <FlowBreakdownCard
-          totalTransportedTM={dashboard.overview.totalTransportedTM}
-          breakdown={dashboard.flowBreakdown}
-          deltaPercent={dashboard.metrics[0]?.deltaPercent ?? 0}
-        />
+      {panels.flow ? (
+        <section className='grid gap-4 xl:grid-cols-[1.05fr_1fr_0.95fr]'>
+          <FlowBreakdownCard
+            totalTransportedTM={dashboard.overview.totalTransportedTM}
+            breakdown={dashboard.flowBreakdown}
+            deltaPercent={dashboard.metrics[0]?.deltaPercent ?? 0}
+          />
 
-        <MonthlyVolumesCard series={monthlySeries} />
+          <MonthlyVolumesCard series={monthlySeries} />
 
-        <ReserveSummaryCard
-          totalReserveTM={dashboard.overview.totalReserveTM}
-          summary={dashboard.reserveSummary}
-        />
-      </section>
+          <ReserveSummaryCard
+            totalReserveTM={dashboard.overview.totalReserveTM}
+            summary={dashboard.reserveSummary}
+          />
+        </section>
+      ) : null}
 
-      <section className='grid gap-4 xl:grid-cols-[1.15fr_0.85fr]'>
-        <RecentActivitiesCard activities={dashboard.recentActivities} />
-        <ReserveSitesCard sites={dashboard.reserveSites} />
-      </section>
+      {panels.recent ? (
+        <section className='grid gap-4 xl:grid-cols-[1.15fr_0.85fr]'>
+          <RecentActivitiesCard activities={dashboard.recentActivities} />
+          <ReserveSitesCard sites={dashboard.reserveSites} />
+        </section>
+      ) : null}
 
-      <section>
-        <FleetPerformanceCard fleets={dashboard.fleets} />
-      </section>
+      {panels.fleet ? (
+        <section>
+          <FleetPerformanceCard fleets={dashboard.fleets} />
+        </section>
+      ) : null}
     </Main>
   )
 }
 
 type DashboardDetailId = 'transported' | 'reserve' | 'delivered' | 'alerts'
+
+/**
+ * Which dashboard panels are relevant to a role. SUPERADMIN/ADMIN see the full
+ * national view; operational roles see only the panels that concern them.
+ */
+function rolePanelVisibility(role?: Role) {
+  switch (role) {
+    case 'SUPERADMIN':
+    case 'ADMIN':
+      return { flow: true, recent: true, fleet: true }
+    case 'SUPERVISOR':
+    case 'INTEGRATEUR':
+      return { flow: false, recent: true, fleet: false }
+    case 'MARKETEUR':
+    case 'TRANSPORTEUR':
+    case 'AGENT':
+    case 'LIVREUR':
+      return { flow: true, recent: true, fleet: true }
+    default:
+      return { flow: true, recent: true, fleet: true }
+  }
+}
 
 const activityStatusClasses: Record<DashboardActivityStatus, string> = {
   completed:

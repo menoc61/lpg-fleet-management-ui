@@ -39,8 +39,9 @@ function regionForDepot(orgId: string, idx: number): Region {
   return regions[idx % regions.length] ?? 'CENTRE'
 }
 
-export function getDepots(): DepotView[] {
-  const orgs = curated.organizations as CuratedOrganization[]
+export function getDepots(
+  orgs: CuratedOrganization[] = curated.organizations as CuratedOrganization[],
+): DepotView[] {
   const sites = curated.sites as CuratedSite[]
   return orgs
     .filter((org) => org.type === 'DEPOT')

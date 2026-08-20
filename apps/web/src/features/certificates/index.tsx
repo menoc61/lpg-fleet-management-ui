@@ -2,10 +2,12 @@ import { getRouteApi } from '@tanstack/react-router'
 import { FileCheck, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@lpg/api-client'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEntityPermission } from '@/lib/permissions/use-entity-permission'
+import { vehiclesHooks } from '@/lib/api/use-resources'
 import { CertificatesTable } from './components/certificates-table'
 import { CertificateDetailsSheet } from './components/certificate-details-sheet'
 import { CertificateEditSheet } from './components/certificate-edit-sheet'
@@ -19,10 +21,19 @@ export function CertificatesPage() {
   const search = route.useSearch()
   const navigate = route.useNavigate()
   const perm = useEntityPermission('certificates')
+  const qc = useQueryClient()
   const [detailsCert, setDetailsCert] = useState<CertificateView | null>(null)
   const [editCert, setEditCert] = useState<CertificateView | null | 'new'>(null)
-  const [refresh, setRefresh] = useState(0)
-  const certificates = getCertificates()
+  const vehiclesQuery = vehiclesHooks.useList({ limit: 100 })
+  const certificates = useMemo(
+    () => getCertificates(vehiclesQuery.data ?? []),
+    [vehiclesQuery.data],
+  )
+  const deleteMut = useMutation({
+    mutationFn: (certificate: CertificateView) =>
+      api.vehicles.patch(certificate.vehicleId, certificateDeletePatch()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vehicles'] }),
+  })
 
   const handleViewDetails = useCallback((certificate: CertificateView) => {
     setDetailsCert(certificate)
@@ -32,15 +43,17 @@ export function CertificatesPage() {
     setEditCert(certificate)
   }, [])
 
-  const handleDelete = useCallback(async (certificate: CertificateView) => {
-    try {
-      await api.vehicles.patch(certificate.vehicleId, certificateDeletePatch())
-      toast.success('Certificat supprimé.')
-      setRefresh((v) => v + 1)
-    } catch {
-      toast.error('Échec de la suppression.')
-    }
-  }, [])
+  const handleDelete = useCallback(
+    async (certificate: CertificateView) => {
+      try {
+        await deleteMut.mutateAsync(certificate)
+        toast.success('Certificat supprimé.')
+      } catch {
+        toast.error('Échec de la suppression.')
+      }
+    },
+    [deleteMut],
+  )
 
   return (
     <main
@@ -64,7 +77,6 @@ export function CertificatesPage() {
 
       <section className='space-y-4 rounded-xl border-transparent bg-background/92 p-4 shadow-sm'>
         <CertificatesTable
-          key={refresh}
           data={certificates}
           search={search}
           navigate={navigate}
@@ -88,7 +100,7 @@ export function CertificatesPage() {
         onOpenChange={(open) => {
           if (!open) setEditCert(null)
         }}
-        onSaved={() => setRefresh((v) => v + 1)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ['vehicles'] })}
       />
     </main>
   )

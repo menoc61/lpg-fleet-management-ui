@@ -1,5 +1,5 @@
 import { redressements, reconciliations, declarations, organizations } from '@lpg/mock-data'
-import type { RedressementStatus } from '@lpg/types'
+import type { Redressement, RedressementStatus } from '@lpg/types'
 
 export type { RedressementStatus }
 
@@ -33,12 +33,14 @@ function orgName(id: string): string {
   return organizations.find((o) => o.id === id)?.name ?? id
 }
 
-export function getRedressements(): RedressementView[] {
+export function redressementsToViews(
+  list: readonly Redressement[],
+): RedressementView[] {
   const reconIndex = new Map(reconciliations.map((r, i) => [r.id, `REC-${String(i + 1).padStart(3, '0')}`]))
   const reconById = new Map(reconciliations.map((r) => [r.id, r]))
   const declById = new Map(declarations.map((d) => [d.id, d]))
 
-  return redressements
+  return list
     .map((r, i) => {
       const recon = reconById.get(r.reconciliation_id)
       const decl = recon ? declById.get(recon.declaration_id) : undefined
@@ -59,6 +61,10 @@ export function getRedressements(): RedressementView[] {
       }
     })
     .sort((a, b) => b.issued_at.localeCompare(a.issued_at))
+}
+
+export function getRedressements(): RedressementView[] {
+  return redressementsToViews(redressements)
 }
 
 export function getRedressementSummary(rows: RedressementView[]) {

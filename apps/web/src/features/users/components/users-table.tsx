@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  type GroupingState,
   type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
+  getGroupedRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -43,6 +46,7 @@ export function UsersTable({
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  const [grouping, setGrouping] = useState<GroupingState>([])
 
   const columns = useMemo(
     () => getUsersColumns({ onViewDetails, onEdit }),
@@ -75,17 +79,22 @@ export function UsersTable({
       rowSelection,
       columnFilters,
       columnVisibility,
+      grouping,
     },
     enableRowSelection: true,
+    enableGrouping: true,
     onPaginationChange,
     onColumnFiltersChange,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGroupingChange: setGrouping,
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
@@ -126,6 +135,21 @@ export function UsersTable({
         ]}
       />
 
+      <div className='flex items-center gap-2'>
+        <span className='text-xs text-muted-foreground'>Grouper par</span>
+        <select
+          value={grouping[0] ?? ''}
+          onChange={(e) => setGrouping(e.target.value ? [e.target.value] : [])}
+          className='h-8 rounded-md border bg-background px-2 text-sm'
+        >
+          <option value=''>—</option>
+          <option value='role'>Rôle</option>
+          <option value='orgName'>Organisation</option>
+          <option value='status'>Statut</option>
+          <option value='mfaStatus'>MFA</option>
+        </select>
+      </div>
+
       <div className='overflow-hidden rounded-md border'>
         <Table>
           <TableHeader>
@@ -157,7 +181,10 @@ export function UsersTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
+                  className={cn(
+                    'group/row',
+                    row.getIsGrouped() && 'bg-muted/40 font-medium',
+                  )}
                   onDoubleClick={() => onViewDetails(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -168,9 +195,24 @@ export function UsersTable({
                         cell.column.columnDef.meta?.tdClassName,
                       )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
+                      {cell.getIsGrouped() ? (
+                        <button
+                          type='button'
+                          className='flex items-center gap-2 text-primary'
+                          onClick={row.getToggleExpandedHandler()}
+                        >
+                          {row.getIsExpanded() ? '▼' : '▶'}{' '}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}{' '}
+                          ({row.subRows.length})
+                        </button>
+                      ) : cell.getIsPlaceholder() ? null : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )
                       )}
                     </TableCell>
                   ))}

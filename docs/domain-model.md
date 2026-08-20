@@ -318,13 +318,20 @@ DB invariants:
 | Field | Type | Notes |
 |---|---|---|
 | `id` | UUID PK | |
-| `marketeur_org_id` × `transporter_org_id` | UUID FK | |
-| `contract_reference`, `start_date`, `end_date` | | |
-| `is_primary` | BOOL | **unique partial index**: at most one `is_primary = true` per `marketeur_org_id` |
-| `is_active` | BOOL | |
+| `marketeur_org_id` | UUID FK | marketeur party to the agreement |
+| `transporter_org_id` | UUID FK | transporter party to the agreement |
+| `contract_reference` | TEXT | |
+| `started_at` / `ended_at` | TIMESTAMPTZ | contract validity window |
+| `contract_document_url` | TEXT | MinIO URL for the PDF proof |
+| `transporter_accepted_at` | TIMESTAMPTZ | set when the transporter accepts the contract |
+| `is_active` | BOOL | false derives `SUSPENDED` |
+| `is_primary` | BOOL | selects the primary contract; unique partial index allows at most one per `marketeur_org_id` |
+| `deleted_at` | TIMESTAMPTZ | soft deletion input; derives `CANCELLED` |
 | `terms_json` | JSONB | |
 
-Required for an EXTERNAL tour to reference `transporter_org_id`. A tour's transporter must have a non-expired, active contract with the requesting marketeur.
+The derived status is one of `PENDING`, `PENDINGTRANSPORTERACK`, `ACTIVE`, `UPCOMING`, `EXPIRED`, `SUSPENDED`, or `CANCELLED`. Derivation checks `deleted_at` first, which always produces `CANCELLED`; then inactive contracts produce `SUSPENDED`, missing `contract_document_url` produces `PENDING`, and missing `transporter_accepted_at` produces `PENDINGTRANSPORTERACK`. Accepted contracts are then `EXPIRED` when `ended_at` is past, `UPCOMING` when `started_at` is in the future, and otherwise `ACTIVE`.
+
+`is_primary` selects the primary contract for a marketeur; it does not determine the contract status. Required for an EXTERNAL tour to reference `transporter_org_id`, a tour's transporter must have a contract whose derived status is `ACTIVE` with the requesting marketeur.
 
 ---
 

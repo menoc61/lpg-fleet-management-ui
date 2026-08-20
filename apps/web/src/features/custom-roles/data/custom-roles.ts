@@ -28,8 +28,10 @@ function getPermissionCodes(permissionsJson: Record<string, unknown>): string[] 
     .map(([code]) => code)
 }
 
-export function getCustomRoles(): CustomRoleView[] {
-  const roles = custom_roles as CustomRole[]
+export function getCustomRoles(source?: CustomRole[]): CustomRoleView[] {
+  const roles = (source ?? (custom_roles as CustomRole[])).filter(
+    (role) => role.deleted_at == null,
+  )
   const assignments = user_custom_roles as UserCustomRole[]
 
   return roles.map((role) => {

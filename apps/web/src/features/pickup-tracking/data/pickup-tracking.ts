@@ -1,4 +1,6 @@
 import { getPickups, pickupStatusLabels, type Pickup, type PickupStatus } from '@/features/pickups/data/pickups'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 
 export interface PickupTrackView {
   id: string
@@ -51,14 +53,19 @@ function toView(p: Pickup): PickupTrackView {
   }
 }
 
-export function getLivePickupTrack(): PickupTrackView[] {
-  return getPickups()
+export function getLivePickupTrack(
+  rows: Pickup[] = getPickups(getScope(useAuthStore.getState().user)),
+): PickupTrackView[] {
+  return rows
     .filter((p) => p.pickup_status === 'VALIDATED' || p.pickup_status === 'INPROGRESS')
     .map(toView)
 }
 
-export function getRecentPickupTrack(limit = 6): PickupTrackView[] {
-  return getPickups()
+export function getRecentPickupTrack(
+  limit = 6,
+  rows: Pickup[] = getPickups(getScope(useAuthStore.getState().user)),
+): PickupTrackView[] {
+  return rows
     .filter((p) => p.pickup_status !== 'DRAFT')
     .map(toView)
     .sort((a, b) => b.requested_at.localeCompare(a.requested_at))
@@ -72,8 +79,9 @@ export interface SitePickupLoad {
   outbound: number
 }
 
-export function getSitePickupLoad(): SitePickupLoad[] {
-  const rows = getPickups()
+export function getSitePickupLoad(
+  rows: Pickup[] = getPickups(getScope(useAuthStore.getState().user)),
+): SitePickupLoad[] {
   const counts = new Map<string, { inbound: number; outbound: number }>()
   const touch = (id: string) => {
     if (!counts.has(id)) counts.set(id, { inbound: 0, outbound: 0 })

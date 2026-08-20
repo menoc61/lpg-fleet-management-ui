@@ -1,5 +1,5 @@
 import { reconciliations, declarations, organizations, getSettingNumber } from '@lpg/mock-data'
-import type { ReconciliationStatus } from '@lpg/types'
+import type { Reconciliation, ReconciliationStatus } from '@lpg/types'
 
 export type { ReconciliationStatus }
 
@@ -32,13 +32,15 @@ function orgName(id: string): string {
   return organizations.find((o) => o.id === id)?.name ?? id
 }
 
-export function getReconciliations(): ReconciliationView[] {
+export function reconciliationsToViews(
+  list: readonly Reconciliation[],
+): ReconciliationView[] {
   const declByRef = new Map(
     declarations.map((d, i) => [d.id, `DEC-${String(i + 1).padStart(3, '0')}`]),
   )
   const declById = new Map(declarations.map((d) => [d.id, d]))
 
-  return reconciliations
+  return list
     .map((r, i) => {
       const decl = declById.get(r.declaration_id)
       const declared = decl?.declared_volume ?? 0
@@ -59,6 +61,10 @@ export function getReconciliations(): ReconciliationView[] {
       }
     })
     .sort((a, b) => b.gap_percentage - a.gap_percentage)
+}
+
+export function getReconciliations(): ReconciliationView[] {
+  return reconciliationsToViews(reconciliations)
 }
 
 export function gapToleranceThreshold(): number {

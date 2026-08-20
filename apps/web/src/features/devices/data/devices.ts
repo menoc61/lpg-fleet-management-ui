@@ -159,8 +159,8 @@ function buildView(device: Device): DeviceView {
   }
 }
 
-export function getDevicesView(): DeviceView[] {
-  return (mockDevices as Device[]).map(buildView)
+export function getDevicesView(source: Device[] = mockDevices as Device[]): DeviceView[] {
+  return source.map(buildView)
 }
 
 export function getDeviceById(id: string): DeviceView | undefined {

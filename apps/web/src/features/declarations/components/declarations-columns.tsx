@@ -19,31 +19,43 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
   return [
     {
       accessorKey: 'reference',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Reference' />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Référence' />,
       cell: ({ row }) => <span className='font-medium text-primary'>{row.original.reference}</span>,
       enableHiding: false,
-      meta: { label: 'Reference' },
+      meta: { label: 'Référence' },
     },
     {
       accessorKey: 'marketeur_name',
-      header: 'Marketeur',
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Marketeur' />,
       cell: ({ row }) => row.original.marketeur_name,
       meta: { label: 'Marketeur' },
       enableGrouping: true,
     },
     {
       accessorKey: 'period',
-      header: 'Periode',
+      header: 'Période',
       cell: ({ row }) => row.original.period,
-      meta: { label: 'Periode' },
+      meta: { label: 'Période' },
       enableGrouping: true,
     },
     {
       accessorKey: 'volume_label',
-      header: 'Volume declare',
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Volume déclaré' />,
       cell: ({ row }) => row.original.volume_label,
-      meta: { label: 'Volume declare' },
+      meta: { label: 'Volume déclaré' },
       enableGrouping: true,
+    },
+    {
+      accessorKey: 'submitted_at',
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Soumise le' />,
+      cell: ({ row }) => formatDate(row.original.submitted_at),
+      meta: { label: 'Soumise le' },
+    },
+    {
+      accessorKey: 'reconciled_at',
+      header: 'Réconciliée le',
+      cell: ({ row }) => formatDate(row.original.reconciled_at ?? ''),
+      meta: { label: 'Réconciliée le' },
     },
     {
       accessorKey: 'status',
@@ -62,6 +74,13 @@ export function getDeclarationColumns(): ColumnDef<DeclarationView>[] {
       cell: ({ row }) => <DeclarationRowActions row={row.original} />,
       enableSorting: false,
       enableHiding: false,
+      meta: { className: 'w-[1%]' },
     },
   ]
+}
+
+function formatDate(value: string): string {
+  if (!value) return '—'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('fr-FR')
 }

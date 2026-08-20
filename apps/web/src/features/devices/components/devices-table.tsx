@@ -31,7 +31,7 @@ import {
   type DeviceView,
 } from '../data/devices'
 import { getDevicesColumns } from './devices-columns'
-import { DataTableBulkActions as DevicesBulkActions } from './data-table-bulk-actions'
+import { DataTableBulkActions as DevicesBulkActions, type DeviceBulkAction } from './data-table-bulk-actions'
 
 type DevicesTableProps = {
   data: DeviceView[]
@@ -40,6 +40,8 @@ type DevicesTableProps = {
   onViewDetails: (device: DeviceView) => void
   onEdit?: (device: DeviceView) => void
   onDelete?: (device: DeviceView) => void
+  canWrite?: boolean
+  onBulk?: (action: DeviceBulkAction, devices: DeviceView[]) => void | Promise<void>
 }
 
 export function DevicesTable({
@@ -49,11 +51,13 @@ export function DevicesTable({
   onViewDetails,
   onEdit,
   onDelete,
+  canWrite = false,
+  onBulk,
 }: DevicesTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
-  const [grouping, setGrouping] = useState<GroupingState>([])
+  const [grouping, setGrouping] = useState<GroupingState>(['type'])
   const [expanded, setExpanded] = useState({})
   const columns = useMemo(
     () => getDevicesColumns({ onViewDetails, onEdit, onDelete }),
@@ -248,7 +252,7 @@ export function DevicesTable({
         </Table>
       </div>
       <DataTablePagination table={table} className='mt-auto' />
-      <DevicesBulkActions table={table} />
+      <DevicesBulkActions table={table} canWrite={canWrite} onRun={onBulk} />
     </div>
   )
 }

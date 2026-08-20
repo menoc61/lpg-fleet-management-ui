@@ -15,6 +15,8 @@ import { activeTourForVehicle, vehicleActiveTourLink } from '@/features/tours/da
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { vehicleFields, vehicleFromForm, vehicleToForm } from './data/vehicles-crud'
 import { useAuthStore } from '@/store/auth-store'
+import { getScope } from '@/features/scope/scope'
+import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
 import type { Vehicle } from '@lpg/types'
 import { toast } from 'sonner'
 
@@ -47,19 +49,24 @@ const vehiclesRoute = getRouteApi('/_authenticated/vehicles/')
 
 export function VehiclesPage() {
   const navigate = vehiclesRoute.useNavigate()
+  const search = vehiclesRoute.useSearch()
   const { q } = vehiclesRoute.useSearch()
-  const [search, setSearch] = useState(q ?? '')
+  const [searchText, setSearchText] = useState(q ?? '')
   const [statusFilter, setStatusFilter] = useState<VehicleStatusFilter>('all')
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleView | null>(null)
-  const [, setVersion] = useState(0)
   const crud = useEntityCrud<Vehicle>('vehicles', 'trucks', ['vehicles'])
   const authUser = useAuthStore((s) => s.user)
   const scopeOrgId = authUser?.org_id
-  const allVehicles = getVehiclesView()
+  const allVehicles = getVehiclesView(crud.list.data)
   const scopedVehicles = useMemo(() => {
-    if (!scopeOrgId) return allVehicles
-    return allVehicles.filter((v) => v.org_id === scopeOrgId)
-  }, [scopeOrgId, allVehicles])
+    const scope = getScope(authUser)
+    return scopeBySiteOrCreator(
+      allVehicles,
+      scopeWithOrgId(scope),
+      (v) => v.org_id,
+      (v) => v.created_by ?? undefined,
+    )
+  }, [authUser, allVehicles])
 
   const handleViewDetails = useCallback((vehicle: VehicleView) => {
     setDetailsVehicle(vehicle)
@@ -75,7 +82,6 @@ export function VehiclesPage() {
         toast.success('Véhicule créé.')
       }
       crud.close()
-      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
@@ -93,7 +99,7 @@ export function VehiclesPage() {
   )
 
   const filteredVehicles = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     if (!query) return [...scopedVehicles]
     return scopedVehicles.filter((vehicle) => {
       const haystack = [
@@ -108,7 +114,7 @@ export function VehiclesPage() {
         .toLowerCase()
       return haystack.includes(query)
     })
-  }, [search, scopedVehicles])
+  }, [searchText, scopedVehicles])
 
   const visible =
     statusFilter === 'all'
@@ -216,8 +222,8 @@ export function VehiclesPage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher plaque, entreprise, chauffeur…'
                 className='h-9 ps-9'
               />
@@ -270,14 +276,13 @@ export function VehiclesPage() {
         </div>
         <VehiclesTable
           data={[...visible]}
-          search={{}}
+          search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
           onOpenActiveTour={handleOpenActiveTour}
           onEdit={(v) => crud.openEdit(v as unknown as Vehicle)}
           onDelete={async (v) => {
             await crud.removeMut.mutateAsync(v.id)
-            setVersion((x) => x + 1)
           }}
         />
       </section>

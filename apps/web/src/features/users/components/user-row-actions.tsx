@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import {
+  Ban,
+  CircleCheck,
+  KeyRound,
   Lock,
   LockOpen,
   MoreHorizontal,
   Pencil,
   RotateCcw,
+  ShieldQuestion,
   Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,9 +21,10 @@ import type { UserView } from '../data/users'
 type UserRowActionsProps = {
   user: UserView
   onEdit: (user: UserView) => void
+  onViewDetails: (user: UserView) => void
 }
 
-export function UserRowActions({ user, onEdit }: UserRowActionsProps) {
+export function UserRowActions({ user, onEdit, onViewDetails }: UserRowActionsProps) {
   const activeRole = useRoleStore((s) => s.activeRole)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -27,16 +32,26 @@ export function UserRowActions({ user, onEdit }: UserRowActionsProps) {
   const canDelete = hasPermission(activeRole, 'users.delete')
   const canReset = hasPermission(activeRole, 'users.reset')
 
-  if (!canWrite && !canDelete && !canReset) return null
-
-  const u = useUsersStore.getState().users.find((x) => x.id === user.id)
-  const lockedUntil = u?.locked_until ?? null
+  const lockedUntil = useUsersStore(
+    (s) => s.users.find((x) => x.id === user.id)?.locked_until,
+  )
   const isLocked = lockedUntil !== null && lockedUntil !== undefined
+
+  if (!canWrite && !canDelete && !canReset) return null
 
   function handleReset() {
     try {
       useUsersStore.getState().resetPassword(user.id)
       toast.success(`Lien de réinitialisation envoyé à ${user.email}`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur')
+    }
+  }
+
+  function handleResetMfa() {
+    try {
+      useUsersStore.getState().resetMfa(user.id)
+      toast.success(`Authentification forte réinitialisée pour ${user.email}`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur')
     }
@@ -63,6 +78,16 @@ export function UserRowActions({ user, onEdit }: UserRowActionsProps) {
     }
   }
 
+  function handleToggleActive() {
+    const target = !user.status || user.status === 'INACTIVE'
+    try {
+      useUsersStore.getState().setStatus(user.id, target)
+      toast.success(target ? `Compte ${user.email} activé` : `Compte ${user.email} désactivé`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur')
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -71,11 +96,31 @@ export function UserRowActions({ user, onEdit }: UserRowActionsProps) {
             <MoreHorizontal className='size-4' />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='w-44'>
+        <DropdownMenuContent align='end' className='w-52'>
+          <DropdownMenuItem onSelect={() => onViewDetails(user)}>
+            <KeyRound className='mr-2 size-4' />
+            Détails
+          </DropdownMenuItem>
           {canWrite && (
             <DropdownMenuItem onSelect={() => onEdit(user)}>
               <Pencil className='mr-2 size-4' />
               Modifier
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
+          {canWrite && (
+            <DropdownMenuItem onSelect={handleToggleActive}>
+              {user.status === 'ACTIVE' ? (
+                <>
+                  <Ban className='mr-2 size-4' />
+                  Désactiver
+                </>
+              ) : (
+                <>
+                  <CircleCheck className='mr-2 size-4' />
+                  Activer
+                </>
+              )}
             </DropdownMenuItem>
           )}
           {canWrite && (
@@ -97,6 +142,12 @@ export function UserRowActions({ user, onEdit }: UserRowActionsProps) {
             <DropdownMenuItem onSelect={handleReset}>
               <RotateCcw className='mr-2 size-4' />
               Réinitialiser le mot de passe
+            </DropdownMenuItem>
+          )}
+          {canWrite && (
+            <DropdownMenuItem onSelect={handleResetMfa}>
+              <ShieldQuestion className='mr-2 size-4' />
+              Réinitialiser la MFA
             </DropdownMenuItem>
           )}
           {canDelete && (

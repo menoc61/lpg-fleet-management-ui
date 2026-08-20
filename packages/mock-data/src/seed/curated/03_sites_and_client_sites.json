@@ -922,5 +922,147 @@
       "updated_by": "user-0020-aza-marketeur",
       "verified_by": "user-0003-csph-supervisor"
     }
+  ],
+  "user_site_assignments": [
+    {
+      "id": "usa-0001",
+      "user_id": "user-0007-sctm-marketeur",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0002",
+      "user_id": "user-0009-sctm-marketeur2",
+      "site_id": "site-0002-sctm-yaounde",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0003",
+      "user_id": "user-0015-total-marketeur",
+      "site_id": "site-0010-total-yaounde",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0004",
+      "user_id": "user-0020-aza-marketeur",
+      "site_id": "site-0015-aza-douala",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0005",
+      "user_id": "user-0005-csph-investigator",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": false,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0006",
+      "user_id": "user-0012-sctm-agent",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0007",
+      "user_id": "user-0012-sctm-agent",
+      "site_id": "site-0002-sctm-yaounde",
+      "is_primary": false,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0008",
+      "user_id": "user-0023-scdp-agent",
+      "site_id": "site-0028-scdp-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0009",
+      "user_id": "user-0023-scdp-agent",
+      "site_id": "site-0029-scdp-yaounde",
+      "is_primary": false,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0010",
+      "user_id": "user-0013-sctm-transport",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0011",
+      "user_id": "user-0025-translog-dispatcher",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0012",
+      "user_id": "user-0025-translog-dispatcher",
+      "site_id": "site-0010-total-yaounde",
+      "is_primary": false,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0013",
+      "user_id": "user-0026-translog-chauffeur",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0014",
+      "user_id": "user-0026-translog-chauffeur",
+      "site_id": "site-0010-total-yaounde",
+      "is_primary": false,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0015",
+      "user_id": "user-0028-express-chauffeur",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0016",
+      "user_id": "user-0010-sctm-livreur1",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0017",
+      "user_id": "user-0011-sctm-livreur2",
+      "site_id": "site-0001-sctm-bonaberi",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0018",
+      "user_id": "user-0017-total-livreur1",
+      "site_id": "site-0010-total-yaounde",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0019",
+      "user_id": "user-0018-total-livreur2",
+      "site_id": "site-0010-total-yaounde",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    },
+    {
+      "id": "usa-0020",
+      "user_id": "user-0021-aza-livreur",
+      "site_id": "site-0015-aza-douala",
+      "is_primary": true,
+      "created_at": "2024-01-01T08:00:00Z"
+    }
   ]
 }

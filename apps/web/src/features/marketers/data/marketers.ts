@@ -6,20 +6,18 @@ export const marketerStatusOptions = [
   { label: 'Inactif', value: 'inactive' },
 ]
 
-export function getMarketers(): Organization[] {
-  const orgs = curated.organizations as Organization[]
+export function getMarketers(orgs: Organization[] = curated.organizations as Organization[]): Organization[] {
   return orgs.filter((o) => o.type === 'MARKETEUR')
 }
 
-export const marketers: Organization[] = getMarketers()
-
-export function getMarketerById(id: string): Organization | undefined {
-  return marketers.find((m) => m.id === id)
+export function getMarketerById(id: string, orgs?: Organization[]): Organization | undefined {
+  return (orgs ?? (curated.organizations as Organization[])).find((m) => m.id === id)
 }
 
-export function getMarketerByName(name: string): Organization | undefined {
+export function getMarketerByName(name: string, orgs?: Organization[]): Organization | undefined {
+  const source = orgs ?? (curated.organizations as Organization[])
   // Try exact match first, then partial match on the name
-  return marketers.find(
+  return source.find(
     (m) =>
       m.name.includes(name) || (m.registration_number && m.registration_number.includes(name))
   )

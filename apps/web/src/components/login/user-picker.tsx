@@ -30,6 +30,7 @@ export interface SelectableUser {
   system_role: string
   org_id: string
   org_name: string
+  org_type?: string
 }
 
 interface UserPickerProps {
@@ -43,6 +44,14 @@ function initials(first: string, last: string) {
   return ((first?.charAt(0) ?? '') + (last?.charAt(0) ?? '')).toUpperCase() || '?'
 }
 
+const ORG_TYPE_LABELS: Record<string, string> = {
+  REGULATEUR: 'Régulateur',
+  MARKETEUR: 'Marketeur',
+  TRANSPORTEUR: 'Transporteur',
+  DEPOT: 'Dépôt',
+  CLIENT: 'Client',
+}
+
 export function UserPicker({
   users,
   value,
@@ -52,17 +61,27 @@ export function UserPicker({
   const [open, setOpen] = useState(false)
 
   const grouped = useMemo(() => {
-    const map = new Map<string, { orgName: string; users: SelectableUser[] }>()
+    const map = new Map<string, { label: string; users: SelectableUser[] }>()
     for (const u of users) {
-      const key = u.org_id || 'unknown'
+      const orgType = u.org_type || 'AUTRE'
+      const key = orgType
       if (!map.has(key)) {
-        map.set(key, { orgName: u.org_name || 'Organisation inconnue', users: [] })
+        map.set(key, {
+          label: ORG_TYPE_LABELS[orgType] ?? orgType,
+          users: [],
+        })
       }
       map.get(key)!.users.push(u)
     }
-    return Array.from(map.entries()).sort((a, b) =>
-      a[1].orgName.localeCompare(b[1].orgName),
-    )
+    return Array.from(map.entries())
+      .sort((a, b) => (a[1].label < b[1].label ? -1 : 1))
+      .map(([key, group]) => {
+        const users = [...group.users].sort((a, b) =>
+          (a.org_name ?? '').localeCompare(b.org_name ?? '') ||
+          `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`)
+        )
+        return { key, label: group.label, users }
+      })
   }, [users])
 
   const selected = users.find((u) => u.id === value) ?? null
@@ -105,13 +124,16 @@ export function UserPicker({
           <CommandInput placeholder='Rechercher un utilisateur ou une organisation…' />
           <CommandList>
             <CommandEmpty>Aucun utilisateur trouvé.</CommandEmpty>
-            {grouped.map(([orgId, group]) => (
+            {grouped.map((group) => (
               <CommandGroup
-                key={orgId}
+                key={group.key}
                 heading={
                   <span className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground'>
                     <Building2 className='h-3 w-3' />
-                    {group.orgName}
+                    <Badge variant='secondary' className='text-[10px]'>
+                      {group.label}
+                    </Badge>
+                    <span>{group.users.length}</span>
                   </span>
                 }
               >
@@ -120,7 +142,7 @@ export function UserPicker({
                   return (
                     <CommandItem
                       key={u.id}
-                      value={`${u.first_name} ${u.last_name} ${u.email} ${u.org_name} ${u.system_role}`}
+                      value={`${u.first_name} ${u.last_name} ${u.email} ${u.org_name} ${u.system_role} ${group.label}`}
                       onSelect={() => {
                         onChange(u.id)
                         setOpen(false)
@@ -144,6 +166,10 @@ export function UserPicker({
                         </span>
                         <span className='truncate text-xs text-muted-foreground'>
                           {u.email}
+                        </span>
+                        <span className='flex items-center gap-1 truncate text-xs text-muted-foreground/80'>
+                          <Building2 className='h-3 w-3 shrink-0' />
+                          {u.org_name || '—'}
                         </span>
                       </div>
                       <Badge variant='outline' className='ml-auto text-[10px]'>

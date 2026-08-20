@@ -170,12 +170,21 @@ function SidebarMenuCollapsedDropdown({
 }
 
 function checkIsActive(href: string, item: NavItem, mainNav = false) {
+  const cleanHref = href.split('?')[0] ?? ''
+  if (cleanHref === item.url) return true
+  if ('items' in item && item.items?.some((i) => i.url === cleanHref)) return true
+
+  const itemUrl = 'url' in item ? item.url : undefined
+  if (!itemUrl) return false
+
+  // Detail sub-routes (e.g. /trucks/$truckId) keep their parent link active.
+  const base = itemUrl.replace(/\/+$/, '')
+  if (base && (cleanHref === base || cleanHref.startsWith(`${base}/`))) return true
+
+  // Legacy segment match for collapsible parents.
   return (
-    href === item.url ||
-    href.split('?')[0] === item.url ||
-    !!('items' in item && item.items?.filter((i) => i.url === href).length) ||
-    (mainNav &&
-      href.split('/')[1] !== '' &&
-      href.split('/')[1] === item?.url?.split('/')[1])
+    mainNav &&
+    cleanHref.split('/')[1] !== '' &&
+    cleanHref.split('/')[1] === itemUrl.split('/')[1]
   )
 }

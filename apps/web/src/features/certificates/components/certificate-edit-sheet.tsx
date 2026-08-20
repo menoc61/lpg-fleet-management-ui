@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import {
   Button,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
   Input,
-  Label,
   Select,
   SelectContent,
   SelectItem,
@@ -17,16 +25,25 @@ import {
   SheetTitle,
 } from '@lpg/ui'
 import { api } from '@lpg/api-client'
+import { SubmitButton } from '@/components/entity-crud/form-ui'
 import { VEHICLE_OPTIONS, certificateFromForm } from '../data/certificates-crud'
 import type { CertificateView } from '../data/certificates'
 
-interface CertificateFormState {
-  vehicle_id: string
-  certificate_number: string
-  issued_at: string
-  expiry_at: string
-  url: string
-}
+const certificateFormSchema = z.object({
+  vehicle_id: z.string().min(1, 'Un véhicule est obligatoire.'),
+  certificate_number: z
+    .string()
+    .trim()
+    .min(1, 'Le numéro de certificat est obligatoire.'),
+  issued_at: z.string(),
+  expiry_at: z.string(),
+  url: z.union([
+    z.literal(''),
+    z.string().trim().url('URL invalide.'),
+  ]),
+})
+
+type CertificateFormValues = z.infer<typeof certificateFormSchema>
 
 type CertificateEditSheetProps = {
   certificate: CertificateView | null
@@ -35,7 +52,7 @@ type CertificateEditSheetProps = {
   onSaved?: () => void
 }
 
-function certToForm(c: CertificateView): CertificateFormState {
+function certToForm(c: CertificateView): CertificateFormValues {
   return {
     vehicle_id: c.vehicleId,
     certificate_number: c.certificateNumber === '—' ? '' : c.certificateNumber,
@@ -54,27 +71,24 @@ export function CertificateEditSheet({
   const [submitting, setSubmitting] = useState(false)
   const isCreate = certificate === null
 
-  const [form, setForm] = useState<CertificateFormState>(() =>
-    certificate ? certToForm(certificate) : { vehicle_id: '', certificate_number: '', issued_at: '', expiry_at: '', url: '' },
-  )
+  const form = useForm<CertificateFormValues>({
+    resolver: zodResolver(certificateFormSchema),
+    defaultValues: certificate
+      ? certToForm(certificate)
+      : {
+          vehicle_id: '',
+          certificate_number: '',
+          issued_at: '',
+          expiry_at: '',
+          url: '',
+        },
+  })
 
-  function update<K extends keyof CertificateFormState>(key: K, value: CertificateFormState[K]) {
-    setForm((f) => ({ ...f, [key]: value }))
-  }
-
-  async function handleSave() {
-    if (!form.vehicle_id) {
-      toast.error('Un véhicule est obligatoire.')
-      return
-    }
-    if (!form.certificate_number.trim()) {
-      toast.error('Le numéro de certificat est obligatoire.')
-      return
-    }
+  async function onSubmit(values: CertificateFormValues) {
     setSubmitting(true)
     try {
-      const patch = await certificateFromForm(form)
-      await api.vehicles.patch(form.vehicle_id, patch)
+      const patch = await certificateFromForm(values)
+      await api.vehicles.patch(values.vehicle_id, patch)
       toast.success(isCreate ? 'Certificat créé.' : 'Certificat mis à jour.')
       onSaved?.()
       onOpenChange(false)
@@ -101,80 +115,119 @@ export function CertificateEditSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className='flex-1 space-y-4 overflow-y-auto px-4 pb-2'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='vehicle_id'>Véhicule</Label>
-            <Select
-              value={form.vehicle_id}
-              onValueChange={(v) => update('vehicle_id', v)}
-            >
-              <SelectTrigger id='vehicle_id'>
-                <SelectValue placeholder='Choisir un véhicule...' />
-              </SelectTrigger>
-              <SelectContent>
-                {VEHICLE_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className='flex min-h-0 flex-1 flex-col'
+          >
+            <div className='flex-1 space-y-4 overflow-y-auto px-4 pb-2'>
+              <FormField
+                control={form.control}
+                name='vehicle_id'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Véhicule</FormLabel>
+                    <FormControl>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Choisir un véhicule...' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VEHICLE_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='certificate_number'>N° certificat</Label>
-            <Input
-              id='certificate_number'
-              value={form.certificate_number}
-              onChange={(e) => update('certificate_number', e.target.value)}
-              placeholder='JAUGE-2026-XXXX'
-            />
-          </div>
+              <FormField
+                control={form.control}
+                name='certificate_number'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>N° certificat</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='JAUGE-2026-XXXX'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className='grid grid-cols-2 gap-3'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='issued_at'>Émis le</Label>
-              <Input
-                id='issued_at'
-                type='date'
-                value={form.issued_at}
-                onChange={(e) => update('issued_at', e.target.value)}
+              <div className='grid grid-cols-2 gap-3'>
+                <FormField
+                  control={form.control}
+                  name='issued_at'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Émis le</FormLabel>
+                      <FormControl>
+                        <Input type='date' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='expiry_at'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expire le</FormLabel>
+                      <FormControl>
+                        <Input type='date' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name='url'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL du document (MinIO)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type='url'
+                        placeholder='https://...'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <p className='text-xs text-muted-foreground'>
+                      Le lien est enregistré via saveLink (MinIO).
+                    </p>
+                  </FormItem>
+                )}
               />
             </div>
-            <div className='space-y-1.5'>
-              <Label htmlFor='expiry_at'>Expire le</Label>
-              <Input
-                id='expiry_at'
-                type='date'
-                value={form.expiry_at}
-                onChange={(e) => update('expiry_at', e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='url'>URL du document (MinIO)</Label>
-            <Input
-              id='url'
-              type='url'
-              value={form.url}
-              onChange={(e) => update('url', e.target.value)}
-              placeholder='https://...'
-            />
-            <p className='text-xs text-muted-foreground'>
-              Le lien est enregistré via saveLink (MinIO).
-            </p>
-          </div>
-        </div>
-
-        <SheetFooter className='gap-2 border-t pt-4'>
-          <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button onClick={handleSave} disabled={submitting}>
-            {submitting ? 'Enregistrement...' : isCreate ? 'Créer' : 'Enregistrer'}
-          </Button>
-        </SheetFooter>
+            <SheetFooter className='gap-2 border-t pt-4'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => onOpenChange(false)}
+              >
+                Annuler
+              </Button>
+              <SubmitButton pending={submitting}>
+                {isCreate ? 'Créer' : 'Enregistrer'}
+              </SubmitButton>
+            </SheetFooter>
+          </form>
+        </Form>
       </SheetContent>
     </Sheet>
   )

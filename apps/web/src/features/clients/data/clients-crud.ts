@@ -21,7 +21,7 @@ export const clientFields: FieldConfig[] = [
   field.email('primary_contact_email', 'E-mail du contact'),
   field.text('primary_contact_phone', 'Téléphone du contact'),
   field.textarea('billing_address', 'Adresse de facturation'),
-  field.number('credit_limit', 'Limite de crédit'),
+  field.number('credit_limit', 'Limite de crédit', { min: 0 }),
   field.text('tax_id', 'N° fiscal'),
   field.text('industry_sector', 'Secteur d’activité'),
   field.switchField('is_active', 'Client actif'),

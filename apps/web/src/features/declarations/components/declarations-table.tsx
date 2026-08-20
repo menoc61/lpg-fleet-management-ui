@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -13,26 +13,49 @@ import {
 } from '@tanstack/react-table'
 import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
+import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { getDeclarationColumns } from './declarations-columns'
 import { declarationStatusOptions, type DeclarationView } from '../data/declarations'
 
-export function DeclarationsTable({ rows }: { rows: DeclarationView[] }) {
+type DeclarationsTableProps = {
+  rows: DeclarationView[]
+  search: Record<string, unknown>
+  navigate: NavigateFn
+}
+
+export function DeclarationsTable({ rows, search, navigate }: DeclarationsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
   const [grouping, setGrouping] = useState<GroupingState>([])
   const [expanded, setExpanded] = useState({})
 
   const columns = useMemo(() => getDeclarationColumns(), [])
 
+  const {
+    columnFilters,
+    pagination,
+    onPaginationChange,
+    ensurePageInRange,
+    onColumnFiltersChange,
+  } = useTableUrlState({
+    search,
+    navigate,
+    pagination: { defaultPage: 1, defaultPageSize: 10 },
+    globalFilter: { enabled: false },
+    columnFilters: [
+      { columnId: 'status', searchKey: 'status', type: 'string' },
+    ],
+  })
+
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting, pagination, grouping, expanded },
+    state: { sorting, pagination, columnFilters, grouping, expanded },
     onSortingChange: setSorting,
-    onPaginationChange: setPagination,
+    onPaginationChange,
+    onColumnFiltersChange,
     onGroupingChange: setGrouping,
     onExpandedChange: setExpanded,
     enableGrouping: true,
@@ -43,6 +66,10 @@ export function DeclarationsTable({ rows }: { rows: DeclarationView[] }) {
     getGroupedRowModel: getGroupedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
+
+  useEffect(() => {
+    ensurePageInRange(table.getPageCount())
+  }, [table, ensurePageInRange])
 
   return (
     <div className='flex flex-1 flex-col gap-4'>

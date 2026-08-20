@@ -1,54 +1,52 @@
-# Task 8 Report — `features/map/data/national-map.ts` + test
+# Report: Task 8 + Task 9 — Site-level scoping documentation
 
-## Status
+## Status: PARTIAL (Task 8 done; Task 9 content done, commit blocked)
 
-**PASS** — RED confirmed, then GREEN (2/2), typecheck clean (0 errors). No commit performed.
+## Task 8 — AGENTS.md rule (DONE)
 
-## Files created
+Added the site-level data isolation rule verbatim from the brief, inserted
+immediately after the existing "No organizational view for MARKETEUR" bullet in
+`AGENTS.md` §4 (Business rules & system conventions). The existing MARKETEUR
+bullet was kept untouched (still accurate about `/marketers`/`/organizations`).
+No other lines modified.
 
-- `apps/web/src/features/map/data/sites.ts` — pre-req map-shaped `SiteView` view (mirrors `client-sites.ts` Task 4 style; imports `@lpg/types`'s `Site`, not the canonical `features/sites/data/sites.ts`).
-- `apps/web/src/features/map/data/national-map.test.ts` — 2 tests (composition contract + anomaly assertion).
-- `apps/web/src/features/map/data/national-map.ts` — pure composition pass-through exposing `NationalMapView` and `getNationalMapView()`.
+Commit: `8eb4339 docs(agents): site-level scoping rule` (1 file, +8)
 
-## Verification evidence
+## Task 9 — TODO.md scoping annotations (CONTENT DONE, COMMIT BLOCKED)
 
-### Step 3 — Run test (RED)
-```
-npx vitest run features/map/data/national-map.test.ts --reporter=verbose --browser=false
+Applied all four annotation edits to `C:\Users\DTA_WorkStation\Documents\manga\TODO.md`:
 
- FAIL  src/features/map/data/national-map.test.ts
-Error: Cannot find module './national-map' imported from .../national-map.test.ts
- ❯ src/features/map/data/national-map.test.ts:2:1
-      2| import { getNationalMapView } from './national-map'
-      | ^
- Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+- Line 376 `GET /api/v1/sites` — appended `; MARKETEUR → own site; only REGULATEUR-org staff see org-wide.` (kept existing `scoped by user_site_assignments for AGENT/ADMIN`)
+- Line 452 `GET /api/v1/tours` — appended `; MARKETEUR → own site; TRANSPORTEUR → own org; AGENT → assigned sites; only REGULATEUR-org staff see org-wide.` (kept existing `scoped by org and user_site_assignments`)
+- Line 441 `GET /api/v1/pickups` — appended ` — scoped by user_site_assignments + created_by; MARKETEUR → own site; only REGULATEUR-org staff see org-wide.`
+- Line 491 `GET /api/v1/declarations` — appended ` — scoped by user_site_assignments + created_by; MARKETEUR → own site; only REGULATEUR-org staff see org-wide.`
 
- Test Files  1 failed (1)
-      Tests  no tests
-```
-RED as expected — module did not yet exist.
+All edits verified by re-reading the file (matches brief's wording, existing
+trailing descriptions preserved, no other lines touched).
 
-### Step 5 — Run test (GREEN)
-```
- RUN  v4.1.10 C:/.../apps/web
+### Commit BLOCKED — TODO.md is outside the git repository
 
- ✓ src/features/map/data/national-map.test.ts > getNationalMapView > exposes every aggregated sub-view 3ms
- ✓ src/features/map/data/national-map.test.ts > getNationalMapView > flags at least one anomaly present in the mock 0ms
+`../TODO.md` is NOT tracked by this repo and cannot be committed:
 
- Test Files  1 passed (1)
-      Tests  2 passed (2)
-   Duration  399ms (transform 169ms, setup 0ms, import 225ms, tests 5ms, environment 0ms)
-```
+- `git rev-parse --show-toplevel` → `C:/Users/DTA_WorkStation/Documents/manga/lpg-fleet-management-ui`
+- `git -C .. rev-parse --show-toplevel` → `fatal: not a git repository`
+- `git add ../TODO.md` → `fatal: '../TODO.md' is outside repository at ...`
 
-### Step 6 — typecheck
-```
-npm run typecheck  ->  tsc --noEmit -p tsconfig.app.json
-(none)   # 0 errors
-```
+The parent `manga\` directory holds no `.git`; `TODO.md` is an unversioned
+reference document (per AGENTS.md §1 it is `../TODO.md`, external to the repo).
+Per instructions, only two commits total were expected; only Task 8 could be
+committed. No commit was fabricated for Task 9.
 
-## Notes / concerns
+## Self-review
 
-- **Browser EACCES fallback.** The brief's default `npx vitest run` command hits the env-wide browser port-bind failure (`Error: listen EACCES ... :::63315`) because `vite.config.ts` has `browser.enabled: true`. Per the brief's fallback, I ran in Node mode with `--browser=false` — equivalent goal (no temp `vitest.local.config.ts` file needed since the test is pure data with no DOM). This is the preferred minimal approach and leaves no temp artifact behind.
-- **`sites.ts` geo cast.** The brief's `sites.ts` casts `s.geo_point as [number, number] | undefined`. Matches the `curated.sites as CuratedSite[]` cast idiom already used in `zones.ts` (Task 6), so type-checking is consistent with the existing pattern.
-- **Re-export.** `sites.ts` re-exports `ClientSiteView` (`export type { ClientSiteView } from './client-sites'`) per brief spec, although `national-map.ts` imports `ClientSiteView` directly from `./client-sites`. Kept as briefed to honor the specified content verbatim; harmless.
-- `vrac-volume.ts` imports `getTruckTelemetry` from `../trucks`; that path resolves to `features/trucks/trucks.ts` ✓ (present, verified).
+- Task 8 bullet is verbatim from the brief (only indentation matches file style).
+- Task 9 annotations match the exact per-line text from the dispatch.
+- No accidental edits to other lines in either file (confirmed via re-read;
+  `git status` after Task 8 commit shows only pre-existing `.superpowers/sdd/*`
+  modifications from other task agents, which I did not stage).
+
+## Recommendation
+
+If Task 9's commit is still required, the `manga\TODO.md` location must either
+be brought under version control (e.g. repo at `manga\`, or symlink/copy into
+the repo) or the commit intentionally skipped since the file is unversioned.

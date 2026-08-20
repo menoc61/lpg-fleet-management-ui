@@ -3,17 +3,19 @@ import { Building2, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCallback, useState } from 'react'
-import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
+import { EntityFormSheet, useEntityCrud, useCrud } from '@/components/entity-crud'
 import { OrganizationsTable } from './components/organizations-table'
 import { OrganizationDetailsSheet } from './components/organization-details-sheet'
 import { getOrganizations } from './data/organizations'
 import type { Organization } from './data/organizations'
 import {
+  organizationEditFields,
   organizationFields,
   organizationFromForm,
   organizationToForm,
+  siteFromForm,
 } from './data/organizations-crud'
-import type { Organization as CuratedOrganization } from '@lpg/types'
+import type { Organization as CuratedOrganization, Site as CuratedSite } from '@lpg/types'
 import { toast } from 'sonner'
 
 const route = getRouteApi('/_authenticated/organizations/')
@@ -23,7 +25,11 @@ export function OrganizationsPage() {
   const navigate = route.useNavigate()
   const [detailsOrg, setDetailsOrg] = useState<Organization | null>(null)
   const crud = useEntityCrud<CuratedOrganization>('organizations', 'orgs', ['organizations'])
-  const orgs = getOrganizations()
+  const siteCrud = useCrud<CuratedSite>('sites', {
+    permissionResource: 'sites',
+    queryKey: ['sites'],
+  })
+  const orgs = getOrganizations(crud.list.data)
 
   const handleViewDetails = useCallback((org: Organization) => {
     setDetailsOrg(org)
@@ -38,10 +44,14 @@ export function OrganizationsPage() {
         })
         toast.success('Organisation mise à jour.')
       } else {
-        await crud.createMut.mutateAsync(
+        const org = await crud.createMut.mutateAsync(
           organizationFromForm(values) as Omit<CuratedOrganization, 'id'>,
         )
-        toast.success('Organisation créée.')
+        const site = siteFromForm(values, org.id)
+        if (site) {
+          await siteCrud.createMut.mutateAsync(site)
+        }
+        toast.success(site ? 'Organisation et site créés.' : 'Organisation créée.')
       }
       crud.close()
     } catch {
@@ -99,7 +109,7 @@ export function OrganizationsPage() {
             ? 'Mettez à jour les informations de l’organisation.'
             : 'Créez une nouvelle organisation.'
         }
-        fields={organizationFields}
+        fields={crud.editing ? organizationEditFields : organizationFields}
         initial={crud.editing ? organizationToForm(crud.editing) : null}
         onSubmit={handleSubmit}
         onCancel={crud.close}

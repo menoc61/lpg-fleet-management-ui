@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Plus } from 'lucide-react'
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@lpg/ui'
@@ -8,59 +8,53 @@ import { PageShell, SectionCard } from '@/components/layout/page'
 import { PickupsTable } from './components/pickups-table'
 import { PickupsCreateWizard } from './components/pickups-create-wizard'
 import { PickupsValidateDialog } from './components/pickups-validate-dialog'
-import { getPickups, getPickupSummary, orgName, siteName, type Pickup, type PickupStatus } from './data/pickups'
+import { getPickups, getPickupSummary, type Pickup } from './data/pickups'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
+import { usePickupsStore } from '@/store/pickups-store'
+import { extractErrorMessage } from '@/hooks/use-toast-feedback'
+import { hasPermission } from '@lpg/permissions'
 import type { PickupRequest } from '@lpg/types'
 import type { Role } from '@/config/rbac/roles'
 
 export function PickupsPage({ role }: { role: Role }) {
-  const [rows, setRows] = useState<Pickup[]>(() => getPickups())
+  // The store is the single source of truth (seeded fixtures + created /
+  // validated / cancelled requests); the page reads it reactively.
+  const storeRows = usePickupsStore((s) => s.pickups)
+  const user = useAuthStore((s) => s.user)
+  const scope = useMemo(() => getScope(user), [user])
+  const rows = useMemo(() => getPickups(scope, storeRows), [scope, storeRows])
   const [createOpen, setCreateOpen] = useState(false)
   const [assignedVehicles, setAssignedVehicles] = useState<Record<string, string[]>>({})
   const [validateOpen, setValidateOpen] = useState<Pickup | null>(null)
   const [detailOpen, setDetailOpen] = useState<Pickup | null>(null)
 
+  const canCreate = hasPermission(role, 'pickups.create')
+  const canValidate = hasPermission(role, 'pickups.validate')
+  const canWrite = hasPermission(role, 'pickups.write')
+
   const summary = getPickupSummary(rows)
 
   const handleCreated = (created: PickupRequest, vehicleIds: string[]) => {
-    const reference = `PU-${1001 + rows.length}`
-    const row: Pickup = {
-      id: created.id,
-      reference,
-      source_name: siteName(created.source_site_id),
-      destination_name: siteName(created.destination_site_id),
-      marketeur_name: orgName(created.marketeur_org_id),
-      requested_quantity: created.requested_quantity,
-      approved_quantity: null,
-      pickup_status: 'DRAFT',
-      requested_at: created.created_at ?? new Date().toISOString(),
-      validated_at: null,
-      started_at: null,
-      completed_at: null,
-      proof_url: null,
-    }
-    setRows((prev) => [row, ...prev])
     setAssignedVehicles((prev) => ({ ...prev, [created.id]: vehicleIds }))
-    if (vehicleIds.length > 0) {
-      toast.success(`${reference} créée — ${vehicleIds.length} véhicule(s) assigné(s)`)
-    }
   }
 
   const handleValidate = (row: Pickup, qty: number) => {
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === row.id
-          ? { ...r, pickup_status: 'VALIDATED' as PickupStatus, approved_quantity: qty, validated_at: new Date().toISOString() }
-          : r
-      )
-    )
-    toast.success(`${row.reference} validée pour ${qty.toLocaleString('fr-FR')} TM`)
+    try {
+      usePickupsStore.getState().validatePickup(row.id, qty)
+      toast.success(`${row.reference} validée pour ${qty.toLocaleString('fr-FR')} TM`)
+    } catch (err) {
+      toast.error(extractErrorMessage(err))
+    }
   }
 
   const handleCancel = (row: Pickup) => {
-    setRows((prev) =>
-      prev.map((r) => (r.id === row.id ? { ...r, pickup_status: 'CANCELLED' as PickupStatus } : r))
-    )
-    toast.warning(`${row.reference} annulée`)
+    try {
+      usePickupsStore.getState().cancelPickup(row.id)
+      toast.warning(`${row.reference} annulée`)
+    } catch (err) {
+      toast.error(extractErrorMessage(err))
+    }
   }
 
   const detailVehicleIds = detailOpen ? assignedVehicles[detailOpen.id] ?? [] : []
@@ -74,7 +68,7 @@ export function PickupsPage({ role }: { role: Role }) {
         title='Approvisionnements (Flux 1)'
         description={`${summary.total} requêtes — ${summary.draft} brouillon(s), ${summary.validated} validée(s), ${summary.inProgress} en cours, ${summary.completed} terminée(s).`}
         actions={
-          role === 'MARKETEUR' ? (
+          canCreate ? (
             <Button className='gap-2' onClick={() => setCreateOpen(true)}>
               <Plus className='size-4' /> Nouvelle requête
             </Button>
@@ -85,7 +79,7 @@ export function PickupsPage({ role }: { role: Role }) {
         <PickupsTable
           rows={rows}
           onOpenDetails={(row) => {
-            if ((role === 'ADMIN' || role === 'SUPERADMIN') && row.pickup_status === 'DRAFT') {
+            if (canValidate && row.pickup_status === 'DRAFT') {
               setValidateOpen(row)
             } else {
               setDetailOpen(row)
@@ -125,7 +119,7 @@ export function PickupsPage({ role }: { role: Role }) {
               )}
             </div>
           )}
-          {(role === 'MARKETEUR' || role === 'ADMIN' || role === 'SUPERADMIN') && detailOpen?.pickup_status !== 'CANCELLED' && detailOpen?.pickup_status !== 'COMPLETED' ? (
+          {canWrite && detailOpen?.pickup_status !== 'CANCELLED' && detailOpen?.pickup_status !== 'COMPLETED' ? (
             <DialogFooter>
               <Button variant='destructive' onClick={() => { if (detailOpen) handleCancel(detailOpen); setDetailOpen(null) }}>
                 Annuler la requête

@@ -7,7 +7,7 @@ import type {
   Role,
   OrgType,
   Region,
-  SiteType,
+  SiteFunction,
   SiteStatus,
   VehicleType,
   TourneeType,
@@ -90,7 +90,7 @@ export interface SiteEntity {
   org_id: string
   region: Region
   name: string
-  functions?: SiteType[] | null
+  functions?: SiteFunction[] | null
   address?: string
   geo_point?: number[] | null
   geo_confidence_score?: number

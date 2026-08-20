@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getOverviewCards } from './overview'
+import { buildDashboardView } from '@/features/dashboard/data/dashboard'
 
 describe('overview view-model', () => {
   it('returns a non-empty KPI set for every role', () => {
@@ -45,5 +46,39 @@ describe('overview view-model', () => {
     const ids = cards.map((c) => c.id)
     expect(ids).toContain('reconciliations-gap')
     expect(ids).toContain('declared-vs-tracked')
+  })
+
+  it('uses the scoped dashboard values when provided', () => {
+    const dashboard = buildDashboardView('TRANSPORTEUR')
+    const cards = getOverviewCards('TRANSPORTEUR', dashboard)
+
+    const tours = cards.find((c) => c.id === 'tours-in-flight')
+    expect(tours?.value).toBe(
+      dashboard.overview.activeTrips
+    )
+
+    const transported = cards.find((c) => c.id === 'transported')
+    expect(transported).toBeDefined()
+
+    const reserve = cards.find((c) => c.id === 'reserve')
+    expect(reserve?.progress).toBe(dashboard.overview.reserveFillPercent)
+  })
+
+  it('every card carries a deep link and an icon', () => {
+    for (const role of [
+      'SUPERADMIN',
+      'ADMIN',
+      'TRANSPORTEUR',
+      'MARKETEUR',
+      'SUPERVISOR',
+      'INTEGRATEUR',
+      'AGENT',
+      'LIVREUR',
+    ] as const) {
+      for (const card of getOverviewCards(role)) {
+        expect(card.href.startsWith('/')).toBe(true)
+        expect(card.icon).toBeTruthy()
+      }
+    }
   })
 })

@@ -1,24 +1,16 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@lpg/ui'
-import { hasPermission, type PermissionCode } from '@lpg/permissions'
+import { hasPermission } from '@lpg/permissions'
 import { useRoleStore } from '@/store/role-store'
 import { useToursStore } from '@/store/tours-store'
 import { type TourActivity, type TourneeStatus, type ExecutionMode } from '../data/tour-activity'
 import {
+  ACTION_PERMISSION,
   tourActions,
   TOUR_ACTION_LABELS,
   type TourAction,
 } from '../data/tour-machine'
-
-const ACTION_PERMISSION: Record<TourAction, PermissionCode> = {
-  'send-to-transporter': 'tours.create',
-  acknowledge: 'tours.assign',
-  plan: 'tours.write',
-  start: 'tours.write',
-  close: 'tours.write',
-  cancel: 'tours.write',
-}
 
 const ACTION_VARIANT: Record<TourAction, 'default' | 'outline' | 'destructive'> = {
   'send-to-transporter': 'default',
@@ -55,9 +47,14 @@ export function TourActions({
   const activeRole = useRoleStore((s) => s.activeRole)
   const actions = useMemo(
     () =>
-      tourActions({ status: tour.tourneeStatus, execution_mode: tour.execution_mode }).filter(
-        (action) => hasPermission(activeRole, ACTION_PERMISSION[action]),
-      ),
+      tourActions({ status: tour.tourneeStatus, execution_mode: tour.execution_mode })
+        .filter(
+          (action) => hasPermission(activeRole, ACTION_PERMISSION[action]),
+        )
+        // acknowledge requires the transporter's crew, captured via the
+        // transporter crew-assignment dialog (features/transporters), not a
+        // bare status button.
+        .filter((action) => action !== 'acknowledge'),
     [tour, activeRole],
   )
 

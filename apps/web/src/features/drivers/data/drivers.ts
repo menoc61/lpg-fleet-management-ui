@@ -113,8 +113,8 @@ function buildView(driver: Driver): DriverView {
   }
 }
 
-export function getDriversView(): DriverView[] {
-  return (drivers as Driver[]).map(buildView)
+export function getDriversView(source: Driver[] = drivers as Driver[]): DriverView[] {
+  return source.map(buildView)
 }
 
 export function getDriverById(id: string): DriverView | undefined {

@@ -64,8 +64,8 @@ export function getRfidTags(): RfidTag[] {
 
 export const rfidTags: readonly RfidTag[] = getRfidTags()
 
-export function getRfidTagsView(): RfidTagView[] {
-  return getRfidTags().map(buildView)
+export function getRfidTagsView(source: RfidTag[] = rfid_tags): RfidTagView[] {
+  return source.map(buildView)
 }
 
 export function getRfidTagById(id: string): RfidTagView | undefined {

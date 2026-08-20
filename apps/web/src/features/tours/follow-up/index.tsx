@@ -5,13 +5,15 @@ import { SectionCard } from '@/components/layout/page'
 import { TourActiveHeader } from '../components/tour-active-header'
 import { ToursTable } from '../components/tours-table'
 import { getTourActivity, type TourActivity } from '../data/tour-activity'
+import { getScope } from '@/features/scope/scope'
+import { useAuthStore } from '@/store/auth-store'
 
 function isActive(tour: TourActivity): boolean {
   return tour.tourneeStatus === 'INPROGRESS' || tour.tourneeStatus === 'CHECKPOINTACTIVE'
 }
 
 export function FollowUpPage() {
-  const allTours = getTourActivity('ALL')
+  const allTours = getTourActivity('ALL', getScope(useAuthStore.getState().user))
   const tours = allTours.filter(isActive)
   const navigate = useNavigate()
   const selectedTrip = tours[0]

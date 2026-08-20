@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { curated } from '@lpg/mock-data'
+import type { UserScope } from '@/features/scope/scope'
 import {
   buildRouteLpgVariation,
   buildTourActivity,
@@ -83,6 +84,38 @@ describe('getTourActivity', () => {
 
   it('getTourStops returns ordered stop names', () => {
     expect(Array.isArray(getTourStops(curated.delivery_tours[0]!.id))).toBe(true)
+  })
+
+  it('site scope narrows tours to the marketeur org set', () => {
+    const scope: UserScope = {
+      view: 'site',
+      orgId: 'org-0002-sctm-0000-000000000001',
+      siteIds: ['site-0001-sctm-bonaberi'],
+      userId: 'user-nobody',
+    }
+    const scoped = getTourActivity('ALL', scope)
+    expect(scoped.length).toBeGreaterThan(0)
+    expect(scoped.length).toBeLessThan(getTourActivity().length)
+    expect(scoped.length).toBe(
+      curated.delivery_tours.filter(
+        (t) => t.marketeur_org_id === 'org-0002-sctm-0000-000000000001',
+      ).length,
+    )
+  })
+
+  it('transporter scope narrows tours to the transporter org set', () => {
+    const scope: UserScope = {
+      view: 'transporter',
+      orgId: 'org-0010-translog----000000000001',
+      siteIds: [],
+      userId: 'user-nobody',
+    }
+    const scoped = getTourActivity('ALL', scope)
+    expect(scoped.length).toBe(
+      curated.delivery_tours.filter(
+        (t) => t.transporter_org_id === 'org-0010-translog----000000000001',
+      ).length,
+    )
   })
 })
 

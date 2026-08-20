@@ -22,6 +22,9 @@ import type {
 import { sites, type Site } from '@/features/sites/data/sites'
 import { trucks, type Truck } from '@/features/trucks/data/trucks'
 import { resolveSlaThresholds, tourSlaFlags } from './tour-machine'
+import type { UserScope } from '@/features/scope/scope'
+import { scopeBySiteOrCreator, scopeWithOrgId } from '@/features/scope/site-creator'
+import { useToursStore } from '@/store/tours-store'
 
 export type { ExecutionMode, TourneeStatus }
 
@@ -714,16 +717,48 @@ function slicePredicate(slice: TourSlice): (tour: DeliveryTour) => boolean {
   }
 }
 
-export function getTourActivity(slice: TourSlice = 'ALL'): TourActivity[] {
-  return delivery_tours
-    .filter(slicePredicate(slice))
-    .map((tour, index) => buildView(tour, index))
+/**
+ * Tour list for a slice, scoped to the user. The single source of truth is the
+ * tours store (seeded from the curated fixtures + every create/action the user
+ * performs), so tours created or updated in the session are visible here. The
+ * store's checkpoints are used to enrich stops so a freshly created tour shows
+ * its planned route.
+ */
+export function getTourActivity(slice: TourSlice = 'ALL', scope?: UserScope): TourActivity[] {
+  const { tours, checkpoints: storeCheckpoints } = useToursStore.getState()
+  const sliced = tours.filter(slicePredicate(slice))
+  if (!scope) return sliced.map((tour, index) => buildView(tour, index, storeCheckpoints))
+  const siteKey =
+    scope.view === 'transporter'
+      ? (tour: DeliveryTour) => tour.transporter_org_id ?? undefined
+      : (tour: DeliveryTour) => tour.marketeur_org_id
+  return scopeBySiteOrCreator(
+    sliced,
+    scopeWithOrgId(scope),
+    siteKey,
+    (tour) => tour.created_by ?? undefined,
+  ).map((tour, index) => buildView(tour, index, storeCheckpoints))
 }
 
-export function getTourActivityById(id: string): TourActivity | undefined {
-  const index = delivery_tours.findIndex((tour) => tour.id === id)
+export function getTourActivityById(id: string, scope?: UserScope): TourActivity | undefined {
+  const { tours, checkpoints: storeCheckpoints } = useToursStore.getState()
+  const index = tours.findIndex((tour) => tour.id === id)
   if (index === -1) return undefined
-  return buildView(delivery_tours[index]!, index)
+  const tour = tours[index]!
+  if (scope && scope.view !== 'org') {
+    const siteKey =
+      scope.view === 'transporter'
+        ? (t: DeliveryTour) => t.transporter_org_id ?? undefined
+        : (t: DeliveryTour) => t.marketeur_org_id
+    const visible = scopeBySiteOrCreator(
+      [tour],
+      scopeWithOrgId(scope),
+      siteKey,
+      (t) => t.created_by ?? undefined,
+    )
+    if (visible.length === 0) return undefined
+  }
+  return buildView(tour, index, storeCheckpoints)
 }
 
 export function toTourActivities(

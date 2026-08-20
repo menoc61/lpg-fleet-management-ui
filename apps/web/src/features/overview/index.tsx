@@ -1,21 +1,30 @@
 import { useMemo } from 'react'
-import { LayoutDashboard } from 'lucide-react'
+import { CalendarRange, LayoutDashboard } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { ROLE_LABELS } from '@/config/rbac/roles'
 import { useRoleStore } from '@/store/role-store'
-import { getOverviewCards, type OverviewCard } from './data/overview'
+import { getOverviewCards } from './data/overview'
+import { OverviewKpis } from './components/overview-kpis'
+import { OverviewIndicators } from './components/overview-indicators'
+import { OverviewQuickLinks } from './components/overview-quick-links'
+import type { Role } from '@/config/rbac/roles'
+import type { DashboardView } from '@/features/dashboard/data/dashboard'
 
-export function OverviewPage() {
-  const activeRole = useRoleStore((s) => s.activeRole)
-  const cards = useMemo(() => getOverviewCards(activeRole), [activeRole])
+export function OverviewPage({
+  role,
+  dashboard,
+}: {
+  role?: Role
+  dashboard?: DashboardView
+}) {
+  const storeRole = useRoleStore((s) => s.activeRole)
+  const activeRole = role ?? storeRole
+  const cards = useMemo(
+    () => getOverviewCards(activeRole, dashboard),
+    [activeRole, dashboard]
+  )
   const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
 
   return (
@@ -35,33 +44,41 @@ export function OverviewPage() {
           </p>
         </div>
 
-        <Badge
-          variant='outline'
-          className='w-fit rounded-xl border-transparent bg-muted/40 px-3 py-2 text-foreground'
-        >
-          {roleLabel}
-        </Badge>
+        <div className='flex flex-wrap items-center gap-2'>
+          {dashboard ? (
+            <Button
+              type='button'
+              variant='outline'
+              className='h-10 rounded-xl bg-background shadow-none'
+            >
+              <CalendarRange className='size-4' />
+              {dashboard.overview.dateRangeLabel}
+            </Button>
+          ) : null}
+          <Badge
+            variant='outline'
+            className='w-fit rounded-xl border-transparent bg-muted/40 px-3 py-2 text-foreground'
+          >
+            {roleLabel}
+          </Badge>
+        </div>
       </section>
 
-      <section className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        {cards.map((card) => (
-          <OverviewCardItem key={card.id} card={card} />
-        ))}
+      {dashboard ? <OverviewKpis dashboard={dashboard} /> : null}
+
+      <section className='space-y-4'>
+        <div className='space-y-1'>
+          <h2 className='text-lg font-semibold tracking-tight'>
+            Indicateurs clés
+          </h2>
+          <p className='text-sm text-muted-foreground'>
+            Lecture consolidée de vos données, accès direct au détail.
+          </p>
+        </div>
+        <OverviewIndicators cards={cards} />
       </section>
+
+      <OverviewQuickLinks role={activeRole} />
     </Main>
-  )
-}
-
-function OverviewCardItem({ card }: { card: OverviewCard }) {
-  return (
-    <Card className='flex h-full flex-col rounded-2xl border-border/60 shadow-none transition-colors'>
-      <CardHeader className='pb-3'>
-        <CardTitle className='text-base font-medium'>{card.label}</CardTitle>
-      </CardHeader>
-      <CardContent className='flex flex-1 flex-col justify-between gap-3'>
-        <p className='text-4xl font-semibold tracking-tight'>{card.value}</p>
-        <CardDescription>{card.detail}</CardDescription>
-      </CardContent>
-    </Card>
   )
 }

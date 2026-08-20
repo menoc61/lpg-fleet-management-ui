@@ -1,4 +1,4 @@
-import type { Role } from '@lpg/types'
+import type { OrgType, Role } from '@lpg/types'
 
 export interface AuthUser {
   id: string
@@ -8,6 +8,9 @@ export interface AuthUser {
   system_role: Role
   org_id?: string
   org_name?: string
+  org_type?: OrgType
+  site_ids?: string[]
+  mfa_status?: string
 }
 
 export interface AuthResult {

@@ -12,11 +12,20 @@ import { handleServerError } from '@/lib/handle-server-error'
 import { NotFoundError } from '@/features/errors/not-found-error'
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
+import { PermissionsProvider } from './context/PermissionsProvider'
 import { ThemeProvider } from './context/theme-provider'
+import { useAuthStore } from '@/store/auth-store'
+import { useWsClient } from '@/lib/ws/use-ws-client'
 // Generated Routes
 import { routeTree } from './routeTree.gen'
 // Styles
 import './styles/index.css'
+
+function WsBridge() {
+  const user = useAuthStore((s) => s.user)
+  useWsClient(!!user)
+  return null
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,7 +98,10 @@ if (!rootElement.innerHTML) {
         <ThemeProvider defaultTheme='light'>
           <FontProvider>
             <DirectionProvider>
-              <RouterProvider router={router} />
+              <PermissionsProvider>
+                <WsBridge />
+                <RouterProvider router={router} />
+              </PermissionsProvider>
             </DirectionProvider>
           </FontProvider>
         </ThemeProvider>

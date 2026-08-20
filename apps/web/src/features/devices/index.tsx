@@ -14,6 +14,8 @@ import {
   type Device,
   type DeviceView,
 } from './data/devices'
+import type { DeviceStatus } from '@lpg/types'
+import { type DeviceBulkAction } from './components/data-table-bulk-actions'
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { deviceFields, deviceFromForm, deviceToForm } from './data/devices-crud'
 import { toast } from 'sonner'
@@ -34,13 +36,13 @@ const devicesRoute = getRouteApi('/_authenticated/devices/')
 
 export function DevicesPage() {
   const navigate = devicesRoute.useNavigate()
-  const [search, setSearch] = useState('')
+  const search = devicesRoute.useSearch()
+  const [searchText, setSearchText] = useState('')
   const [typeFilter, setTypeFilter] = useState<DeviceFilter>('all')
   const [detailsDevice, setDetailsDevice] = useState<DeviceView | null>(null)
-  const [, setVersion] = useState(0)
   const crud = useEntityCrud<Device>('devices', 'devices', ['devices'])
 
-  const allDevices = getDevicesView()
+  const allDevices = getDevicesView(crud.list.data)
 
   const handleViewDetails = useCallback((device: DeviceView) => {
     setDetailsDevice(device)
@@ -56,14 +58,13 @@ export function DevicesPage() {
         toast.success('Appareil créé.')
       }
       crud.close()
-      setVersion((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }
   }
 
   const filteredDevices = useMemo(() => {
-    const query = search.trim().toLowerCase()
+    const query = searchText.trim().toLowerCase()
     const haystackDevices = query
       ? allDevices.filter((device) => {
           const haystack = [
@@ -82,7 +83,43 @@ export function DevicesPage() {
       : allDevices
     if (typeFilter === 'all') return haystackDevices
     return haystackDevices.filter((device) => device.type === typeFilter)
-  }, [search, typeFilter, allDevices])
+  }, [searchText, typeFilter, allDevices])
+
+  const handleBulk = useCallback(
+    async (action: DeviceBulkAction, selected: DeviceView[]) => {
+      if (selected.length === 0) {
+        toast.info('Sélectionnez au moins un appareil.')
+        return
+      }
+      if (action === 'export') {
+        exportDevicesCsv(selected)
+        toast.success(`${selected.length} appareil(s) exporté(s) en CSV.`)
+        return
+      }
+      const statusByAction: Record<'sync' | 'activate' | 'maintenance', DeviceStatus> = {
+        sync: 'SYNCED',
+        activate: 'DEPLOYED',
+        maintenance: 'MAINTENANCE',
+      }
+      const targetStatus = statusByAction[action]
+      try {
+        await Promise.all(
+          selected.map((device) =>
+            crud.updateMut.mutateAsync({
+              id: device.id,
+              patch: { status: targetStatus },
+            }),
+          ),
+        )
+        toast.success(
+          `${selected.length} appareil(s) ${action === 'sync' ? 'synchronisé(s)' : action === 'activate' ? 'activé(s)' : 'passé(s) en maintenance'}.`,
+        )
+      } catch {
+        toast.error('Échec de la mise à jour des appareils.')
+      }
+    },
+    [crud],
+  )
 
   const assignments = getAssignmentsCount()
 
@@ -154,8 +191,8 @@ export function DevicesPage() {
             <div className='relative w-full sm:w-[310px]'>
               <Search className='pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 placeholder='Rechercher un appareil, org, camion…'
                 className='h-9 ps-9'
               />
@@ -208,13 +245,14 @@ export function DevicesPage() {
         </div>
         <DevicesTable
           data={[...filteredDevices]}
-          search={{}}
+          search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          canWrite={crud.perm.canWrite}
+          onBulk={handleBulk}
           onEdit={(d) => crud.openEdit(d as unknown as Device)}
           onDelete={async (d) => {
             await crud.removeMut.mutateAsync(d.id)
-            setVersion((v) => v + 1)
           }}
         />
       </section>
@@ -265,6 +303,51 @@ function TopStat({
       <span className='font-semibold'>{value}</span>
     </div>
   )
+}
+
+function exportDevicesCsv(devices: DeviceView[]) {
+  const header = [
+    'N° série',
+    'Type',
+    'Statut',
+    'Organisation',
+    'Véhicule',
+    'Chauffeur',
+    'IMEI',
+    'Modèle',
+    'Firmware',
+    'Batterie',
+  ]
+  const rows = devices.map((d) => [
+    d.serial,
+    d.type,
+    d.status,
+    d.orgName,
+    d.vehiclePlate ?? '',
+    d.driverName ?? '',
+    d.imei ?? '',
+    d.model ?? '',
+    d.firmware ?? '',
+    d.batteryStatus ?? '',
+  ])
+  const csv = [header, ...rows]
+    .map((row) =>
+      row
+        .map((cell) => `"${String(cell).split('"').join('""')}"`)
+        .join(';'),
+    )
+    .join('\r\n')
+  const blob = new Blob([`\ufeff${csv}`], {
+    type: 'text/csv;charset=utf-8;',
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `appareils-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 function FilterChip({

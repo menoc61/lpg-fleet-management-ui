@@ -432,7 +432,7 @@ export const NAV_CATALOG: readonly NavItemDecl[] = [
     label: 'Contrats transporteurs',
     icon: FileText,
     path: 'transporter-contracts',
-    requires: ['transporters.read'],
+    requires: ['contracts.read'],
   },
   {
     id: 'clients',

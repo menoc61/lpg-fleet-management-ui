@@ -26,4 +26,36 @@ describe('custom-roles view-model', () => {
   it('tracks active roles', () => {
     expect(getActiveCustomRoleCount()).toBe(getCustomRoles().filter((r) => r.isActive).length)
   })
+
+  it('excludes soft-deleted roles from the live list', () => {
+    const base = getCustomRoles()
+    const now = new Date().toISOString()
+    const source: import('@lpg/types').CustomRole[] = [
+      {
+        id: 'role-live',
+        name: 'Live',
+        description: 'test',
+        org_id: base[0]?.orgId ?? 'org-1',
+        permissions_json: { 'users.read': true },
+        is_active: true,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: 'role-deleted',
+        name: 'Supprimé',
+        description: 'test',
+        org_id: base[0]?.orgId ?? 'org-1',
+        permissions_json: { 'users.read': true },
+        is_active: true,
+        deleted_at: now,
+        created_at: now,
+        updated_at: now,
+      },
+    ]
+    const result = getCustomRoles(source)
+    expect(result).toHaveLength(1)
+    expect(result[0]?.id).toBe('role-live')
+    expect(result.some((r) => r.id === 'role-deleted')).toBe(false)
+  })
 })

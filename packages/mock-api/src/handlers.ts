@@ -625,14 +625,46 @@ function transporterContractsRouter(): Router {
   r.use(requireAuth)
   r.get('/', (req, res) => paginatedList(req, res, 'transporter_contracts'))
   r.post('/', (req, res) => created(res, createEntity('transporter_contracts', req.body ?? {})))
+  r.get('/:id', (req, res) => {
+    const item = getEntity('transporter_contracts', req.params.id)
+    return item ? ok(res, item) : notFound(res)
+  })
   r.patch('/:id', (req, res) => {
     const item = updateEntity('transporter_contracts', req.params.id, req.body ?? {})
     return item ? ok(res, item) : notFound(res)
   })
+  r.post('/:id/attach-proof', (req, res) => {
+    const item = updateEntity('transporter_contracts', req.params.id, {
+      contract_document_url: req.body?.contract_document_url,
+    } as any)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.post('/:id/accept', (req, res) => {
+    const item = updateEntity('transporter_contracts', req.params.id, {
+      transporter_accepted_at: new Date().toISOString(),
+    } as any)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.post('/:id/suspend', (req, res) => {
+    const item = updateEntity('transporter_contracts', req.params.id, { is_active: false } as any)
+    return item ? ok(res, item) : notFound(res)
+  })
+  r.post('/:id/reactivate', (req, res) => {
+    const item = updateEntity('transporter_contracts', req.params.id, { is_active: true } as any)
+    return item ? ok(res, item) : notFound(res)
+  })
   r.post('/:id/set-primary', (req, res) => {
-    const updated = updateEntity('transporter_contracts', req.params.id, { is_primary: true } as any)
+    const current = getEntity<any>('transporter_contracts', req.params.id)
+    if (!current) return notFound(res)
+    findEntities<any>('transporter_contracts', (contract) =>
+      contract.marketeur_org_id === current.marketeur_org_id && !contract.deleted_at,
+    ).forEach((contract) => updateEntity('transporter_contracts', contract.id, { is_primary: contract.id === current.id } as any))
+    const updated = getEntity('transporter_contracts', req.params.id)
     return updated ? ok(res, updated) : notFound(res)
   })
+  r.delete('/:id', (req, res) =>
+    softDeleteEntity('transporter_contracts', req.params.id) ? ok(res, null, 'Supprime') : notFound(res),
+  )
   return r
 }
 

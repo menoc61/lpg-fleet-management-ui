@@ -28,11 +28,11 @@ type RfidTagFilterDef = { label: string; value: string; count: number }
 const ALL_STATUSES = rfidTagStatusOptions.map((option) => option.value)
 
 export function RfidTagsPage() {
-  const tags = useMemo(() => getRfidTagsView(), [])
+  const crud = useEntityCrud<RfidTag>('rfidTags', 'rfid', ['rfid-tags'])
+  const tags = useMemo(() => getRfidTagsView(crud.list.data ?? _getRfidTags()), [crud.list.data])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<RfidTagFilter>('all')
   const [detailsTag, setDetailsTag] = useState<RfidTagView | null>(null)
-  const crud = useEntityCrud<RfidTag>('rfidTags', 'rfid', ['rfid-tags'])
 
   const handleViewDetails = (tag: RfidTagView) => setDetailsTag(tag)
 
