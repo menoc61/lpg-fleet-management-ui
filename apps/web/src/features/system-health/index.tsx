@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Database, HardDrive, HeartPulse, Server, Zap } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Database, HardDrive, HeartPulse, RefreshCw, Server, Zap } from 'lucide-react'
 import { Badge } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import { PageHeader } from '@/components/layout/page-header'
@@ -20,7 +20,16 @@ const KIND_ICON = {
   domain: HeartPulse,
 } as const
 
+const REFRESH_MS = 15000
+
 export function SystemHealthPage() {
+  const [, setTick] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), REFRESH_MS)
+    return () => clearInterval(id)
+  }, [])
+
   const health = useMemo(() => getSystemHealth(), [])
   const summary = useMemo(() => getServiceHealthSummary(), [])
 
@@ -29,6 +38,12 @@ export function SystemHealthPage() {
       <PageHeader
         title='Santé système'
         description='État de fonctionnement des services de la plateforme.'
+        actions={
+          <span className='flex items-center gap-1.5 text-xs text-muted-foreground'>
+            <RefreshCw className='size-3.5 animate-spin' style={{ animationDuration: '3s' }} />
+            {new Date(health.lastCheckAt).toLocaleTimeString('fr-FR')}
+          </span>
+        }
       />
 
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
@@ -54,7 +69,7 @@ export function SystemHealthPage() {
 
       <SectionCard
         title='Services'
-        description='Vue consolidée de l’opérabilité de chaque composant, avec ses métriques.'
+        description='Métriques dérivées de l’activité réelle (tournées, scans, anomalies, réconciliations), rafraîchies toutes les 15 secondes.'
       >
         <div className='space-y-2'>
           {health.services.map((service) => (

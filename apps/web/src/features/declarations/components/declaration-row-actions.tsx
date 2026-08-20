@@ -1,14 +1,17 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@lpg/ui'
+import { Eye, Send } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { hasPermission } from '@lpg/permissions'
 import { useRoleStore } from '@/store/role-store'
 import { useComplianceStore } from '@/store/compliance-store'
 import type { DeclarationView } from '../data/declarations'
+import { DeclarationDetail } from './declaration-detail'
 
 export function DeclarationRowActions({ row }: { row: DeclarationView }) {
   const activeRole = useRoleStore((s) => s.activeRole)
   const submitDeclaration = useComplianceStore((s) => s.submitDeclaration)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const canSubmit = useMemo(
     () =>
@@ -17,20 +20,32 @@ export function DeclarationRowActions({ row }: { row: DeclarationView }) {
     [activeRole, row.status],
   )
 
-  if (!canSubmit) return null
-
   function handleSubmit() {
     try {
       submitDeclaration(row.id)
-      toast.success(`${row.reference} — Declaration soumise`)
+      toast.success(`${row.reference} — déclaration soumise`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action impossible')
     }
   }
 
   return (
-    <Button size='sm' onClick={handleSubmit}>
-      Soumettre
-    </Button>
+    <>
+      <div className='flex justify-end gap-1.5'>
+        <Button size='sm' variant='outline' onClick={() => setDetailOpen(true)}>
+          <Eye className='mr-1 size-3.5' /> Détails
+        </Button>
+        {canSubmit && (
+          <Button size='sm' onClick={handleSubmit}>
+            <Send className='mr-1 size-3.5' /> Soumettre
+          </Button>
+        )}
+      </div>
+      <DeclarationDetail
+        declaration={row}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
+    </>
   )
 }

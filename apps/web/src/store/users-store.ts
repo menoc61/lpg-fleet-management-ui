@@ -21,6 +21,7 @@ interface UsersState {
   setStatus: (id: string, active: boolean) => void
   deleteUser: (id: string) => void
   resetPassword: (id: string) => void
+  resetMfa: (id: string) => void
   lockUntil: (id: string, iso?: string | null) => void
   unlock: (id: string) => void
 }
@@ -124,6 +125,24 @@ export const useUsersStore = create<UsersState>()((set, get) => ({
     if (!u) return
     const role = (useAuthStore.getState().user?.system_role ?? 'LIVREUR') as Role
     if (!hasPermission(role, 'users.reset')) throw new Error('Accès refusé.')
+  },
+
+  resetMfa(id) {
+    const target = get().users.find((x) => x.id === id)
+    if (!target) return
+    const role = (useAuthStore.getState().user?.system_role ?? 'LIVREUR') as Role
+    if (target.system_role === 'LIVREUR' || role === 'LIVREUR') {
+      if (!hasPermission(role, 'livreurs.write')) throw new Error('Accès refusé.')
+      assertLivreurOrgScope(useAuthStore.getState().user, target.org_id)
+    } else if (!hasPermission(role, 'users.write')) {
+      throw new Error('Accès refusé.')
+    }
+    const now = new Date().toISOString()
+    set((s) => ({
+      users: s.users.map((u) =>
+        u.id === id ? { ...u, mfa_status: 'DISABLED', updated_at: now } : u,
+      ),
+    }))
   },
 
   lockUntil(id, iso) {

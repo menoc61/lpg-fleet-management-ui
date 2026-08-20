@@ -1,4 +1,4 @@
-import { buildAnalytics } from '@lpg/mock-data'
+import { audit_logs, buildAnalytics, curated } from '@lpg/mock-data'
 
 export type ServiceStatus = 'OPERATIONAL' | 'DEGRADED' | 'CRITICAL'
 
@@ -34,8 +34,38 @@ function statusOf(ok: boolean, degraded = false): ServiceStatus {
   return ok ? 'OPERATIONAL' : 'DEGRADED'
 }
 
-export function getSystemHealth(): SystemHealth {
+/** Deterministic per time-bucket jitter so live values drift without randomness. */
+function jitter(base: number, seed: number, spread = 0.08): number {
+  const noise = Math.abs(Math.sin(seed * (base + 1))) * spread
+  return Math.round(base * (1 + noise - spread / 2))
+}
+
+const fmt = (n: number) => n.toLocaleString('fr-FR')
+
+export function getSystemHealth(now = Date.now()): SystemHealth {
   const a = buildAnalytics()
+  const seed = Math.floor(now / 15000)
+
+  const apiRequests =
+    a.scans.total + a.tours.total * 3 + a.reconciliations.total * 2 + a.anomalies.total
+  const apiLatency = 120 + jitter(28, seed + 1)
+  const apiErrors = a.anomalies.open > 0 ? 0.3 + a.anomalies.open * 0.03 : 0.02
+
+  const dbConnections = 24 + Math.min(32, a.users.total + Math.round(a.devices.total / 2))
+  const dbLatency = 12 + jitter(6, seed + 2)
+  const dbSizeGb = (a.tours.total * 0.4 + a.scans.total * 0.08) / 1024
+
+  const minioObjects =
+    a.scans.total + a.reconciliations.total + curated.declarations.length + a.tours.total
+  const minioGb = minioObjects * 0.003
+
+  const redisKeys = a.users.total + a.devices.total * 2 + a.sites.total * 3
+  const redisMemMb = 120 + jitter(40, seed + 3)
+
+  const queuePending =
+    a.anomalies.open + a.tours.awaitingTransporter + Math.round(a.scans.conflicts / 2)
+  const queuePerMin = 40 + jitter(24, seed + 4)
+  const queueAvgSec = 1.2 + jitter(0.7, seed + 5)
 
   const services: SystemServiceHealth[] = [
     {
@@ -46,9 +76,9 @@ export function getSystemHealth(): SystemHealth {
       statusLabel: systemHealthLabels.OPERATIONAL,
       detail: 'Points d’entrée REST et WebSocket',
       metrics: [
-        { label: 'Requêtes/min', value: '1 284' },
-        { label: 'Latence p95', value: '142 ms' },
-        { label: 'Erreurs 5xx', value: '0.02%' },
+        { label: 'Requêtes/min', value: fmt(jitter(apiRequests, seed + 6)) },
+        { label: 'Latence p95', value: `${apiLatency.toFixed(0)} ms` },
+        { label: 'Erreurs 5xx', value: `${apiErrors.toFixed(2)}%` },
       ],
     },
     {
@@ -59,9 +89,9 @@ export function getSystemHealth(): SystemHealth {
       statusLabel: systemHealthLabels.OPERATIONAL,
       detail: 'Base de données relationnelle principale',
       metrics: [
-        { label: 'Connexions', value: '38 / 100' },
-        { label: 'Temps de réponse', value: '18 ms' },
-        { label: 'Taille', value: '4.2 Go' },
+        { label: 'Connexions', value: `${dbConnections} / 100` },
+        { label: 'Temps de réponse', value: `${dbLatency.toFixed(0)} ms` },
+        { label: 'Taille', value: `${dbSizeGb.toFixed(1)} Go` },
       ],
     },
     {
@@ -73,8 +103,8 @@ export function getSystemHealth(): SystemHealth {
       detail: 'Certificats, preuves et images S3-compatible',
       metrics: [
         { label: 'Buckets', value: '6' },
-        { label: 'Objets', value: '12 480' },
-        { label: 'Stockage utilisé', value: '38.1 Go' },
+        { label: 'Objets', value: fmt(minioObjects) },
+        { label: 'Stockage utilisé', value: `${minioGb.toFixed(1)} Go` },
       ],
     },
     {
@@ -85,22 +115,22 @@ export function getSystemHealth(): SystemHealth {
       statusLabel: systemHealthLabels.OPERATIONAL,
       detail: 'Cache applicatif et sessions',
       metrics: [
-        { label: 'Hit rate', value: '94.2%' },
-        { label: 'Mémoire', value: '212 Mo / 1 Go' },
-        { label: 'Clés', value: '8 912' },
+        { label: 'Hit rate', value: `${(94 + jitter(3, seed + 7) / 10).toFixed(1)}%` },
+        { label: 'Mémoire', value: `${redisMemMb} Mo / 1 Go` },
+        { label: 'Clés', value: fmt(redisKeys) },
       ],
     },
     {
       id: 'queue',
       name: 'File de messages',
       kind: 'queue',
-      status: 'OPERATIONAL',
-      statusLabel: systemHealthLabels.OPERATIONAL,
+      status: queuePending > 30 ? 'DEGRADED' : 'OPERATIONAL',
+      statusLabel: queuePending > 30 ? systemHealthLabels.DEGRADED : systemHealthLabels.OPERATIONAL,
       detail: 'Traitement asynchrone des rapports et risques',
       metrics: [
-        { label: 'Messages en attente', value: '17' },
-        { label: 'Traités/min', value: '64' },
-        { label: 'Temps moyen', value: '1.9 s' },
+        { label: 'Messages en attente', value: fmt(queuePending) },
+        { label: 'Traités/min', value: fmt(queuePerMin) },
+        { label: 'Temps moyen', value: `${queueAvgSec.toFixed(1)} s` },
       ],
     },
     {
@@ -127,7 +157,7 @@ export function getSystemHealth(): SystemHealth {
       metrics: [
         { label: 'En cours', value: String(a.tours.inFlight) },
         { label: 'Planifiées', value: String(a.tours.planned) },
-        { label: 'Total', value: String(a.tours.total) },
+        { label: 'En attente transporteur', value: String(a.tours.awaitingTransporter) },
       ],
     },
     {
@@ -137,10 +167,11 @@ export function getSystemHealth(): SystemHealth {
       status: statusOf(a.reconciliations.totalGap === 0, a.reconciliations.totalGap > 0),
       statusLabel:
         a.reconciliations.totalGap > 0 ? systemHealthLabels.DEGRADED : systemHealthLabels.OPERATIONAL,
-      detail: `${a.reconciliations.total} réconciliations · écart ${a.reconciliations.totalGap.toLocaleString('fr-FR')} TM`,
+      detail: `${a.reconciliations.total} réconciliations · écart ${fmt(a.reconciliations.totalGap)} TM`,
       metrics: [
         { label: 'Total', value: String(a.reconciliations.total) },
-        { label: 'Écart', value: `${a.reconciliations.totalGap.toLocaleString('fr-FR')} TM` },
+        { label: 'Écart', value: `${fmt(a.reconciliations.totalGap)} TM` },
+        { label: 'Impact subvention', value: `${fmt(a.reconciliations.totalSubsidyImpact)} FCFA` },
       ],
     },
   ]
@@ -150,19 +181,22 @@ export function getSystemHealth(): SystemHealth {
   const operational = services.filter((s) => s.status === 'OPERATIONAL').length
   const overall: ServiceStatus = critical > 0 ? 'CRITICAL' : degraded > 0 ? 'DEGRADED' : 'OPERATIONAL'
 
+  const failureCount = audit_logs.filter((l) => l.action === 'LOGINFAILURE').length
+  const uptimePercent = Math.min(99.99, 99.5 + failureCount * 0.05 + (critical > 0 ? 0 : 0.48))
+
   return {
     overall,
     services,
     operational,
     degraded,
     critical,
-    uptimePercent: 99.98,
-    lastCheckAt: new Date().toISOString(),
+    uptimePercent: Number(uptimePercent.toFixed(2)),
+    lastCheckAt: new Date(now).toISOString(),
   }
 }
 
-export function getServiceHealthSummary() {
-  const health = getSystemHealth()
+export function getServiceHealthSummary(now?: number) {
+  const health = getSystemHealth(now)
   return {
     total: health.services.length,
     operational: health.operational,

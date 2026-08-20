@@ -1,9 +1,11 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge, DataTableColumnHeader } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
+import { DataTableColumnHeader } from '@/components/data-table'
 import {
   type RiskScoreView,
   type RiskLevel,
   riskLevelLabels,
+  riskLevelOrder,
   riskEntityLabels,
 } from '../data/risk-scores'
 
@@ -20,13 +22,14 @@ export function getRiskScoreColumns(): ColumnDef<RiskScoreView>[] {
     {
       accessorKey: 'entity_name',
       header: ({ column }) => <DataTableColumnHeader column={column} title='Entité' />,
-      cell: ({ row }) => <span className='font-medium'>{row.original.entity_name}</span>,
+      cell: ({ row }) => <span className='ps-3 font-medium'>{row.original.entity_name}</span>,
       enableHiding: false,
       meta: { label: 'Entité' },
     },
     {
       accessorKey: 'entity_type',
-      header: 'Type',
+      accessorFn: (row) => riskEntityLabels[row.entity_type] ?? row.entity_type,
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
       cell: ({ row }) => riskEntityLabels[row.original.entity_type] ?? row.original.entity_type,
       meta: { label: 'Type' },
       enableGrouping: true,
@@ -40,25 +43,32 @@ export function getRiskScoreColumns(): ColumnDef<RiskScoreView>[] {
     },
     {
       accessorKey: 'level',
-      header: 'Niveau',
+      accessorFn: (row) => riskLevelLabels[row.level],
+      sortingFn: (a, b) => riskLevelOrder[a.original.level] - riskLevelOrder[b.original.level],
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Niveau' />,
       cell: ({ row }) => (
-        <Badge className={LEVEL_CLASS[row.original.level]}>{riskLevelLabels[row.original.level]}</Badge>
+        <Badge className={LEVEL_CLASS[row.original.level]}>
+          {riskLevelLabels[row.original.level]}
+        </Badge>
       ),
       meta: { label: 'Niveau' },
       enableGrouping: true,
     },
     {
       accessorKey: 'detail',
-      header: 'Détails',
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Détails' />,
       cell: ({ row }) => (
-        <span className='line-clamp-2 max-w-xs text-xs text-muted-foreground'>{row.original.detail || '—'}</span>
+        <span className='line-clamp-2 max-w-xs text-xs text-muted-foreground'>
+          {row.original.detail || '—'}
+        </span>
       ),
       meta: { label: 'Détails' },
       enableGrouping: true,
     },
     {
       accessorKey: 'updated_at',
-      header: 'Mis à jour',
+      accessorFn: (row) => new Date(row.updated_at).getTime(),
+      header: ({ column }) => <DataTableColumnHeader column={column} title='Mis à jour' />,
       cell: ({ row }) => new Date(row.original.updated_at).toLocaleDateString('fr-FR'),
       meta: { label: 'Mis à jour' },
       enableGrouping: true,

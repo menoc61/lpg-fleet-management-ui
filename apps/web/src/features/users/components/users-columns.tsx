@@ -93,7 +93,11 @@ export function getUsersColumns({
       enableSorting: false,
       cell: ({ row }) => (
         <div className='flex justify-end'>
-          <UserRowActions user={row.original} onEdit={onEdit} />
+          <UserRowActions
+            user={row.original}
+            onEdit={onEdit}
+            onViewDetails={onViewDetails}
+          />
         </div>
       ),
       meta: { label: 'Actions' },

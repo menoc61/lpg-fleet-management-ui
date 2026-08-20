@@ -10,6 +10,7 @@ import {
   getTotalGroupMembers,
   type NotificationGroupView,
 } from './data/notification-groups'
+import { SettingsTabs } from '@/features/settings/components/settings-tabs'
 
 export function NotificationGroupsPage() {
   const groups = useMemo(() => getNotificationGroups(), [])
@@ -19,6 +20,7 @@ export function NotificationGroupsPage() {
 
   return (
     <PageShell>
+      <SettingsTabs active='notification-groups' />
       <PageHeader
         title='Groupes de notification'
         description='Groupes cibles pour l’envoi des alertes et notifications.'

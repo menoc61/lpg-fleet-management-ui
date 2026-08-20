@@ -47,11 +47,13 @@ export function SitesTable({
   role,
   onAction,
   onDelete,
+  onOpenMap,
 }: {
   rows: SiteRow[]
   role: SiteRole
   onAction: (row: SiteRow, req: TransitionRequest) => void
   onDelete?: (row: SiteRow) => void
+  onOpenMap?: (row: SiteRow) => void
 }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -134,6 +136,7 @@ export function SitesTable({
             role={role}
             onAction={(req) => onAction(row.original, req)}
             onDelete={onDelete ? () => onDelete(row.original) : undefined}
+            onOpenMap={onOpenMap ? () => onOpenMap(row.original) : undefined}
           />
         ),
         meta: { label: 'Actions' },
@@ -141,7 +144,7 @@ export function SitesTable({
         enableHiding: false,
       },
     ],
-    [role, onAction, onDelete, thresholds],
+    [role, onAction, onDelete, thresholds, onOpenMap],
   )
 
   const table = useReactTable({

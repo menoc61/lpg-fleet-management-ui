@@ -1,20 +1,14 @@
 import { useMemo } from 'react'
-import { Link } from '@tanstack/react-router'
-import { ArrowRight, LayoutDashboard } from 'lucide-react'
+import { CalendarRange, LayoutDashboard } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Main } from '@/components/layout/main'
 import { ROLE_LABELS } from '@/config/rbac/roles'
-import { getSidebarData } from '@/config/rbac/sidebar-by-role'
 import { useRoleStore } from '@/store/role-store'
-import { getOverviewCards, type OverviewCard } from './data/overview'
-import { formatTm } from '@/features/map/utils/format'
+import { getOverviewCards } from './data/overview'
+import { OverviewKpis } from './components/overview-kpis'
+import { OverviewIndicators } from './components/overview-indicators'
+import { OverviewQuickLinks } from './components/overview-quick-links'
 import type { Role } from '@/config/rbac/roles'
 import type { DashboardView } from '@/features/dashboard/data/dashboard'
 
@@ -27,23 +21,11 @@ export function OverviewPage({
 }) {
   const storeRole = useRoleStore((s) => s.activeRole)
   const activeRole = role ?? storeRole
-  const cards = useMemo(() => getOverviewCards(activeRole), [activeRole])
+  const cards = useMemo(
+    () => getOverviewCards(activeRole, dashboard),
+    [activeRole, dashboard]
+  )
   const roleLabel = ROLE_LABELS[activeRole] ?? activeRole
-
-  const quickLinks = useMemo(() => {
-    const sidebar = getSidebarData(activeRole)
-    return sidebar.navGroups.flatMap((group) =>
-      group.items.flatMap((item) =>
-        'items' in item
-          ? (item.items ?? []).map((sub) => ({
-              title: sub.title,
-              url: sub.url,
-              icon: sub.icon,
-            }))
-          : [{ title: item.title, url: item.url, icon: item.icon }],
-      ),
-    )
-  }, [activeRole])
 
   return (
     <Main fluid className='space-y-6 bg-muted/20'>
@@ -62,80 +44,41 @@ export function OverviewPage({
           </p>
         </div>
 
-        <Badge
-          variant='outline'
-          className='w-fit rounded-xl border-transparent bg-muted/40 px-3 py-2 text-foreground'
-        >
-          {roleLabel}
-        </Badge>
-      </section>
-
-      {dashboard ? (
-        <section className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-          <Metric value={formatTm(dashboard.overview.totalTransportedTM)} label='Transporté' />
-          <Metric value={formatTm(dashboard.overview.totalDeliveredTM)} label='Livré' />
-          <Metric
-            value={String(dashboard.overview.activeTrips + dashboard.overview.plannedTrips)}
-            label='Tournées'
-          />
-          <Metric value={String(dashboard.overview.openAlerts)} label='Alertes ouvertes' />
-        </section>
-      ) : null}
-
-      <section className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        {cards.map((card) => (
-          <OverviewCardItem key={card.id} card={card} />
-        ))}
-      </section>
-
-      <section>
-        <div className='mb-3 flex items-center justify-between'>
-          <h2 className='text-lg font-semibold tracking-tight'>Accès rapides</h2>
-          <span className='text-xs text-muted-foreground'>
-            Raccourcis vers vos modules
-          </span>
-        </div>
-        <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-          {quickLinks.map((link) => (
-            <Link
-              key={String(link.url)}
-              to={link.url as never}
-              className='group flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-background px-3 py-2.5 transition-colors hover:bg-muted/50'
+        <div className='flex flex-wrap items-center gap-2'>
+          {dashboard ? (
+            <Button
+              type='button'
+              variant='outline'
+              className='h-10 rounded-xl bg-background shadow-none'
             >
-              <span className='flex min-w-0 items-center gap-2 text-sm'>
-                {link.icon ? <link.icon className='size-4 shrink-0 text-primary' /> : null}
-                <span className='truncate'>{link.title}</span>
-              </span>
-              <ArrowRight className='size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5' />
-            </Link>
-          ))}
+              <CalendarRange className='size-4' />
+              {dashboard.overview.dateRangeLabel}
+            </Button>
+          ) : null}
+          <Badge
+            variant='outline'
+            className='w-fit rounded-xl border-transparent bg-muted/40 px-3 py-2 text-foreground'
+          >
+            {roleLabel}
+          </Badge>
         </div>
       </section>
+
+      {dashboard ? <OverviewKpis dashboard={dashboard} /> : null}
+
+      <section className='space-y-4'>
+        <div className='space-y-1'>
+          <h2 className='text-lg font-semibold tracking-tight'>
+            Indicateurs clés
+          </h2>
+          <p className='text-sm text-muted-foreground'>
+            Lecture consolidée de vos données, accès direct au détail.
+          </p>
+        </div>
+        <OverviewIndicators cards={cards} />
+      </section>
+
+      <OverviewQuickLinks role={activeRole} />
     </Main>
-  )
-}
-
-function Metric({ value, label }: { value: string; label: string }) {
-  return (
-    <Card className='rounded-2xl border-border/60 shadow-none'>
-      <CardContent className='p-4'>
-        <p className='text-xl font-semibold tracking-tight'>{value}</p>
-        <p className='mt-1 text-xs text-muted-foreground'>{label}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function OverviewCardItem({ card }: { card: OverviewCard }) {
-  return (
-    <Card className='flex h-full flex-col rounded-2xl border-border/60 shadow-none transition-colors'>
-      <CardHeader className='pb-3'>
-        <CardTitle className='text-base font-medium'>{card.label}</CardTitle>
-      </CardHeader>
-      <CardContent className='flex flex-1 flex-col justify-between gap-3'>
-        <p className='text-4xl font-semibold tracking-tight'>{card.value}</p>
-        <CardDescription>{card.detail}</CardDescription>
-      </CardContent>
-    </Card>
   )
 }

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@lpg/api-client'
+import { useNavigate } from '@tanstack/react-router'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { Button } from '@/components/ui/button'
@@ -23,10 +24,18 @@ import { assertPermission } from '@/lib/security/guards'
 
 export function SitesScreen({ kind, role }: { kind: 'site' | 'client_site'; role: SiteRole }) {
   const perm = useEntityPermission('sites')
+  const navigate = useNavigate()
   const [rows, setRows] = useState<SiteRow[]>(() =>
     kind === 'site' ? getSiteRows() : getClientSiteRows(),
   )
   const [creating, setCreating] = useState(false)
+
+  const openOnMap = useCallback(
+    (row: SiteRow) => {
+      navigate({ to: '/map', search: { site: row.id } })
+    },
+    [navigate],
+  )
 
   const handleAction = (row: SiteRow, request: TransitionRequest) => {
     const required = request.kind === 'verify' ? 'sites.verify' : 'sites.write'
@@ -95,7 +104,7 @@ export function SitesScreen({ kind, role }: { kind: 'site' | 'client_site'; role
         }
       />
       <SectionCard>
-        <SitesTable rows={rows} role={role} onAction={handleAction} onDelete={handleDelete} />
+        <SitesTable rows={rows} role={role} onAction={handleAction} onDelete={handleDelete} onOpenMap={openOnMap} />
       </SectionCard>
 
       <EntityFormSheet
@@ -113,6 +122,7 @@ export function SitesScreen({ kind, role }: { kind: 'site' | 'client_site'; role
 }
 
 export function SiteVerificationsScreen({ role }: { role: SiteRole }) {
+  const navigate = useNavigate()
   const [openRow, setOpenRow] = useState<SiteRow | null>(null)
   const [inbox, setInbox] = useState<SiteRow[]>(() => getVerificationInbox())
   const handleAction = (row: SiteRow, request: TransitionRequest) => {
@@ -120,10 +130,13 @@ export function SiteVerificationsScreen({ role }: { role: SiteRole }) {
     else if (request.kind === 'suspend' || request.kind === 'reject') { setInbox((prev) => prev.filter((r) => r.id !== row.id)); toast.info(`${row.name} retiré de la file`) }
     setOpenRow(null)
   }
+  const openOnMap = (row: SiteRow) => {
+    navigate({ to: '/map', search: { site: row.id } })
+  }
   return (
     <PageShell>
       <PageHeader title='File de vérification' description={`${inbox.length} site(s) en attente de validation par AGENT/ADMIN/SUPERADMIN.`} />
-      <SectionCard><SitesTable rows={inbox} role={role} onAction={handleAction} /></SectionCard>
+      <SectionCard><SitesTable rows={inbox} role={role} onAction={handleAction} onOpenMap={openOnMap} /></SectionCard>
       {openRow && (
         <Dialog open onOpenChange={(open) => { if (!open) setOpenRow(null) }}>
           <DialogContent className='max-w-md'>

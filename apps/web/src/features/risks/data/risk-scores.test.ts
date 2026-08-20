@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { getRiskScores, getRiskSummary, riskLevelLabels, riskEntityLabels } from './risk-scores'
+import {
+  getRiskScores,
+  getRiskSummary,
+  getRiskByEntityType,
+  riskLevelLabels,
+  riskEntityLabels,
+  riskLevelOrder,
+} from './risk-scores'
 
 describe('risk-scores view-model', () => {
   it('returns risk scores with resolved entities', () => {
@@ -29,5 +36,22 @@ describe('risk-scores view-model', () => {
   it('labels every risk level and entity', () => {
     expect(riskLevelLabels.CRITIQUE).toBe('Critique')
     expect(riskEntityLabels.MARKETEUR).toBe('Marketeur')
+  })
+
+  it('aggregates counts and averages per entity type', () => {
+    const byType = getRiskByEntityType(getRiskScores())
+    expect(byType.length).toBeGreaterThanOrEqual(1)
+    const total = byType.reduce((acc, row) => acc + row.count, 0)
+    expect(total).toBe(getRiskScores().length)
+    for (const row of byType) {
+      expect(row.entity_label).toBeTruthy()
+      expect(row.average).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('orders risk levels for deterministic sorting', () => {
+    expect(riskLevelOrder.FAIBLE).toBeLessThan(riskLevelOrder.MODERE)
+    expect(riskLevelOrder.MODERE).toBeLessThan(riskLevelOrder.ELEVE)
+    expect(riskLevelOrder.ELEVE).toBeLessThan(riskLevelOrder.CRITIQUE)
   })
 })

@@ -4,15 +4,6 @@ import type { AnomalyType } from '@lpg/types'
 
 export type { RiskLevel, AnomalyType }
 
-export interface NotifRuleView {
-  id: string
-  anomalyType: AnomalyType | null
-  minSeverity: RiskLevel | null
-  targetGroupId: string
-  targetGroupName: string
-  isActive: boolean
-}
-
 export interface NotifRoutingGroup {
   targetGroupId: string
   targetGroupName: string
@@ -29,16 +20,10 @@ export interface NotifRoutingRuleRow {
   isActive: boolean
 }
 
-export const routingSeverityLabels: Record<RiskLevel, string> = {
-  FAIBLE: 'Faible',
-  MODERE: 'Modéré',
-  ELEVE: 'Élevé',
-  CRITIQUE: 'Critique',
-  CRITIQUEEXTREME: 'Critique extrême',
-}
-
-export function getNotifRoutingGroups(): NotifRoutingGroup[] {
-  const rules = notification_rules as NotificationRule[]
+export function getNotifRoutingGroups(source?: NotificationRule[]): NotifRoutingGroup[] {
+  const rules = (source ?? (notification_rules as NotificationRule[])).filter(
+    (rule) => rule.deleted_at == null,
+  )
   const groupNameById = new Map(notification_groups.map((g) => [g.id, g.name]))
 
   const byGroup = new Map<string, NotifRoutingRuleRow[]>()
@@ -63,10 +48,15 @@ export function getNotifRoutingGroups(): NotifRoutingGroup[] {
   }))
 }
 
-export function getNotifRuleCount(): number {
-  return (notification_rules as NotificationRule[]).length
+export function getNotifRuleCount(source?: NotificationRule[]): number {
+  return (source ?? (notification_rules as NotificationRule[])).filter(
+    (rule) => rule.deleted_at == null,
+  ).length
 }
 
-export function getNotifActiveRuleCount(): number {
-  return getNotifRoutingGroups().reduce((acc, g) => acc + g.activeRuleCount, 0)
+export function getNotifActiveRuleCount(groups?: NotifRoutingGroup[]): number {
+  return (groups ?? getNotifRoutingGroups()).reduce(
+    (acc, g) => acc + g.activeRuleCount,
+    0,
+  )
 }

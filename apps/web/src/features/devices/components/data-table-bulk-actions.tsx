@@ -1,7 +1,5 @@
 import { type Table } from '@tanstack/react-table'
-import { Download, Power, RotateCcw } from 'lucide-react'
-import { toast } from 'sonner'
-import { sleep } from '@/lib/utils'
+import { Download, Power, RotateCcw, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -11,26 +9,25 @@ import {
 import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
 import { type DeviceView } from '../data/devices'
 
+export type DeviceBulkAction = 'export' | 'sync' | 'activate' | 'maintenance'
+
 type DataTableBulkActionsProps<TData> = {
   table: Table<TData>
+  canWrite: boolean
+  onRun?: (action: DeviceBulkAction, devices: DeviceView[]) => void | Promise<void>
 }
 
 export function DataTableBulkActions<TData>({
   table,
+  canWrite,
+  onRun,
 }: DataTableBulkActionsProps<TData>) {
   const selected = table
     .getFilteredSelectedRowModel()
     .rows.map((row) => row.original as DeviceView)
 
-  const runBulkAction = (label: string, doneLabel: string) => {
-    toast.promise(sleep(900), {
-      loading: `${label}...`,
-      success: () => {
-        table.resetRowSelection()
-        return `${doneLabel} (${selected.length})`
-      },
-      error: 'Action impossible',
-    })
+  const run = (action: DeviceBulkAction) => {
+    void onRun?.(action, selected)
   }
 
   return (
@@ -40,17 +37,17 @@ export function DataTableBulkActions<TData>({
           <Button
             variant='outline'
             size='icon'
-            onClick={() => runBulkAction('Preparation export', 'Export pret')}
+            onClick={() => run('export')}
             className='size-8'
-            aria-label='Exporter les appareils selectionnes'
-            title='Exporter les appareils selectionnes'
+            aria-label='Exporter les appareils sélectionnés'
+            title='Exporter les appareils sélectionnés'
           >
             <Download />
-            <span className='sr-only'>Exporter les appareils selectionnes</span>
+            <span className='sr-only'>Exporter les appareils sélectionnés</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Exporter les appareils selectionnes</p>
+          <p>Exporter en CSV</p>
         </TooltipContent>
       </Tooltip>
 
@@ -59,9 +56,8 @@ export function DataTableBulkActions<TData>({
           <Button
             variant='outline'
             size='icon'
-            onClick={() =>
-              runBulkAction('Synchronisation', 'Synchronisation declenchee')
-            }
+            disabled={!canWrite}
+            onClick={() => run('sync')}
             className='size-8'
             aria-label='Forcer la synchronisation'
             title='Forcer la synchronisation'
@@ -71,7 +67,7 @@ export function DataTableBulkActions<TData>({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Forcer la synchronisation</p>
+          <p>Forcer la synchronisation (→ SYNCED)</p>
         </TooltipContent>
       </Tooltip>
 
@@ -80,22 +76,38 @@ export function DataTableBulkActions<TData>({
           <Button
             variant='outline'
             size='icon'
-            onClick={() =>
-              runBulkAction(
-                'Changement de statut',
-                'Statut mis a jour'
-              )
-            }
+            disabled={!canWrite}
+            onClick={() => run('activate')}
             className='size-8'
-            aria-label='Activer ou mettre en maintenance'
-            title='Activer ou mettre en maintenance'
+            aria-label='Activer les appareils sélectionnés'
+            title='Activer les appareils sélectionnés'
           >
             <Power />
-            <span className='sr-only'>Activer ou mettre en maintenance</span>
+            <span className='sr-only'>Activer les appareils sélectionnés</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Activer ou mettre en maintenance</p>
+          <p>Activer (→ DEPLOYED)</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant='outline'
+            size='icon'
+            disabled={!canWrite}
+            onClick={() => run('maintenance')}
+            className='size-8'
+            aria-label='Passer en maintenance'
+            title='Passer en maintenance'
+          >
+            <Wrench />
+            <span className='sr-only'>Passer en maintenance</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Passer en maintenance (→ MAINTENANCE)</p>
         </TooltipContent>
       </Tooltip>
     </BulkActionsToolbar>

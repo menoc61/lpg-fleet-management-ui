@@ -14,6 +14,9 @@ export function getTransporters(
 
 export const transporters: Organization[] = getTransporters()
 
-export function getTransporterById(id: string): Organization | undefined {
-  return getTransporters().find((t) => t.id === id)
+export function getTransporterById(
+  id: string,
+  orgs?: Organization[],
+): Organization | undefined {
+  return (orgs ?? getTransporters()).find((t) => t.id === id)
 }

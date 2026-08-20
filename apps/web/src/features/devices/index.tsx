@@ -14,6 +14,8 @@ import {
   type Device,
   type DeviceView,
 } from './data/devices'
+import type { DeviceStatus } from '@lpg/types'
+import { type DeviceBulkAction } from './components/data-table-bulk-actions'
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { deviceFields, deviceFromForm, deviceToForm } from './data/devices-crud'
 import { toast } from 'sonner'
@@ -82,6 +84,42 @@ export function DevicesPage() {
     if (typeFilter === 'all') return haystackDevices
     return haystackDevices.filter((device) => device.type === typeFilter)
   }, [searchText, typeFilter, allDevices])
+
+  const handleBulk = useCallback(
+    async (action: DeviceBulkAction, selected: DeviceView[]) => {
+      if (selected.length === 0) {
+        toast.info('Sélectionnez au moins un appareil.')
+        return
+      }
+      if (action === 'export') {
+        exportDevicesCsv(selected)
+        toast.success(`${selected.length} appareil(s) exporté(s) en CSV.`)
+        return
+      }
+      const statusByAction: Record<'sync' | 'activate' | 'maintenance', DeviceStatus> = {
+        sync: 'SYNCED',
+        activate: 'DEPLOYED',
+        maintenance: 'MAINTENANCE',
+      }
+      const targetStatus = statusByAction[action]
+      try {
+        await Promise.all(
+          selected.map((device) =>
+            crud.updateMut.mutateAsync({
+              id: device.id,
+              patch: { status: targetStatus },
+            }),
+          ),
+        )
+        toast.success(
+          `${selected.length} appareil(s) ${action === 'sync' ? 'synchronisé(s)' : action === 'activate' ? 'activé(s)' : 'passé(s) en maintenance'}.`,
+        )
+      } catch {
+        toast.error('Échec de la mise à jour des appareils.')
+      }
+    },
+    [crud],
+  )
 
   const assignments = getAssignmentsCount()
 
@@ -210,6 +248,8 @@ export function DevicesPage() {
           search={search}
           navigate={navigate}
           onViewDetails={handleViewDetails}
+          canWrite={crud.perm.canWrite}
+          onBulk={handleBulk}
           onEdit={(d) => crud.openEdit(d as unknown as Device)}
           onDelete={async (d) => {
             await crud.removeMut.mutateAsync(d.id)
@@ -263,6 +303,51 @@ function TopStat({
       <span className='font-semibold'>{value}</span>
     </div>
   )
+}
+
+function exportDevicesCsv(devices: DeviceView[]) {
+  const header = [
+    'N° série',
+    'Type',
+    'Statut',
+    'Organisation',
+    'Véhicule',
+    'Chauffeur',
+    'IMEI',
+    'Modèle',
+    'Firmware',
+    'Batterie',
+  ]
+  const rows = devices.map((d) => [
+    d.serial,
+    d.type,
+    d.status,
+    d.orgName,
+    d.vehiclePlate ?? '',
+    d.driverName ?? '',
+    d.imei ?? '',
+    d.model ?? '',
+    d.firmware ?? '',
+    d.batteryStatus ?? '',
+  ])
+  const csv = [header, ...rows]
+    .map((row) =>
+      row
+        .map((cell) => `"${String(cell).split('"').join('""')}"`)
+        .join(';'),
+    )
+    .join('\r\n')
+  const blob = new Blob([`\ufeff${csv}`], {
+    type: 'text/csv;charset=utf-8;',
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `appareils-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 function FilterChip({

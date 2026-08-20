@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Check, Plus, ShieldCheck, UserRound } from 'lucide-react'
 import { Badge } from '@lpg/ui'
 import { toast } from 'sonner'
@@ -10,7 +10,6 @@ import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { CrudRowActions } from '@/components/entity-crud'
 import type { CustomRole } from '@lpg/types'
 import {
-  getActiveCustomRoleCount,
   getCustomRoleAssignmentCount,
   getCustomRoles,
   type CustomRoleView,
@@ -23,9 +22,8 @@ import {
 
 export function CustomRolesPage() {
   const crud = useEntityCrud<CustomRole>('customRoles', 'custom-roles', ['custom-roles'])
-  const [, setRefresh] = useState(0)
-  const roles = getCustomRoles()
-  const active = getActiveCustomRoleCount()
+  const roles = useMemo(() => getCustomRoles(crud.list.data), [crud.list.data])
+  const active = useMemo(() => roles.filter((r) => r.isActive).length, [roles])
   const assignments = getCustomRoleAssignmentCount()
   const [expandedId, setExpandedId] = useState<string | null>(roles[0]?.id ?? null)
 
@@ -39,7 +37,6 @@ export function CustomRolesPage() {
         toast.success('Rôle créé.')
       }
       crud.close()
-      setRefresh((v) => v + 1)
     } catch {
       toast.error('Échec de l’enregistrement.')
     }

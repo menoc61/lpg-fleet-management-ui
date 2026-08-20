@@ -4,6 +4,7 @@ import { Badge, Input } from '@lpg/ui'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
 import { getSettingSummary, getSettings, type SettingView } from './data/settings'
+import { SettingsTabs } from './components/settings-tabs'
 
 export function SettingsPage() {
   const summary = useMemo(() => getSettingSummary(), [])
@@ -29,6 +30,7 @@ export function SettingsPage() {
 
   return (
     <PageShell>
+      <SettingsTabs active='settings' />
       <PageHeader
         title='Paramètres globaux'
         description='Règles métier pilotées par configuration (source unique : table settings).'

@@ -5,6 +5,7 @@ export type MapLayerKey =
   | 'regions'
   | 'anomalies'
   | 'vrac'
+  | 'trucks'
 
 export function getInitialLayers(): Record<MapLayerKey, boolean> {
   return {
@@ -14,6 +15,7 @@ export function getInitialLayers(): Record<MapLayerKey, boolean> {
     regions: true,
     anomalies: false,
     vrac: true,
+    trucks: true,
   }
 }
 
@@ -24,4 +26,5 @@ export const LAYER_LABELS: Record<MapLayerKey, string> = {
   regions: 'Régions',
   anomalies: 'Anomalies',
   vrac: 'Volume VRAC (TM)',
+  trucks: 'Véhicules & tournées',
 }

@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@lpg/ui'
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal, MapPin } from 'lucide-react'
 import { useEntityPermission } from '@/lib/permissions/use-entity-permission'
 import { canTransition, type SiteRole, type SiteRow, type TransitionRequest } from '../lib/site-status-machine'
 
@@ -25,11 +25,13 @@ export function SiteActionsMenu({
   role,
   onAction,
   onDelete,
+  onOpenMap,
 }: {
   row: SiteRow
   role: SiteRole
   onAction: (req: TransitionRequest) => void
   onDelete?: () => void
+  onOpenMap?: () => void
 }) {
   const perm = useEntityPermission('sites')
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -50,6 +52,13 @@ export function SiteActionsMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {onOpenMap ? (
+            <DropdownMenuItem onSelect={onOpenMap}>
+              <MapPin className='mr-2 size-4' />
+              Ouvrir sur la carte
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           {verify.ok ? (
             <DropdownMenuItem onSelect={() => onAction({ kind: 'verify' })}>

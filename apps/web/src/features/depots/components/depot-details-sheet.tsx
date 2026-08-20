@@ -1,4 +1,4 @@
-import { MapPin, Warehouse } from 'lucide-react'
+import { MapPin, Users, Warehouse } from 'lucide-react'
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@lpg/ui'
 import {
   Sheet,
@@ -8,6 +8,7 @@ import {
   SheetTitle,
 } from '@lpg/ui'
 import { EntityDetailTabs } from '@/components/entity-table'
+import { OrgPersonnel } from '@/features/users/components/org-personnel'
 import type { DepotView } from '../data/depots'
 import { depotStatusLabel } from '../data/depots'
 
@@ -110,6 +111,12 @@ export function DepotDetailsSheet({
                     </CardContent>
                   </Card>
                 ),
+              },
+              {
+                value: 'personnel',
+                label: 'Personnel',
+                icon: Users,
+                content: <OrgPersonnel orgId={depot.id} orgName={depot.name} />,
               },
             ]}
           />

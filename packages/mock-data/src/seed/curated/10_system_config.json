@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "description": "CSPH GPL Traceability System â€” Settings, Reports, Audit Logs, RFID Tags, Custom Roles seed data",
+    "description": "CSPH GPL Traceability System — Settings, Reports, Audit Logs, RFID Tags, Custom Roles seed data",
     "settings_note": "All business thresholds are referenced from the settings table by key. No hardcoded thresholds in application logic."
   },
   "settings": [
@@ -171,7 +171,7 @@
   "reports": [
     {
       "id": "rep-0001-oper-sctm",
-      "name": "Volume GPL livrÃ© â€” SCTM",
+      "name": "Volume GPL livré — SCTM",
       "type": "OPERATIONAL",
       "format": "EXCEL",
       "parameters_json": {
@@ -187,7 +187,7 @@
     },
     {
       "id": "rep-0002-fin-national",
-      "name": "SynthÃ¨se financiÃ¨re subventions",
+      "name": "Synthèse financière subventions",
       "type": "FINANCIAL",
       "format": "PDF",
       "parameters_json": {
@@ -202,7 +202,7 @@
     },
     {
       "id": "rep-0003-compliance-redress",
-      "name": "Suivi redressements Ã©mis",
+      "name": "Suivi redressements émis",
       "type": "COMPLIANCE",
       "format": "CSV",
       "parameters_json": {
@@ -213,7 +213,7 @@
     },
     {
       "id": "rep-0004-oper-total",
-      "name": "Mouvements vÃ©hicules â€” TotalEnergies",
+      "name": "Mouvements véhicules — TotalEnergies",
       "type": "OPERATIONAL",
       "format": "CSV",
       "parameters_json": {
@@ -225,7 +225,7 @@
     },
     {
       "id": "rep-0005-compliance-audit",
-      "name": "Rapport d'audit â€” vÃ©rifications terrain",
+      "name": "Rapport d'audit — vérifications terrain",
       "type": "COMPLIANCE",
       "format": "PDF",
       "parameters_json": {
@@ -363,7 +363,7 @@
       "id": "cr-0001-sctm-transport",
       "org_id": "org-0002-sctm-0000-000000000001",
       "name": "Gestionnaire transports",
-      "description": "GÃ¨re les tournÃ©es externalisÃ©es SCTM",
+      "description": "Gère les tournées externalisées SCTM",
       "permissions_json": {
         "tours.read": true,
         "tours.write": true,
@@ -377,7 +377,7 @@
       "id": "cr-0002-total-supervisor",
       "org_id": "org-0003-total-0000-000000000001",
       "name": "Superviseur terrain",
-      "description": "VÃ©rification terrain TotalEnergies",
+      "description": "Vérification terrain TotalEnergies",
       "permissions_json": {
         "sites.read": true,
         "sites.verify": true,
@@ -391,7 +391,7 @@
       "id": "cr-0003-csph-audit",
       "org_id": "org-0001-csph-0000-000000000001",
       "name": "Auditeur externe",
-      "description": "AccÃ¨s lecture complÃ¨te aux donnÃ©es d'audit",
+      "description": "Accès lecture complète aux données d'audit",
       "permissions_json": {
         "audit-logs.read": true,
         "audit-logs.export": true,

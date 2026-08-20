@@ -1,12 +1,20 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
+import type MapView from '@arcgis/core/views/MapView.js'
 import { MapIcon, Globe } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useTheme } from '@/context/theme-provider'
 import { useRoleStore } from '@/store/role-store'
+import { useAuthStore } from '@/store/auth-store'
+import { getScope } from '@/features/scope/scope'
 import { ROLE_LABELS } from '@/config/rbac/roles'
+import { siteTypeLabels } from '@/features/sites/data/sites'
+import { getNationalMapView } from '@/features/map/data/national-map'
 import { NationalMapFilters } from './components/national-map-filters'
+import { NationalMapToolbar, type MapSearchItem } from './components/national-map-toolbar'
+import { NationalMapDetails } from './components/national-map-details'
 import { getInitialLayers, type MapLayerKey } from './lib/layers'
+import type { BasemapMode, MapEntitySelection } from './components/national-map'
 
 const NationalMap = lazy(() =>
   import('./components/national-map').then((m) => ({ default: m.NationalMap })),
@@ -15,17 +23,44 @@ const NationalMap = lazy(() =>
 const route = getRouteApi('/_authenticated/map/')
 
 export function NationalMapPage() {
-  const { zone } = route.useSearch()
+  const { zone, site } = route.useSearch()
   const { resolvedTheme } = useTheme()
   const activeRole = useRoleStore((s) => s.activeRole)
+  const user = useAuthStore((s) => s.user)
+  const scope = useMemo(() => getScope(user), [user])
   const mapTheme = resolvedTheme === 'dark' ? 'dark' : 'light'
   const [layers, setLayers] = useState<Record<MapLayerKey, boolean>>(
     getInitialLayers(),
   )
+  const [basemap, setBasemap] = useState<BasemapMode>('vector')
+  const [refreshToken, setRefreshToken] = useState(0)
+  const [layersOpen, setLayersOpen] = useState(false)
+  const [selected, setSelected] = useState<MapEntitySelection | null>(null)
+  const [view, setView] = useState<MapView | null>(null)
 
   const toggleLayer = (key: MapLayerKey, enabled: boolean) => {
     setLayers((prev) => ({ ...prev, [key]: enabled }))
   }
+
+  const searchItems = useMemo<MapSearchItem[]>(() => {
+    const view = getNationalMapView(scope)
+    return [
+      ...view.sites.map((s) => ({
+        id: s.id,
+        label: s.name,
+        sublabel: `${siteTypeLabels[s.type]} · ${s.city}`,
+        lat: s.latitude,
+        lng: s.longitude,
+      })),
+      ...view.clientSites.map((cs) => ({
+        id: cs.id,
+        label: cs.name,
+        sublabel: 'Site client',
+        lat: cs.latitude,
+        lng: cs.longitude,
+      })),
+    ].filter((item) => item.lat && item.lng)
+  }, [scope])
 
   return (
     <main
@@ -43,11 +78,6 @@ export function NationalMapPage() {
       </section>
 
       <section className="relative rounded-xl border-transparent bg-background/92 p-4 shadow-sm">
-        <NationalMapFilters
-          layers={layers}
-          mapTheme={mapTheme}
-          onChange={toggleLayer}
-        />
         <Suspense
           fallback={
             <div
@@ -59,12 +89,49 @@ export function NationalMapPage() {
             </div>
           }
         >
-          <NationalMap
-            className='h-[700px] w-full rounded-lg'
-            focusZone={zone}
-            layers={layers}
-            mapTheme={mapTheme}
-          />
+          <div className="relative">
+            <NationalMap
+              className='h-[700px] w-full rounded-lg'
+              focusZone={zone}
+              focusSite={site}
+              layers={layers}
+              mapTheme={mapTheme}
+              basemap={basemap}
+              scope={scope}
+              refreshToken={refreshToken}
+              onViewReady={(readyView) => {
+                setView(readyView)
+              }}
+              onEntitySelect={(entity) => setSelected(entity)}
+            />
+            <NationalMapToolbar
+              view={view}
+              searchItems={searchItems}
+              basemap={basemap}
+              onBasemapChange={setBasemap}
+              onRefresh={() => setRefreshToken((token) => token + 1)}
+              onSearchPick={(item) => {
+                void view
+                  ?.goTo({ center: [item.lng, item.lat], zoom: 10 })
+                  .catch(() => undefined)
+              }}
+              layersOpen={layersOpen}
+              onLayersToggle={setLayersOpen}
+            />
+            {layersOpen ? (
+              <NationalMapFilters
+                layers={layers}
+                mapTheme={mapTheme}
+                onChange={toggleLayer}
+              />
+            ) : null}
+            {selected ? (
+              <NationalMapDetails
+                entity={selected}
+                onClose={() => setSelected(null)}
+              />
+            ) : null}
+          </div>
         </Suspense>
       </section>
 

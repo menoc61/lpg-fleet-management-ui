@@ -161,14 +161,7 @@ Rules:
 - The active actor determines which nav links show (actor point-of-view). Respect the
   role hierarchy: SUPERADMIN > ADMIN > SUPERVISOR/AGENT/INTEGRATEUR >
   MARKETEUR/TRANSPORTEUR > LIVREUR.
-- Post-login landing is **`/overview` for every role** (personalized). `/dashboard`
-  is SUPERADMIN's national view (gated by `dashboard.read`). The `dashboard-${role}`
-  routes (`/dashboard-admin`, `/dashboard-supervisor`, `/dashboard-marketeur`,
-  `/dashboard-transporteur`) remain sidebar destinations only for roles with that
-  data, each showing a role-appropriate subset of graphs/cards.
-- **Dashboard data:** `buildDashboardView(role, scope)` is always role + scope
-  aware; the role never changes the data source, only the visibility of panels
-  (`rolePanelVisibility`).
+- Post-login landing is **`/overview` for every role** (personalized). 
 
 ## 6. Code naming & units
 

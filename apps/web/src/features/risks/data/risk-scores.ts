@@ -14,6 +14,7 @@ export interface RiskScoreView {
   model_version: string
   updated_at: string
   detail: string
+  details: Record<string, unknown> | null
 }
 
 export const riskLevelLabels: Record<RiskLevel, string> = {
@@ -22,6 +23,31 @@ export const riskLevelLabels: Record<RiskLevel, string> = {
   ELEVE: 'Élevé',
   CRITIQUE: 'Critique',
   CRITIQUEEXTREME: 'Critique extrême',
+}
+
+export const riskLevelOrder: Record<RiskLevel, number> = {
+  FAIBLE: 0,
+  MODERE: 1,
+  ELEVE: 2,
+  CRITIQUE: 3,
+  CRITIQUEEXTREME: 4,
+}
+
+const DETAIL_LABELS: Record<string, string> = {
+  anomaly_count_90d: 'Anomalies (90 j)',
+  volume_gap_pct_avg: 'Écart de volume moyen',
+  unverified_sites: 'Sites non vérifiés',
+  offline_devices: 'Appareils hors ligne',
+  unacknowledged_tournees: 'Tournées non acquittées',
+  pending_redressements: 'Redressements en attente',
+  battery_critical: 'Batterie critique',
+  overdue_maintenance: 'Maintenance en retard',
+  late_deliveries_30d: 'Livraisons en retard (30 j)',
+  missed_checkpoints: 'Checkpoints manqués',
+}
+
+export function riskDetailLabel(key: string): string {
+  return DETAIL_LABELS[key] ?? key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 export const riskEntityLabels: Record<RiskEntityType, string> = {
@@ -76,6 +102,7 @@ export function getRiskScores(): RiskScoreView[] {
       model_version: r.model_version,
       updated_at: r.updated_at ?? r.created_at ?? '',
       detail: detailText(r.details_json ?? null),
+      details: r.details_json ?? null,
     }))
     .sort((a, b) => b.score - a.score)
 }
@@ -89,4 +116,30 @@ export function getRiskSummary(rows: RiskScoreView[]) {
     critique: rows.filter((r) => r.level === 'CRITIQUE' || r.level === 'CRITIQUEEXTREME').length,
     average: rows.length ? Math.round(rows.reduce((acc, r) => acc + r.score, 0) / rows.length) : 0,
   }
+}
+
+export interface RiskTypeCount {
+  entity_type: RiskEntityType
+  entity_label: string
+  count: number
+  average: number
+}
+
+/** Count + average score per entity type (for the composition chart). */
+export function getRiskByEntityType(rows: RiskScoreView[]): RiskTypeCount[] {
+  const byType = new Map<RiskEntityType, { count: number; total: number }>()
+  for (const r of rows) {
+    const entry = byType.get(r.entity_type) ?? { count: 0, total: 0 }
+    entry.count += 1
+    entry.total += r.score
+    byType.set(r.entity_type, entry)
+  }
+  return [...byType.entries()]
+    .map(([entity_type, entry]) => ({
+      entity_type,
+      entity_label: riskEntityLabels[entity_type] ?? entity_type,
+      count: entry.count,
+      average: entry.count > 0 ? Math.round(entry.total / entry.count) : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
 }
