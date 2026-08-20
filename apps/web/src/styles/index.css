@@ -3,6 +3,8 @@
 @import './theme.css';
 @import './surfaces.css';
 
+@source "../../../../../packages/ui/src/**/*.{ts,tsx}";
+
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
