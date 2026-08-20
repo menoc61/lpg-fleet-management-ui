@@ -1,6 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Cpu } from 'lucide-react'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import { useCallback, useState } from 'react'
 import { FirmwareTable } from './components/firmware-table'
 import { FirmwareDetailsSheet } from './components/firmware-details-sheet'

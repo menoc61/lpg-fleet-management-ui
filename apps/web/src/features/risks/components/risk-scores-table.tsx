@@ -12,7 +12,7 @@ import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@lpg/ui'
+} from '@/components/ui/table'
 import { getRiskScoreColumns } from './risk-scores-columns'
 import { riskLevelOptions, type RiskScoreView } from '../data/risk-scores'
 

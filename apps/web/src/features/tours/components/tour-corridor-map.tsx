@@ -10,14 +10,14 @@ import MapView from '@arcgis/core/views/MapView.js'
 import { AlertTriangle, Clock3, MapPinned, Route as RouteIcon, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/context/theme-provider'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lpg/ui'
+} from '@/components/ui/card'
 import { siteTypeLabels } from '@/features/sites/data/sites'
 import { type RouteTripView } from '../data/tour-activity'
 import { formatTm } from '@/features/map/utils/format'

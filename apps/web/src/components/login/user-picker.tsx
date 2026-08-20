@@ -6,12 +6,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@lpg/ui'
+} from '@/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@lpg/ui'
+} from '@/components/ui/popover'
 import {
   Avatar,
   AvatarFallback,

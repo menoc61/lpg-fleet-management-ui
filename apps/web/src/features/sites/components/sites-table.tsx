@@ -26,7 +26,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@lpg/ui'
+} from '@/components/ui/table'
 import { SiteStatusBadge } from './site-status-badge'
 import { SiteActionsMenu } from './site-actions-menu'
 import { cn } from '@/lib/utils'

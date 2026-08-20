@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
-import { Badge, Button, Input } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Main } from '@/components/layout/main'
 import {
   getDriverById,

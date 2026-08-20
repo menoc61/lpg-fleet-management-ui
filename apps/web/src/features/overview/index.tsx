@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, LayoutDashboard } from 'lucide-react'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lpg/ui'
+} from '@/components/ui/card'
 import { Main } from '@/components/layout/main'
 import { ROLE_LABELS } from '@/config/rbac/roles'
 import { getSidebarData } from '@/config/rbac/sidebar-by-role'

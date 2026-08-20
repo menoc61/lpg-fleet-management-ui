@@ -1,6 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Satellite } from 'lucide-react'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import { useCallback, useState } from 'react'
 import { GpsConfigTable } from './components/gps-config-table'
 import { GpsConfigDetailsSheet } from './components/gps-config-details-sheet'

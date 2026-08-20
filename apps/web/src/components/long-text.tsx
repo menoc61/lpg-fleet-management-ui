@@ -4,13 +4,13 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@lpg/ui'
+} from '@/components/ui/popover'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@lpg/ui'
+} from '@/components/ui/tooltip'
 
 type LongTextProps = {
   children: React.ReactNode

@@ -1,14 +1,14 @@
 import { type ElementType } from 'react'
 import { ArrowRight, Gauge, MapPinned, Package, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lpg/ui'
+} from '@/components/ui/card'
 import {
   buildRouteLpgVariation,
   type RouteLpgVariationStage,

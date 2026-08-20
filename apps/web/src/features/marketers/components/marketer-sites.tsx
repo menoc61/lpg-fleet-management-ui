@@ -1,7 +1,8 @@
 import { type Organization } from '@lpg/types'
 import { getMarketerSites } from '../data/marketer-sites'
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@lpg/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { siteTypeLabels, type SiteType } from '@/features/sites/data/sites'
+import { Badge } from '@/components/ui/badge'
 
 export function MarketerSites({ marketer }: { marketer: Organization }) {
   const sites = getMarketerSites(marketer.id)

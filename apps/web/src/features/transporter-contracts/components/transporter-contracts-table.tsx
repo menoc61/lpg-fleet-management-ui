@@ -20,7 +20,7 @@ import { useContractsStore } from '@/store/contracts-store'
 import { useRoleStore } from '@/store/role-store'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@lpg/ui'
+} from '@/components/ui/table'
 import { getTransporterContractColumns } from './transporter-contracts-columns'
 import type { TransporterContractView } from '../data/transporter-contracts'
 

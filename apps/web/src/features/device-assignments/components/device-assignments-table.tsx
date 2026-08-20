@@ -21,8 +21,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@lpg/ui'
-import { DataTablePagination, DataTableToolbar, Badge, Button } from '@lpg/ui'
+} from '@/components/ui/table'
+import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import type { DeviceAssignmentView } from '../data/device-assignments'
 import { deviceStatusLabel, deviceTypeLabel } from '../data/device-assignments'
 

@@ -2,12 +2,13 @@ import { type Table } from '@tanstack/react-table'
 import { Download, Scan, Ban } from 'lucide-react'
 import { toast } from 'sonner'
 import { sleep } from '@/lib/utils'
-import { Button, DataTableBulkActions as BulkActionsToolbar } from '@lpg/ui'
+import { Button } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@lpg/ui'
+} from '@/components/ui/tooltip'
+import { DataTableBulkActions as BulkActionsToolbar } from '@/components/data-table'
 import { type RfidTagView } from '../data/rfid-tags'
 
 type DataTableBulkActionsProps<TData> = {

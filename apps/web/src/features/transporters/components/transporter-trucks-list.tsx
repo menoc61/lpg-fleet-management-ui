@@ -1,6 +1,7 @@
 import { type Organization } from '@lpg/types'
 import { getTransporterTrucks } from '@/features/transporters/data/transporter-trucks'
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@lpg/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export function TransporterTrucksList({ transporter }: { transporter: Organization }) {
   const trucks = getTransporterTrucks(transporter.id)

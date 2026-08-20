@@ -15,7 +15,7 @@ import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@lpg/ui'
+} from '@/components/ui/table'
 import { getToursColumns } from './tours-columns'
 import { tourStatusOptions, executionModeOptions, type TourActivity } from '../data/tour-activity'
 

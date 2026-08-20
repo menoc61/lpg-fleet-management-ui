@@ -1,5 +1,6 @@
 import { type Organization } from '@lpg/types'
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@lpg/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export function MarketerCylindersRoutes({ marketer: _marketer }: { marketer: Organization }) {
   // Données simulées pour les tournées 50 kg

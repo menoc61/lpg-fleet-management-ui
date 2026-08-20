@@ -1,6 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { RadioTower } from 'lucide-react'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import { useCallback, useState } from 'react'
 import { DeviceAssignmentsTable } from './components/device-assignments-table'
 import { DeviceAssignmentDetailsSheet } from './components/device-assignment-details-sheet'

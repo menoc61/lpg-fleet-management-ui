@@ -19,14 +19,15 @@ import {
   YAxis,
 } from 'recharts'
 import { cn } from '@/lib/utils'
-import { Badge, Button } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lpg/ui'
+} from '@/components/ui/card'
 import { type Role } from '@/config/rbac/roles'
 import { Main } from '@/components/layout/main'
 import { formatTm, formatBtl } from '@/features/map/utils/format'

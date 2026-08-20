@@ -1,6 +1,7 @@
 import { type Organization } from '@lpg/types'
 import { getToursForTransporter, type TransporterTourWithDetails } from '../data/transporter-tours'
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@lpg/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {

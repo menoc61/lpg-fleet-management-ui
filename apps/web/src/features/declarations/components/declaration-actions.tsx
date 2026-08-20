@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@lpg/ui'
+import { Button } from '@/components/ui/button'
 import { hasPermission, type PermissionCode } from '@lpg/permissions'
 import { useRoleStore } from '@/store/role-store'
 import { useComplianceStore } from '@/store/compliance-store'

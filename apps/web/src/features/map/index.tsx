@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { MapIcon, Globe } from 'lucide-react'
-import { Badge } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import { useTheme } from '@/context/theme-provider'
 import { useRoleStore } from '@/store/role-store'
 import { ROLE_LABELS } from '@/config/rbac/roles'

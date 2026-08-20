@@ -23,8 +23,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@lpg/ui'
-import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
+} from '@/components/ui/table'
+import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
   deviceStatusOptions,
   deviceTypeOptions,

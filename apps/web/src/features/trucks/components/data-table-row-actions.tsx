@@ -1,7 +1,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Clipboard, Eye, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@lpg/ui'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@lpg/ui'
+} from '@/components/ui/dropdown-menu'
 import { type Truck } from '../data/trucks'
 
 type DataTableRowActionsProps = {

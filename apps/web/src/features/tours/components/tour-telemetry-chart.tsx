@@ -18,8 +18,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lpg/ui'
-import { Badge } from '@lpg/ui'
+} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import type { RouteTelemetryPoint, TourActivity } from '../data/tour-activity'
 
 type TourTelemetryChartProps = {

@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { CalendarDays, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge, Button, Input } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { RecomputeTable } from './components/recompute-table'
 import {
   riskLevelLabels,

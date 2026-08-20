@@ -1,6 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { Plus, Warehouse } from 'lucide-react'
-import { Badge, Button } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useCallback, useState } from 'react'
 import { EntityFormSheet, useEntityCrud } from '@/components/entity-crud'
 import { DepotsTable } from './components/depots-table'

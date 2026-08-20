@@ -10,14 +10,15 @@ import {
   UserRound,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge, Separator } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@lpg/ui'
+} from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import {
   routeSeverityClasses,
   routeSeverityLabels,

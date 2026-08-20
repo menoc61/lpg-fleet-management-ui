@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { drivers, users, vehicles } from '@lpg/mock-data'
-import { Button, Card, CardContent, Input, DataTable, StatusIndicator, STATUS_TONE_MAP } from '@lpg/ui'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@lpg/ui'
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -21,15 +22,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@lpg/ui'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@lpg/ui'
+} from '@/components/ui/select'
+import { DataTable } from '@lpg/ui'
 import type { ColumnDef } from '@tanstack/react-table'
+import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { getToursForTransporter } from '../data/transporter-tours'
 import type { TransporterTourWithDetails } from '../data/transporter-tours'
@@ -115,10 +119,18 @@ function PendingToursColumns(
       accessorKey: 'status',
       header: 'Statut',
       cell: ({ row }) => {
+        const status = row.original.status
         return (
-          <StatusIndicator tone={STATUS_TONE_MAP[status]} ariaLabel={`Statut: ${row.original.statusLabel}`}>
+          <span className='inline-flex items-center gap-1'>
+            <span className={cn(
+              'size-1.5 rounded-full',
+              status === 'CLOSED' ? 'bg-emerald-500' :
+              status === 'INPROGRESS' || status === 'CHECKPOINTACTIVE' ? 'bg-blue-500' :
+              status === 'PENDINGTRANSPORTERACK' ? 'bg-amber-500' :
+              status === 'CANCELLED' ? 'bg-rose-500' : 'bg-slate-400'
+            )} />
             <span className='text-xs font-medium'>{row.original.statusLabel}</span>
-          </StatusIndicator>
+          </span>
         )
       },
     },

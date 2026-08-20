@@ -1,6 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { FileCheck, Plus } from 'lucide-react'
-import { Badge, Button } from '@lpg/ui'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@lpg/api-client'

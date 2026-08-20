@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { api } from '@lpg/api-client'
 import { PageHeader } from '@/components/layout/page-header'
 import { PageShell, SectionCard } from '@/components/layout/page'
-import { Button } from '@lpg/ui'
+import { Button } from '@/components/ui/button'
 import type { SiteRole, SiteRow, TransitionRequest } from './lib/site-status-machine'
 import { canTransition } from './lib/site-status-machine'
 import { SitesTable } from './components/sites-table'
@@ -18,7 +18,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@lpg/ui'
+} from '@/components/ui/dialog'
 import { assertPermission } from '@/lib/security/guards'
 
 export function SitesScreen({ kind, role }: { kind: 'site' | 'client_site'; role: SiteRole }) {

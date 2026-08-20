@@ -12,7 +12,7 @@ import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@lpg/ui'
+} from '@/components/ui/table'
 import { getReconciliationColumns } from './reconciliations-columns'
 import { reconciliationStatusOptions, type ReconciliationView } from '../data/reconciliations'
 

@@ -7,8 +7,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@lpg/ui'
-import { Button } from '@lpg/ui'
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 
 type ConfirmDialogProps = {
   open: boolean

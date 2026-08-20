@@ -15,7 +15,7 @@ import { DataTablePagination, DataTableToolbar } from '@lpg/ui'
 import { cn } from '@/lib/utils'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@lpg/ui'
+} from '@/components/ui/table'
 import { getAnomalyColumns } from './anomalies-columns'
 import { anomalyStatusOptions, type AnomalyView } from '../data/anomalies'
 
