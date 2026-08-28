@@ -350,6 +350,36 @@
       "deleted_at": null,
       "created_by": null,
       "updated_by": null
+    },
+    {
+      "id": "org-0009-boco-000-000000000001",
+      "name": "BOCOM Petroleum SA",
+      "code": "BOCOM",
+      "type": "MARKETEUR",
+      "country": "Cameroon",
+      "status": "ACTIVE",
+      "created_at": "2026-08-27T13:37:41.394Z",
+      "updated_at": "2026-08-27T13:37:41.394Z"
+    },
+    {
+      "id": "org-0009-AXX-0000-000000000001",
+      "name": "AXX-SOPROPEC SA",
+      "code": "AXX",
+      "type": "MARKETEUR",
+      "country": "Cameroon",
+      "status": "ACTIVE",
+      "created_at": "2026-08-27T13:37:41.394Z",
+      "updated_at": "2026-08-27T13:37:41.394Z"
+    },
+    {
+      "id": "org-0001-snh-0000-000000000001",
+      "name": "SNH — Société Nationale des Hydrocarbures",
+      "code": "SNH",
+      "type": "DEPOT",
+      "country": "Cameroon",
+      "status": "ACTIVE",
+      "created_at": "2026-08-27T13:37:41.394Z",
+      "updated_at": "2026-08-27T13:37:41.394Z"
     }
   ]
 }

@@ -11,6 +11,7 @@ import { trucks } from '@/features/trucks/data/trucks'
 import { quantityInfo } from '@/features/trucks/lib/quantity'
 import type { UserScope } from '@/features/scope/scope'
 import type { Role } from '@/config/rbac/roles'
+import type { DateRange } from 'react-day-picker'
 
 export type DashboardPeriod = 'daily' | 'weekly' | 'monthly'
 export type DashboardMetricTone = 'sky' | 'emerald' | 'amber' | 'rose'
@@ -155,6 +156,12 @@ export type DashboardOverview = {
   criticalAlerts: number
 }
 
+export type DashboardQuery = {
+  range?: DateRange
+  period?: DashboardPeriod
+  fleetName?: string
+}
+
 export type DashboardView = {
   viewRole?: Role
   overview: DashboardOverview
@@ -168,6 +175,7 @@ export type DashboardView = {
   reserveSites: DashboardReserveSite[]
   alerts: DashboardAlert[]
   recentActivities: DashboardRecentActivity[]
+  query?: DashboardQuery
 }
 
 const reserveConfigBySiteId = {
@@ -371,6 +379,42 @@ function shiftMinutes(value: string, minutes: number) {
   const date = new Date(value)
   date.setMinutes(date.getMinutes() + minutes)
   return date.toISOString()
+}
+
+function formatDateRangeLabel(range?: DateRange): string | null {
+  if (!range?.from) return null
+  const fmt = (date: Date) =>
+    new Intl.DateTimeFormat('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date)
+  if (!range.to) return fmt(range.from)
+  return `${fmt(range.from)} – ${fmt(range.to)}`
+}
+
+function isWithinRange(dateIso: string, range: DateRange): boolean {
+  const time = new Date(dateIso).getTime()
+  if (Number.isNaN(time)) return true
+  const fromTime = range.from ? new Date(range.from).setHours(0, 0, 0, 0) : -Infinity
+  const toTime = range.to ? new Date(range.to).setHours(23, 59, 59, 999) : Infinity
+  return time >= fromTime && time <= toTime
+}
+
+function applyDateRangeFilter<T extends RouteTripView>(
+  trips: readonly T[],
+  range?: DateRange
+): readonly T[] {
+  if (!range?.from && !range?.to) return trips
+  const normalized: DateRange = {
+    from: range.from,
+    to: range.to ?? range.from,
+  }
+  return trips.filter(
+    (trip) =>
+      isWithinRange(trip.startedAt, normalized) ||
+      isWithinRange(trip.lastUpdatedAt, normalized)
+  )
 }
 
 function buildTrendSeries(current: {
@@ -903,9 +947,11 @@ function buildRecentActivities(
 
 export function buildDashboardView(
   role?: Role,
-  scope?: UserScope
+  scope?: UserScope,
+  query?: DashboardQuery
 ): DashboardView {
-  const routeViews = getRouteTripsView('ALL', scope)
+  const allRouteViews = getRouteTripsView('ALL', scope)
+  const routeViews = applyDateRangeFilter(allRouteViews, query?.range)
   const routeSummary = buildRouteSummary(routeViews)
   const reserveSites = buildReserveSites(scope)
   const alerts = buildAlerts(reserveSites, scope)
@@ -945,27 +991,41 @@ export function buildDashboardView(
       ? trip.lastUpdatedAt
       : latest
   }, routeViews[0]?.lastUpdatedAt ?? new Date().toISOString())
-  const fleets = buildFleetSummaries(totalTransportedTM, scope)
-  const flowBreakdown = buildFlowBreakdown(fleets, totalTransportedTM)
+  const allFleets = buildFleetSummaries(totalTransportedTM, scope)
+  const fleets = query?.fleetName
+    ? allFleets.filter((fleet) => fleet.fleetName === query.fleetName)
+    : allFleets
+  const flowBreakdown = buildFlowBreakdown(
+    query?.fleetName ? fleets : allFleets,
+    totalTransportedTM
+  )
   const reserveSummary = buildReserveSummary(reserveSites)
+  const routeContributionsFiltered = query?.fleetName
+    ? routeViews.filter((trip) => trip.truck.tenant_name === query.fleetName)
+    : routeViews
   const routeContributions = buildRouteContributions(
-    routeViews,
+    [...routeContributionsFiltered],
     totalTransportedTM,
     totalDeliveredTM
   )
   const recentActivities = buildRecentActivities(
-    routeViews,
+    [...routeViews],
     reserveSites,
     generatedAt
   )
 
-  const dailyCurrent = trendByPeriod.daily[trendByPeriod.daily.length - 1]!
-  const dailyPrevious = trendByPeriod.daily[trendByPeriod.daily.length - 2]!
+  const activePeriod: DashboardPeriod = query?.period ?? 'daily'
+  const periodSeries = trendByPeriod[activePeriod]
+  const periodCurrent = periodSeries[periodSeries.length - 1]!
+  const periodPrevious = periodSeries[periodSeries.length - 2]!
+  const dynamicDateLabel =
+    formatDateRangeLabel(query?.range) ?? '01 avr 2026 - 28 avr 2026'
 
   return {
     viewRole: role,
+    query,
     overview: {
-      dateRangeLabel: '01 avr 2026 - 28 avr 2026',
+      dateRangeLabel: dynamicDateLabel,
       generatedAt,
       totalTransportedTM,
       totalDeliveredTM,
@@ -992,11 +1052,11 @@ export function buildDashboardView(
         unit: 'TM',
         tone: 'sky',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.transportedTM,
-          dailyPrevious.transportedTM
+          periodCurrent.transportedTM,
+          periodPrevious.transportedTM
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.transportedTM - dailyPrevious.transportedTM
+          periodCurrent.transportedTM - periodPrevious.transportedTM
         ),
         description: "Volume chargé sur l'ensemble des tournées visibles.",
         highlight: `${routeSummary.activeTrips} tournées actives`,
@@ -1008,11 +1068,11 @@ export function buildDashboardView(
         unit: 'TM',
         tone: 'emerald',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.reserveTM,
-          dailyPrevious.reserveTM
+          periodCurrent.reserveTM,
+          periodPrevious.reserveTM
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.reserveTM - dailyPrevious.reserveTM
+          periodCurrent.reserveTM - periodPrevious.reserveTM
         ),
         description: 'Stock pilotable sur les sites de charge et de reprise.',
         highlight: `${round((totalReserveTM / reserveCapacityTM) * 100)}% de remplissage`,
@@ -1024,11 +1084,11 @@ export function buildDashboardView(
         unit: 'TM',
         tone: 'amber',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.delivered,
-          dailyPrevious.delivered
+          periodCurrent.delivered,
+          periodPrevious.delivered
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.delivered - dailyPrevious.delivered
+          periodCurrent.delivered - periodPrevious.delivered
         ),
         description: 'Volume déjà délivré ou déposé sur les étapes confirmées.',
         highlight: `${routeSummary.onTimeRate}% de service`,
@@ -1040,11 +1100,11 @@ export function buildDashboardView(
         unit: 'count',
         tone: 'rose',
         deltaPercent: getDeltaPercent(
-          dailyCurrent.alertCount,
-          dailyPrevious.alertCount
+          periodCurrent.alertCount,
+          periodPrevious.alertCount
         ),
         deltaDirection: getTrendDirection(
-          dailyCurrent.alertCount - dailyPrevious.alertCount
+          periodCurrent.alertCount - periodPrevious.alertCount
         ),
         description:
           'Écarts de charge, réserve basse et retards à traiter par priorité.',
@@ -1053,6 +1113,7 @@ export function buildDashboardView(
     ],
     trendByPeriod,
     cadence: buildCadence(trendByPeriod),
+    // keep query for consumers needing active filters
     flowBreakdown,
     reserveSummary,
     fleets,

@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { CAMEROON_CENTER } from '@/features/map/lib/cameroon-boundaries'
 import type { BasemapMode } from './national-map'
 
 export type MapSearchItem = {
@@ -34,8 +35,6 @@ export type NationalMapToolbarProps = {
   layersOpen: boolean
   onLayersToggle: (open: boolean) => void
 }
-
-const CAMEROON_CENTER: [number, number] = [8.7, 12.3]
 
 export function NationalMapToolbar({
   view,
@@ -141,7 +140,7 @@ export function NationalMapToolbar({
           label='Revenir à la vue nationale'
           onClick={() => {
             void view
-              ?.goTo({ center: CAMEROON_CENTER, zoom: 7 })
+              ?.goTo({ center: [...CAMEROON_CENTER] as unknown as [number, number], zoom: 7 })
               .catch(() => undefined)
           }}
         >

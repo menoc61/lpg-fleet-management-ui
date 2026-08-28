@@ -1,7 +1,4 @@
 import { curated, organizations } from '@lpg/mock-data'
-import type { ClientSite } from '@lpg/types'
-
-export type ClientSiteMarkerType = 'client-marketer' | 'client-delivery' | 'client-other'
 
 export interface ClientSiteView {
   id: string
@@ -12,7 +9,6 @@ export interface ClientSiteView {
   client_org_id: string
   current_marketeur_org_id: string | null
   is_active: boolean
-  markerType: ClientSiteMarkerType
   longitude: number
   latitude: number
 }
@@ -42,12 +38,6 @@ function cityFromAddress(address: string | undefined): string {
   return tokens[tokens.length - 1] ?? '—'
 }
 
-function markerTypeFor(clientSite: ClientSite): ClientSiteMarkerType {
-  if (clientSite.client_org_id.includes('marketeur')) return 'client-marketer'
-  if (clientSite.client_org_id.includes('client')) return 'client-delivery'
-  return 'client-other'
-}
-
 export const clientSites: readonly ClientSiteView[] = curated.client_sites.map(
   (cs): ClientSiteView => {
     const geo = cs.geo_point as [number, number] | null | undefined
@@ -60,7 +50,6 @@ export const clientSites: readonly ClientSiteView[] = curated.client_sites.map(
       client_org_id: cs.client_org_id,
       current_marketeur_org_id: cs.current_marketeur_org_id ?? null,
       is_active: cs.is_active,
-      markerType: markerTypeFor(cs),
       longitude: geo?.[0] ?? 0,
       latitude: geo?.[1] ?? 0,
     }

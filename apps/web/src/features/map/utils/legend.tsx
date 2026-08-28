@@ -1,9 +1,6 @@
 import type { SiteType } from '@/features/sites/data/sites'
-import { siteMarkerTokens } from '@/features/sites/utils/site-graphics'
-import {
-  getSiteIconUrl,
-  rgbaFromTuple,
-} from './map-theme'
+import { getSiteIconUrl, siteMarkerTokens } from '@/features/sites/utils/site-graphics'
+import { rgbaFromTuple } from './map-theme'
 import type { MapTheme } from './map-theme'
 
 export function LegendSiteIcon({
@@ -14,14 +11,6 @@ export function LegendSiteIcon({
   mapTheme: MapTheme
 }) {
   const marker = siteMarkerTokens[type]
-  if (marker.iconKind === 'marker') {
-    return (
-      <span
-        className='block size-2.5 rounded-full'
-        style={{ backgroundColor: marker.swatch }}
-      />
-    )
-  }
   return (
     <span
       className='flex size-6 items-center justify-center rounded-full'

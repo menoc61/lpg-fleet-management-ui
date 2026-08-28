@@ -52,7 +52,7 @@ export function ClientsTable({
 
   const columns = useMemo<ColumnDef<ClientView>[]>(
     () => [
-      {
+     /* {
         accessorKey: 'id',
         header: 'ID',
         cell: ({ row }: { row: { original: ClientView } }) => (
@@ -60,7 +60,7 @@ export function ClientsTable({
         ),
         meta: { label: 'ID' },
         enableHiding: false,
-      },
+      },*/
       {
         accessorKey: 'name',
         header: ({ column }: { column: { toggleSorting: (asc?: boolean) => void; getIsSorted: () => boolean | 'asc' | 'desc' } }) => (

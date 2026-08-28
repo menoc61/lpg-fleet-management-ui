@@ -10,6 +10,17 @@ export type NationalMapFiltersProps = {
   onChange: (key: MapLayerKey, enabled: boolean) => void
 }
 
+const USEFUL_LAYER_KEYS: MapLayerKey[] = [
+  'sites',
+  'clientSites',
+  'zoneBoundaries',
+  'countryBoundaries',
+  'trucks',
+  'checkpoints',
+  'anomalies',
+  'heatmap',
+]
+
 export function NationalMapFilters({
   layers,
   mapTheme = 'light',
@@ -18,9 +29,11 @@ export function NationalMapFilters({
   return (
     <nav className="pointer-events-auto absolute bottom-20 left-4 flex flex-col gap-2 overflow-y-auto rounded-2xl bg-background/70 p-3 shadow-lg backdrop-blur-md max-h-[calc(100vh-220px)]">
       <p className="mb-1 text-xs font-semibold text-foreground/80">
-        Couches de la carte
+        Couches de la carte — utile (filtré entreprise)
       </p>
-      {(Object.keys(layers) as MapLayerKey[]).map((key) => (
+      {(Object.keys(layers) as MapLayerKey[])
+        .filter((key) => USEFUL_LAYER_KEYS.includes(key))
+        .map((key) => (
         <div
           key={key}
           className="flex items-center justify-between gap-3 rounded-md px-1 py-1.5 hover:bg-accent/40"

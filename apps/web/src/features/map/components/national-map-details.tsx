@@ -25,12 +25,11 @@ const kindLabels: Record<MapEntitySelection['kind'], string> = {
   truck: 'Véhicule',
   anomaly: 'Anomalie',
   region: 'Région',
-  zone: 'Zone',
-  vrac: 'Volume VRAC',
+  checkpoint: 'Point de contrôle',
 }
 
 const hrefFor: Record<
-  Exclude<MapEntitySelection['kind'], 'region' | 'zone' | 'vrac'>,
+  Exclude<MapEntitySelection['kind'], 'region' | 'checkpoint'>,
   string
 > = {
   site: '/sites',
@@ -48,11 +47,13 @@ export function NationalMapDetails({
       ? Truck
       : entity.kind === 'anomaly'
         ? AlertTriangle
-        : entity.kind === 'site' || entity.kind === 'client-site'
-          ? MapPin
-          : entity.kind === 'region' || entity.kind === 'zone'
-            ? Route
-            : Building2
+        : entity.kind === 'checkpoint'
+          ? Route
+          : entity.kind === 'site' || entity.kind === 'client-site'
+            ? MapPin
+            : entity.kind === 'region'
+              ? Route
+              : Building2
 
   return (
     <div className="absolute top-4 right-4 z-10 w-72 rounded-2xl border border-border/60 bg-background/95 p-4 shadow-lg backdrop-blur">
@@ -118,6 +119,13 @@ function EntityMeta({ entity }: { entity: MapEntitySelection }) {
       return entity.severity ? (
         <StatusLine label='Sévérité' value={entity.severity} />
       ) : null
+    case 'checkpoint':
+      return (
+        <>
+          <StatusLine label='Tournée' value={entity.tourId} />
+          <StatusLine label='Séquence' value={String(entity.sequence)} />
+        </>
+      )
     default:
       return null
   }

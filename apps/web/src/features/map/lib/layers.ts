@@ -1,30 +1,35 @@
 export type MapLayerKey =
   | 'sites'
   | 'clientSites'
-  | 'zones'
-  | 'regions'
+  | 'zoneBoundaries'
+  | 'countryBoundaries'
   | 'anomalies'
-  | 'vrac'
   | 'trucks'
+  | 'checkpoints'
+  | 'heatmap'
+
+export type MapEntityFilter = 'all' | 'marketeur' | 'transporteur' | 'client'
 
 export function getInitialLayers(): Record<MapLayerKey, boolean> {
   return {
     sites: true,
     clientSites: true,
-    zones: false,
-    regions: true,
-    anomalies: false,
-    vrac: true,
+    zoneBoundaries: true,
+    countryBoundaries: false,
+    anomalies: true,
     trucks: true,
+    checkpoints: false,
+    heatmap: false,
   }
 }
 
 export const LAYER_LABELS: Record<MapLayerKey, string> = {
   sites: 'Sites marchands',
   clientSites: 'Sites clients',
-  zones: 'Zones géographiques',
-  regions: 'Régions',
+  zoneBoundaries: 'Limites Régions',
+  countryBoundaries: 'Limite Pays',
   anomalies: 'Anomalies',
-  vrac: 'Volume VRAC (TM)',
   trucks: 'Véhicules & tournées',
+  checkpoints: 'Points de contrôle',
+  heatmap: 'Carte de chaleur',
 }

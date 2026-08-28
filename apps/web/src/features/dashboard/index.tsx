@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import {
-  ArrowDownToLine,
   ArrowDownRight,
   ArrowUpRight,
-  CalendarRange,
   ChevronRight,
+  ShieldAlert,
+  Truck,
+  Gauge,
+  Droplets,
 } from 'lucide-react'
 import {
   Bar,
@@ -40,10 +42,14 @@ import {
   type DashboardBreakdownItem,
   type DashboardFleetSummary,
   type DashboardMetric,
+  type DashboardPeriod,
+  type DashboardQuery,
   type DashboardRecentActivity,
   type DashboardReserveSite,
   type DashboardRouteContribution,
 } from './data/dashboard'
+import { DashboardFilters } from './components/dashboard-filters'
+import { trucks } from '@/features/trucks/data/trucks'
 
 export function DashboardPage({ role }: { role?: Role } = {}) {
   const user = useAuthStore((s) => s.user)
@@ -52,15 +58,24 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
   // store imperatively via getRouteTripsView).
   const storeTours = useToursStore((s) => s.tours)
   const storeCheckpoints = useToursStore((s) => s.checkpoints)
+  const [query, setQuery] = useState<DashboardQuery>({ period: 'daily' })
   const dashboard = useMemo(
-    () => buildDashboardView(role, getScope(user)),
+    () => buildDashboardView(role, getScope(user), query),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [role, user, storeTours, storeCheckpoints]
+    [role, user, storeTours, storeCheckpoints, query]
   )
   const [selectedDetailId, setSelectedDetailId] =
     useState<DashboardDetailId>('transported')
+  const allFleetNames = useMemo(
+    () => [...new Set(trucks.map((truck) => truck.tenant_name))].sort(),
+    []
+  )
   const monthlySeries = dashboard.trendByPeriod.monthly
-  const dailyAlerts = dashboard.trendByPeriod.daily
+  // Sparkline adapts to active period for KPI context
+  const activeSparkline = useMemo(() => {
+    const period: DashboardPeriod = query.period ?? 'daily'
+    return dashboard.trendByPeriod[period].map((item) => item.alertCount)
+  }, [dashboard.trendByPeriod, query.period])
   const panels = rolePanelVisibility(role)
 
   const heading =
@@ -98,7 +113,7 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
 
   return (
     <Main fluid className='space-y-6 bg-muted/20'>
-      <section className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+      <section className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
         <div className='space-y-1'>
           <h1 className='font-manrope text-3xl font-semibold tracking-tight'>
             {heading}
@@ -107,22 +122,16 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
             {subtitle}
           </p>
         </div>
-
-        <div className='flex flex-wrap gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            className='h-10 rounded-xl bg-background shadow-none'
-          >
-            <CalendarRange className='size-4' />
-            {dashboard.overview.dateRangeLabel}
-          </Button>
-          <Button type='button' size='icon' className='h-10 w-10 rounded-xl'>
-            <ArrowDownToLine className='size-4' />
-            <span className='sr-only'>Exporter</span>
-          </Button>
-        </div>
       </section>
+
+      <DashboardFilters
+        query={query}
+        onQueryChange={setQuery}
+        fleetOptions={allFleetNames}
+        dashboard={dashboard}
+      />
+
+      <SecondaryKpiStrip dashboard={dashboard} />
 
       <section className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         {dashboard.metrics.map((metric) => (
@@ -130,9 +139,7 @@ export function DashboardPage({ role }: { role?: Role } = {}) {
             key={metric.id}
             metric={metric}
             sparkline={
-              metric.id === 'alerts'
-                ? dailyAlerts.map((item) => item.alertCount)
-                : null
+              metric.id === 'alerts' ? activeSparkline : null
             }
             selected={metric.id === selectedDetailId}
             onSelect={() => setSelectedDetailId(metric.id as DashboardDetailId)}
@@ -1106,6 +1113,79 @@ function FleetPerformanceCard({ fleets }: { fleets: DashboardFleetSummary[] }) {
         ))}
       </CardContent>
     </Card>
+  )
+}
+
+function SecondaryKpiStrip({
+  dashboard,
+}: {
+  dashboard: ReturnType<typeof buildDashboardView>
+}) {
+  const utilization = dashboard.overview.totalTrucks
+    ? Math.round((dashboard.overview.activeTrucks / dashboard.overview.totalTrucks) * 100)
+    : 0
+  const activePeriod =
+    (dashboard.query?.period as DashboardPeriod | undefined) ?? 'daily'
+  const serviceRate =
+    dashboard.trendByPeriod[activePeriod]?.[dashboard.trendByPeriod[activePeriod].length - 1]?.serviceRate ?? 0
+
+  const items = [
+    {
+      label: 'Couverture réserve',
+      value: `${dashboard.overview.reserveCoverageDays.toFixed(1)} jours`,
+      subValue: `${dashboard.overview.reserveFillPercent}% remplissage`,
+      icon: Droplets,
+      tone: dashboard.overview.reserveFillPercent < 35 ? 'rose' : 'emerald',
+    },
+    {
+      label: 'Mobilisation flotte',
+      value: `${utilization}%`,
+      subValue: `${dashboard.overview.activeTrucks}/${dashboard.overview.totalTrucks} camions actifs`,
+      icon: Truck,
+      tone: 'sky',
+    },
+    {
+      label: 'Taux de service',
+      value: `${serviceRate}%`,
+      subValue: `Période: ${activePeriod}`,
+      icon: Gauge,
+      tone: serviceRate < 75 ? 'amber' : 'emerald',
+    },
+    {
+      label: 'Écarts & risques',
+      value: `${dashboard.overview.criticalAlerts} critiques`,
+      subValue: `${dashboard.overview.openAlerts} alertes • ${formatTm(dashboard.overview.abnormalLossTM)} écart`,
+      icon: ShieldAlert,
+      tone: dashboard.overview.criticalAlerts > 0 ? 'rose' : 'emerald',
+    },
+  ] as const
+
+  return (
+    <section className='grid gap-3 md:grid-cols-2 xl:grid-cols-4'>
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className='flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 shadow-none'
+        >
+          <div
+            className={cn(
+              'flex size-10 shrink-0 items-center justify-center rounded-xl border',
+              item.tone === 'rose' && 'bg-rose-500/10 border-rose-500/20 text-rose-600',
+              item.tone === 'emerald' && 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600',
+              item.tone === 'sky' && 'bg-sky-500/10 border-sky-500/20 text-sky-600',
+              item.tone === 'amber' && 'bg-amber-500/10 border-amber-500/20 text-amber-600'
+            )}
+          >
+            <item.icon className='size-4' />
+          </div>
+          <div className='min-w-0'>
+            <p className='text-xs tracking-[0.12em] text-muted-foreground uppercase'>{item.label}</p>
+            <p className='truncate text-sm font-semibold'>{item.value}</p>
+            <p className='truncate text-xs text-muted-foreground'>{item.subValue}</p>
+          </div>
+        </div>
+      ))}
+    </section>
   )
 }
 

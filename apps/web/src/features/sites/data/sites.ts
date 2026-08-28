@@ -22,6 +22,8 @@ export type Site = {
   description: string
   status: SiteStatus
   isKeySite?: boolean
+  functions: string[]
+  allTypes: SiteType[]
 }
 
 export const siteTypeLabels: Record<SiteType, string> = {
@@ -71,6 +73,24 @@ function viewTypeFromSeed(
   return 'marketer'
 }
 
+function allTypesFromSeed(
+  site: CuratedSite | ClientSite,
+  primary: SiteType,
+  orgName: string,
+): SiteType[] {
+  const functions = 'functions' in site ? (site.functions ?? []) : []
+  const set = new Set<SiteType>([primary])
+  // SCDP is org-based, not function, but keep as separate type if org is SCDP
+  if (orgName.includes('SCDP')) set.add('scdp')
+  if (functions.includes('CENTREEMPLISSEUR')) set.add('filling-center')
+  if (functions.includes('ENTREPOT')) set.add('depot')
+  if (functions.includes('POINTAPPROVISIONABLE')) set.add('delivery-point')
+  if (set.size === 1 && primary === 'marketer' && functions.length === 0) {
+    return ['marketer']
+  }
+  return [...set].sort()
+}
+
 function viewStatusFromSeed(
   status: string | undefined,
   isActive: boolean,
@@ -114,6 +134,8 @@ export const sites: Site[] = seedSites.map((site) => {
   const orgId_ = orgId(site)
   const orgName = orgByName.get(orgId_) ?? orgId_
   const type = viewTypeFromSeed(site, orgName)
+  const allTypes = allTypesFromSeed(site, type, orgName)
+  const rawFunctions = 'functions' in site ? ((site.functions ?? []) as string[]) : []
   const status = viewStatusFromSeed(
     'status' in site ? (site as CuratedSite).status : undefined,
     'is_active' in site ? (site as ClientSite).is_active : true,
@@ -123,6 +145,8 @@ export const sites: Site[] = seedSites.map((site) => {
     id: site.id,
     name: site.name,
     type,
+    allTypes,
+    functions: rawFunctions,
     city: cityFromAddress('address' in site ? (site as CuratedSite | ClientSite).address : undefined),
     region: REGION_LABELS[region] ?? region,
     operator: orgName,
