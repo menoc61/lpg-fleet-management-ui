@@ -84,7 +84,7 @@ export function ClientDetailsSheet({
                         </CardTitle>
                       </CardHeader>
                       <CardContent className='space-y-3'>
-                        <DetailLine label='ID' value={client.id} />
+                       {/* <DetailLine label='ID' value={client.id} /> */}
                         <DetailLine label='Nom' value={client.name} />
                         <DetailLine label='Region' value={client.region} />
                         <DetailLine label='Sites' value={`${client.clientSiteCount}`} />

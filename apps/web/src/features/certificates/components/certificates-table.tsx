@@ -8,8 +8,10 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getGroupedRowModel,
   type SortingState,
   type VisibilityState,
+  type GroupingState,
   useReactTable,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
@@ -63,6 +65,7 @@ export function CertificatesTable({
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+  const [grouping, setGrouping] = useState<GroupingState>([])
 
   const columns = useMemo<ColumnDef<CertificateView>[]>(
     () => [
@@ -188,6 +191,7 @@ export function CertificatesTable({
       rowSelection,
       columnFilters,
       columnVisibility,
+       grouping,
     },
     enableRowSelection: true,
     onPaginationChange,
@@ -201,6 +205,8 @@ export function CertificatesTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    onGroupingChange: setGrouping,
+    getGroupedRowModel: getGroupedRowModel(),
   })
 
   useEffect(() => {
@@ -209,18 +215,34 @@ export function CertificatesTable({
 
   return (
     <div className='flex flex-1 flex-col gap-4'>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Rechercher une plaque...'
-        searchKey='licensePlate'
-        filters={[
-          {
-            columnId: 'status',
-            title: 'Statut',
-            options: STATUS_OPTIONS,
-          },
-        ]}
-      />
+       <div className='flex flex-wrap items-center gap-3'>
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder='Rechercher une plaque...'
+          searchKey='licensePlate'
+          filters={[
+            {
+              columnId: 'status',
+              title: 'Statut',
+              options: STATUS_OPTIONS,
+            },
+          ]}
+        />
+
+        <div className='flex items-center gap-2'>
+          <span className='text-xs text-muted-foreground'>Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) => setGrouping(e.target.value ? [e.target.value] : [])}
+            className='h-8 rounded-md border bg-background px-2 text-sm'
+          >
+            <option value=''>—</option>
+            <option value='vehicleType'>Type</option>
+            <option value='orgName'>Organisation</option>
+            <option value='status'>Statut</option>
+          </select>
+        </div>
+        </div>
 
       <div className='overflow-hidden rounded-md border'>
         <Table>

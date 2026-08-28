@@ -105,6 +105,7 @@ export function UsersTable({
 
   return (
     <div className='flex flex-1 flex-col gap-4'>
+       <div className='flex flex-wrap items-center gap-3'>
       <DataTableToolbar
         table={table}
         searchPlaceholder='Rechercher un utilisateur...'
@@ -148,6 +149,7 @@ export function UsersTable({
           <option value='status'>Statut</option>
           <option value='mfaStatus'>MFA</option>
         </select>
+      </div>
       </div>
 
       <div className='overflow-hidden rounded-md border'>

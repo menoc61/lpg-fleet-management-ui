@@ -185,7 +185,9 @@ function placeholderSite(): Site {
   return {
     id: '',
     name: '—',
-    type: 'DEPOT' as Site['type'],
+    type: 'depot' as Site['type'],
+    allTypes: ['depot'] as Site['allTypes'],
+    functions: [],
     city: '',
     region: '',
     operator: '',

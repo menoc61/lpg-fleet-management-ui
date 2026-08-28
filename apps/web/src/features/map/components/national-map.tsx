@@ -7,17 +7,31 @@ import esriConfig from '@arcgis/core/config.js'
 import Point from '@arcgis/core/geometry/Point.js'
 import Polyline from '@arcgis/core/geometry/Polyline.js'
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js'
+import FeatureLayer from '@arcgis/core/layers/FeatureLayer.js'
+import GroupLayer from '@arcgis/core/layers/GroupLayer.js'
+import HeatmapRenderer from '@arcgis/core/renderers/HeatmapRenderer.js'
 import MapView from '@arcgis/core/views/MapView.js'
+import Legend from '@arcgis/core/widgets/Legend.js'
+import {
+  CAMEROON_CENTER,
+  CAMEROON_COUNTRY_PORTAL_ITEM_ID,
+  CAMEROON_REGION_PORTAL_ITEM_ID,
+} from '@/features/map/lib/cameroon-boundaries'
 import type { ClickEvent } from '@arcgis/core/views/input/types.js'
 import { AlertTriangle, Wifi } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import type { NationalMapView } from '@/features/map/data/national-map'
+import { getPeriodRange } from '@/features/map/data/national-map'
+import type { TourPeriod } from '@/features/map/data/national-map'
 import {
+  BOUNDARY_TOKENS,
+  HEATMAP_DEFAULTS,
+  MAP_DEFAULTS,
+  TRUCK_STATUS_COLORS,
   getArcgisBasemap,
   getArcgisViewTheme,
   getMarkerOutlineColor,
-  rgbaFromTuple,
 } from '@/features/map/utils/map-theme'
 import type { MapTheme } from '@/features/map/utils/map-theme'
 import { LegendSiteIcon } from '@/features/map/utils/legend'
@@ -30,13 +44,16 @@ import {
 import {
   buildClientSitePopupContent,
   buildRegionPopupContent,
-  buildZonePopupContent,
-  buildVracPopupContent,
   buildAnomalyPopupContent,
 } from '@/features/map/utils/popup'
-import { createSiteGraphics } from '@/features/sites/utils/site-graphics'
+import {
+  createSiteGraphics,
+  createSitePopupContent as buildSitePopupContent,
+  popupLine,
+} from '@/features/sites/utils/site-graphics'
+import { siteTypeLabels } from '@/features/sites/data/sites'
 import type { SiteStatus, SiteType } from '@/features/sites/data/sites'
-import { siteStatusLabels, siteTypeLabels } from '@/features/sites/data/sites'
+import type { Site } from '@/features/sites/data/sites'
 import {
   getTruckTelemetry,
   statusLabels,
@@ -47,6 +64,7 @@ import { quantityInfo } from '@/features/trucks/lib/quantity'
 import type { RouteTripView } from '@/features/tours/data/tour-activity'
 import type { UserScope } from '@/features/scope/scope'
 import { getNationalMapView } from '@/features/map/data/national-map'
+import { organizations } from '@lpg/mock-data'
 import lpgImageUrl from '@/assets/lpg.png'
 
 const arcgisApiKey = String(import.meta.env.VITE_ARCGIS_API_KEY ?? '').trim()
@@ -55,18 +73,8 @@ if (arcgisApiKey) {
   esriConfig.apiKey = arcgisApiKey
 }
 
-const CAMEROON_CENTER: [number, number] = [8.7, 12.3]
-
-const truckStatusColors: Record<TruckStatus, [number, number, number, number]> = {
-  DRAFT: [100, 116, 139, 0.9],
-  PLANNED: [14, 165, 233, 0.95],
-  PENDINGTRANSPORTERACK: [245, 158, 11, 0.95],
-  ACKNOWLEDGED: [16, 185, 129, 0.95],
-  INPROGRESS: [14, 165, 233, 0.95],
-  CHECKPOINTACTIVE: [168, 85, 247, 0.95],
-  CLOSED: [100, 116, 139, 0.9],
-  CANCELLED: [239, 68, 68, 0.95],
-}
+const truckStatusColors: Record<TruckStatus, [number, number, number, number]> =
+  TRUCK_STATUS_COLORS as unknown as Record<TruckStatus, [number, number, number, number]>
 
 const activeRouteStatuses = ['planned', 'in-progress', 'incident'] as const
 
@@ -78,8 +86,7 @@ export type MapEntitySelection =
   | { kind: 'truck'; id: string; title: string; plate: string; status: TruckStatus }
   | { kind: 'anomaly'; id: string; title: string; severity: string }
   | { kind: 'region'; id: string; title: string }
-  | { kind: 'zone'; id: string; title: string }
-  | { kind: 'vrac'; id: string; title: string }
+  | { kind: 'checkpoint'; id: string; title: string; tourId: string; sequence: number }
 
 export type NationalMapProps = {
   mapTheme?: MapTheme
@@ -93,6 +100,10 @@ export type NationalMapProps = {
   refreshToken?: number
   onEntitySelect?: (entity: MapEntitySelection) => void
   onViewReady?: (view: MapView) => void
+  entityFilter?: 'all' | 'marketeur' | 'transporteur' | 'client'
+  selectedOrgIds?: string[]
+  tourPeriod?: TourPeriod
+  tourCustomRange?: { from: string; to: string } | undefined
 }
 
 export function NationalMap({
@@ -106,19 +117,41 @@ export function NationalMap({
   refreshToken = 0,
   onEntitySelect,
   onViewReady,
+  entityFilter = 'all',
+  selectedOrgIds = [],
+  tourPeriod = 'today',
+  tourCustomRange,
 }: NationalMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<ArcGISMap | null>(null)
   const viewRef = useRef<MapView | null>(null)
   const layersRef = useRef<Record<string, GraphicsLayer>>({})
   const focusLayerRef = useRef<GraphicsLayer | null>(null)
+  const heatmapLayerRef = useRef<FeatureLayer | null>(null)
+  const countryBoundaryLayerRef = useRef<FeatureLayer | null>(null)
+  const regionBoundaryLayerRef = useRef<FeatureLayer | null>(null)
+  const legendRef = useRef<Legend | null>(null)
   const initialMapThemeRef = useRef(mapTheme)
   const onEntitySelectRef = useRef(onEntitySelect)
   const onViewReadyRef = useRef(onViewReady)
   const [isReady, setIsReady] = useState(false)
   const [loadFailed, setLoadFailed] = useState(false)
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null)
+  const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.DEFAULT_ZOOM)
   const data = useMemo(() => getNationalMapView(scope), [scope, refreshToken])
   const dataRef = useRef(data)
+
+  // GPS: initial point at user's position (like Google Maps My Location) — fallback to Cameroon center
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation([position.coords.longitude, position.coords.latitude])
+      },
+      () => undefined,
+      { enableHighAccuracy: false, timeout: MAP_DEFAULTS.GPS_TIMEOUT_MS, maximumAge: MAP_DEFAULTS.GPS_MAX_AGE_MS }
+    )
+  }, [])
 
   useEffect(() => {
     dataRef.current = data
@@ -138,13 +171,81 @@ export function NationalMap({
     const perLayer: Record<string, GraphicsLayer> = {}
     const initialToggles = getInitialLayers()
     for (const key of Object.keys(initialToggles) as MapLayerKey[]) {
+      if (key === 'heatmap' || key === 'zoneBoundaries' || key === 'countryBoundaries') continue
       perLayer[key] = new GraphicsLayer({ title: LAYER_LABELS[key] })
     }
     layersRef.current = perLayer
 
+    const heatmapLayer = new FeatureLayer({
+      title: LAYER_LABELS.heatmap,
+      objectIdField: 'ObjectID',
+      geometryType: 'point',
+      spatialReference: { wkid: 4326 },
+      fields: [
+        { name: 'ObjectID', alias: 'ObjectID', type: 'oid' },
+        { name: 'weight', alias: 'weight', type: 'integer' },
+      ],
+      source: [],
+      renderer: new HeatmapRenderer({
+        colorStops: [...HEATMAP_DEFAULTS.colorStops] as unknown as never,
+        radius: HEATMAP_DEFAULTS.radius,
+        maxPixelIntensity: HEATMAP_DEFAULTS.maxPixelIntensity,
+        minPixelIntensity: HEATMAP_DEFAULTS.minPixelIntensity,
+      } as unknown as never),
+      opacity: HEATMAP_DEFAULTS.opacity,
+      visible: initialToggles.heatmap,
+    })
+    heatmapLayerRef.current = heatmapLayer
+
+    // Dual boundaries: Country (outline) + Region (filled, selectable)
+    const countryBoundaryLayer = new FeatureLayer({
+      title: LAYER_LABELS.countryBoundaries,
+      portalItem: { id: CAMEROON_COUNTRY_PORTAL_ITEM_ID } as unknown as never,
+      outFields: ['*'],
+      popupEnabled: false,
+      popupTemplate: undefined as unknown as never,
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          color: [...BOUNDARY_TOKENS.country.fill] as unknown as never,
+          outline: { color: [...BOUNDARY_TOKENS.country.outline] as unknown as never, width: BOUNDARY_TOKENS.country.outlineWidth },
+        },
+      } as unknown as never,
+      opacity: BOUNDARY_TOKENS.country.opacity,
+      visible: initialToggles.countryBoundaries,
+    } as unknown as FeatureLayer)
+    countryBoundaryLayerRef.current = countryBoundaryLayer
+
+    const regionBoundaryLayer = new FeatureLayer({
+      title: LAYER_LABELS.zoneBoundaries,
+      portalItem: { id: CAMEROON_REGION_PORTAL_ITEM_ID } as unknown as never,
+      outFields: ['*'],
+      popupEnabled: false,
+      popupTemplate: undefined as unknown as never,
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          color: [...BOUNDARY_TOKENS.region.fill] as unknown as never,
+          outline: { color: [...BOUNDARY_TOKENS.region.outline] as unknown as never, width: BOUNDARY_TOKENS.region.outlineWidth },
+        },
+      } as unknown as never,
+      opacity: BOUNDARY_TOKENS.region.opacity,
+      visible: initialToggles.zoneBoundaries,
+    } as unknown as FeatureLayer)
+    regionBoundaryLayerRef.current = regionBoundaryLayer
+
+    const boundariesGroup = new GroupLayer({
+      title: 'Limites administratives',
+      layers: [countryBoundaryLayer, regionBoundaryLayer],
+      visibilityMode: 'independent',
+      visible: true,
+    } as unknown as never)
+
     const map = new ArcGISMap({
       basemap: getArcgisBasemap(initialMapThemeRef.current),
-      layers: Object.values(perLayer),
+      layers: [...Object.values(perLayer), boundariesGroup, heatmapLayer],
     })
     const focusLayer = new GraphicsLayer({ title: 'Zone sélectionnée' })
     map.add(focusLayer)
@@ -153,11 +254,11 @@ export function NationalMap({
     const view = new MapView({
       container: mapContainerRef.current,
       map,
-      center: CAMEROON_CENTER,
-      constraints: { minZoom: 4 },
+      center: [...CAMEROON_CENTER] as unknown as never,
+      constraints: { minZoom: MAP_DEFAULTS.MIN_ZOOM },
       popup: { dockEnabled: false },
       theme: getArcgisViewTheme(initialMapThemeRef.current),
-      zoom: 7,
+      zoom: MAP_DEFAULTS.DEFAULT_ZOOM,
     })
 
     const handle = view.on('click', async (event: ClickEvent) => {
@@ -167,6 +268,13 @@ export function NationalMap({
         | undefined
       const graphic = result?.graphic as Graphic | undefined
       if (!graphic) return
+
+      const kind = (graphic.attributes as Record<string, unknown>)?.kind as string | undefined
+      if (kind === 'site-cluster' || kind === 'site-cluster-label') {
+        const geom = graphic.geometry as Point
+        await view.goTo({ center: [geom.longitude, geom.latitude], zoom: Math.min((view.zoom ?? 7) + 2, 14) } as unknown as never).catch(() => undefined)
+        return
+      }
 
       const entity = selectionFromGraphic(graphic, dataRef.current)
       if (entity) onEntitySelectRef.current?.(entity)
@@ -179,12 +287,38 @@ export function NationalMap({
       }
     })
 
+    const zoomHandle = view.watch('zoom', (z: number) => setZoom(z))
     view
       .when()
       .then(() => {
+        setZoom(view.zoom)
         setLoadFailed(false)
         setIsReady(true)
         onViewReadyRef.current?.(view)
+
+        // Proper legend management — native ArcGIS Legend widget, modular and auto-updates with layer visibility
+        try {
+          const legend = new Legend({ view, style: 'card' as unknown as never } as unknown as never)
+          view.ui.add(legend as unknown as never, 'bottom-left')
+          legendRef.current = legend as unknown as Legend
+        } catch {
+          // Legend is non-critical; map remains operational without it
+        }
+
+        // GPS: if user allowed, animate to their position like Google Maps My Location
+        if (userLocation) {
+          void view.goTo({ center: userLocation, zoom: MAP_DEFAULTS.GPS_ZOOM - 1 } as unknown as never).catch(() => undefined)
+        } else if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const center: [number, number] = [pos.coords.longitude, pos.coords.latitude]
+              setUserLocation(center)
+              void view.goTo({ center, zoom: MAP_DEFAULTS.GPS_ZOOM - 1 } as unknown as never).catch(() => undefined)
+            },
+            () => undefined,
+            { enableHighAccuracy: false, timeout: MAP_DEFAULTS.GPS_TIMEOUT_MS }
+          )
+        }
       })
       .catch((err: unknown) => {
         if (err && (err as { name?: string }).name === 'AbortError') return
@@ -196,10 +330,22 @@ export function NationalMap({
 
     return () => {
       handle.remove()
+      zoomHandle.remove()
+      try {
+        if (legendRef.current) {
+          view.ui.remove(legendRef.current as unknown as never)
+          legendRef.current = null
+        }
+      } catch {
+        // ignore
+      }
       view.destroy()
       focusLayer.removeAll()
       map.remove(focusLayer)
       focusLayerRef.current = null
+      countryBoundaryLayerRef.current = null
+      regionBoundaryLayerRef.current = null
+      heatmapLayerRef.current = null
       mapRef.current = null
       viewRef.current = null
       setIsReady(false)
@@ -226,53 +372,108 @@ export function NationalMap({
     const layers = layersRef.current
     if (!isReady || !data) return
 
-    const siteGraphics = data.sites.flatMap((s) => createSiteGraphics(s, mapTheme))
-    const clientGraphics = data.clientSites.map((cs) => {
-      const pt = new Point({
-        longitude: cs.longitude,
-        latitude: cs.latitude,
-        spatialReference: { wkid: 4326 },
-      })
-      return new Graphic({
-        geometry: pt,
-        symbol: {
-          type: 'picture-marker',
-          url: lpgImageUrl,
-          width: 22,
-          height: 22,
-        },
-        attributes: { kind: 'client-site', clientSiteId: cs.id },
-        popupTemplate: {
-          title: cs.name,
-          content: buildClientSitePopupContent(cs, mapTheme),
-        },
-      })
+    const hasOrgSelection = selectedOrgIds.length > 0
+    // Parse org×region ids (orgId::region) with fallback to legacy orgId
+    const parsed = selectedOrgIds.map((raw) => {
+      const [orgId, region] = raw.split('::')
+      return { raw, orgId: orgId ?? raw, region: region ?? '' }
     })
-    const regionGraphics = data.regions.map((r) =>
-      new Graphic({
-        geometry: new Point({
-          longitude: r.longitude,
-          latitude: r.latitude,
-          spatialReference: { wkid: 4326 },
-        }),
-        symbol: {
-          type: 'simple-marker',
-          style: 'circle',
-          color: rgbaFromTuple([60, 90, 200, 0.55]),
-          size: 24,
-          outline: {
-            color: getMarkerOutlineColor(mapTheme, false),
-            width: 1.5,
-          },
-        },
-        attributes: { kind: 'region', regionCode: r.code },
-        popupTemplate: {
-          title: r.name,
-          content: buildRegionPopupContent(r, mapTheme),
-        },
-      }),
+    const orgSet = new Set(parsed.map((p) => p.orgId))
+    const orgNameSet = new Set(
+      parsed
+        .map((p) => organizations.find((o) => o.id === p.orgId)?.name)
+        .filter((name): name is string => Boolean(name))
     )
-    const anomalyGraphics = data.anomalies.map((a) =>
+    const regionSet = new Set(parsed.map((p) => p.region).filter(Boolean))
+    const hasRegionFilter = regionSet.size > 0 && !regionSet.has('—')
+
+    const filterByEntity = () => {
+      if (hasOrgSelection) return { showSites: true, showClientSites: true, showTrucks: true }
+      if (entityFilter === 'marketeur') return { showSites: true, showClientSites: false, showTrucks: false }
+      if (entityFilter === 'transporteur') return { showSites: false, showClientSites: false, showTrucks: true }
+      if (entityFilter === 'client') return { showSites: false, showClientSites: true, showTrucks: false }
+      return { showSites: true, showClientSites: true, showTrucks: true }
+    }
+    const entityVisibility = filterByEntity()
+
+    // Sites: match org + region (org×region semantics)
+    const filteredSites = hasOrgSelection
+      ? data.sites.filter((s) => {
+          const orgMatch = orgNameSet.has(s.operator)
+          if (!orgMatch) return false
+          if (hasRegionFilter) return regionSet.has(s.region)
+          return true
+        })
+      : data.sites
+    const filteredClientSites = hasOrgSelection
+      ? data.clientSites.filter((cs) => {
+          const orgMatch = orgSet.has(cs.client_org_id) || (cs.current_marketeur_org_id ? orgSet.has(cs.current_marketeur_org_id) : false) || orgNameSet.has(cs.clientName)
+          if (!orgMatch) return false
+          if (hasRegionFilter) return regionSet.has(cs.region)
+          return true
+        })
+      : data.clientSites
+    const filteredTrucks = hasOrgSelection
+      ? data.trucks.filter((t) => orgSet.has(t.org_id) || orgNameSet.has(t.tenant_name))
+      : data.trucks
+    // Period-aware routes: default today, influenced by tourPeriod
+    const periodRange = getPeriodRange(tourPeriod, tourCustomRange)
+    const periodFrom = periodRange.from.getTime()
+    const periodTo = periodRange.to.getTime()
+    const byPeriod = (r: RouteTripView) => {
+      const iso = r.startedAt || r.lastUpdatedAt || ''
+      if (!iso) return false
+      const ms = new Date(iso).getTime()
+      return ms >= periodFrom && ms < periodTo
+    }
+    const periodRoutes = data.routes.filter(byPeriod)
+    const filteredRoutesBase = hasOrgSelection
+      ? periodRoutes.filter(
+          (r) =>
+            orgSet.has((r.truck as unknown as { org_id?: string }).org_id as string) ||
+            orgNameSet.has(r.truck.tenant_name) ||
+            orgNameSet.has(r.originSite.operator) ||
+            orgNameSet.has(r.destinationSite.operator),
+        )
+      : periodRoutes
+    const filteredRoutes = filteredRoutesBase
+    const filteredCheckpoints = hasOrgSelection
+      ? data.checkpoints.filter((cp) => filteredRoutes.some((r) => r.id === cp.tournee_id))
+      : data.checkpoints.filter((cp) => filteredRoutes.some((r) => r.id === cp.tournee_id))
+    const filteredAnomalies = hasOrgSelection
+      ? data.anomalies.filter((a) => (a.entity_id && orgSet.has(a.entity_id)) || orgSet.has(a.entity_label ?? ''))
+      : data.anomalies
+
+    const shouldCluster = zoom <= 7.5
+    const siteGraphics = entityVisibility.showSites
+      ? shouldCluster
+        ? buildSiteClusterGraphics(filteredSites, mapTheme)
+        : filteredSites.flatMap((s) => createSiteGraphics(s, mapTheme))
+      : []
+    const clientGraphics = entityVisibility.showClientSites
+      ? filteredClientSites.map((cs) => {
+          const pt = new Point({
+            longitude: cs.longitude,
+            latitude: cs.latitude,
+            spatialReference: { wkid: 4326 },
+          })
+          return new Graphic({
+            geometry: pt,
+            symbol: {
+              type: 'picture-marker',
+              url: lpgImageUrl,
+              width: 22,
+              height: 22,
+            },
+            attributes: { kind: 'client-site', clientSiteId: cs.id },
+            popupTemplate: {
+              title: cs.name,
+              content: buildClientSitePopupContent(cs, mapTheme),
+            },
+          })
+        })
+      : []
+    const anomalyGraphics = (hasOrgSelection ? filteredAnomalies : data.anomalies).map((a) =>
       new Graphic({
         geometry: new Point({
           longitude: a.longitude,
@@ -296,111 +497,148 @@ export function NationalMap({
         },
       }),
     )
-    const zoneGraphics = data.zones.flatMap((zone) => {
-      const region = data.regions.find((candidate) => candidate.code === zone.code)
-      if (!region) return []
-      return [
-        new Graphic({
-          geometry: new Point({
-            longitude: region.longitude,
-            latitude: region.latitude,
-            spatialReference: { wkid: 4326 },
-          }),
-          symbol: {
-            type: 'simple-marker',
-            style: 'circle',
-            color: rgbaFromTuple([99, 102, 241, 0.35]),
-            size: 14,
-            outline: {
-              color: rgbaFromTuple([99, 102, 241, 0.9]),
-              width: 1.5,
-            },
-          },
-          attributes: { kind: 'zone', zoneCode: zone.code },
-          popupTemplate: {
-            title: zone.name,
-            content: buildZonePopupContent(zone, mapTheme),
-          },
-        }),
-      ]
-    })
-    const vracCentroid = (() => {
-      const points = data.sites.filter((s) => s.longitude && s.latitude)
-      if (points.length === 0) return CAMEROON_CENTER
-      return [
-        points.reduce((sum, s) => sum + s.longitude, 0) / points.length,
-        points.reduce((sum, s) => sum + s.latitude, 0) / points.length,
-      ] as [number, number]
-    })()
-    const vracGraphics = [
-      new Graphic({
-        geometry: new Point({
-          longitude: vracCentroid[0],
-          latitude: vracCentroid[1],
-          spatialReference: { wkid: 4326 },
-        }),
-        symbol: {
-          type: 'simple-marker',
-          style: 'diamond',
-          color: rgbaFromTuple([245, 158, 11, 0.75]),
-          size: 22,
-          outline: {
-            color: rgbaFromTuple([245, 158, 11, 1]),
-            width: 2,
-          },
-        },
-        attributes: { kind: 'vrac' },
-        popupTemplate: {
-          title: LAYER_LABELS.vrac,
-          content: buildVracPopupContent(data.vrac, mapTheme),
-        },
-      }),
-    ]
+    // Checkpoints filtered by period + org selection
+    const checkpointGraphics = filteredCheckpoints
+      .map((checkpoint) => createCheckpointGraphic(checkpoint, mapTheme))
+      .filter((graphic): graphic is Graphic => Boolean(graphic))
 
-    const truckGraphics = data.trucks.map((truck) =>
-      createTruckGraphic(truck, mapTheme)
-    )
-    const routeGraphics = data.routes
-      .filter((trip) =>
-        activeRouteStatuses.includes(
-          trip.status as (typeof activeRouteStatuses)[number]
-        )
-      )
-      .flatMap((trip) => createRouteGraphics(trip, mapTheme))
+    const truckGraphics = entityVisibility.showTrucks
+      ? (hasOrgSelection ? filteredTrucks : data.trucks).map((truck) => createTruckGraphic(truck, mapTheme))
+      : []
+    const routeGraphics = entityVisibility.showTrucks
+      ? (hasOrgSelection ? filteredRoutes : data.routes)
+          .filter((trip) =>
+            activeRouteStatuses.includes(
+              trip.status as (typeof activeRouteStatuses)[number]
+            )
+          )
+          .flatMap((trip) => createRouteGraphics(trip, mapTheme))
+      : []
+
+    // Heatmap native ArcGIS FeatureLayer source update (density of anomalies + sites — filtered when org selected)
+    const heatmapLayer = heatmapLayerRef.current
+    if (heatmapLayer) {
+      const heatmapSourceAnomalies = hasOrgSelection ? filteredAnomalies : data.anomalies
+      const heatmapSourceSites = hasOrgSelection ? filteredSites : data.sites
+      const heatmapPoints: Graphic[] = [
+        ...heatmapSourceAnomalies.map(
+          (a) =>
+            new Graphic({
+              geometry: new Point({
+                longitude: a.longitude,
+                latitude: a.latitude,
+                spatialReference: { wkid: 4326 },
+              }),
+              attributes: { ObjectID: Number(a.id.replace(/\D/g, '').slice(0, 8) || Math.random() * 1e8), weight: 3 },
+            })
+        ),
+        ...heatmapSourceSites.map(
+          (s) =>
+            new Graphic({
+              geometry: new Point({
+                longitude: s.longitude,
+                latitude: s.latitude,
+                spatialReference: { wkid: 4326 },
+              }),
+              attributes: { ObjectID: Math.floor(Math.random() * 1e9), weight: 1 },
+            })
+        ),
+      ]
+      heatmapLayer.source = heatmapPoints as unknown as never
+    }
 
     layers.sites?.removeAll()
     layers.clientSites?.removeAll()
-    layers.regions?.removeAll()
-    layers.zones?.removeAll()
     layers.anomalies?.removeAll()
-    layers.vrac?.removeAll()
     layers.trucks?.removeAll()
+    layers.checkpoints?.removeAll()
 
     layers.sites?.addMany(siteGraphics)
     layers.clientSites?.addMany(clientGraphics)
-    layers.regions?.addMany(regionGraphics)
-    layers.zones?.addMany(zoneGraphics)
     layers.anomalies?.addMany(anomalyGraphics)
-    layers.vrac?.addMany(vracGraphics)
     layers.trucks?.addMany([...routeGraphics, ...truckGraphics])
-  }, [isReady, mapTheme, data])
+    layers.checkpoints?.addMany(checkpointGraphics)
+  }, [isReady, mapTheme, data, entityFilter, focusZone, selectedOrgIds, tourPeriod, tourCustomRange, zoom])
 
   useEffect(() => {
     const perLayer = layersRef.current
     if (!isReady) return
     for (const key of Object.keys(layers) as MapLayerKey[]) {
+      if (key === 'heatmap') {
+        const heatmapLayer = heatmapLayerRef.current
+        if (heatmapLayer) heatmapLayer.visible = layers[key]
+        continue
+      }
+      if (key === 'zoneBoundaries') {
+        const regionLayer = regionBoundaryLayerRef.current
+        if (regionLayer) (regionLayer as unknown as { visible: boolean }).visible = layers[key]
+        continue
+      }
+      if (key === 'countryBoundaries') {
+        const countryLayer = countryBoundaryLayerRef.current
+        if (countryLayer) (countryLayer as unknown as { visible: boolean }).visible = layers[key]
+        continue
+      }
       const layer = perLayer[key]
       if (layer) layer.visible = layers[key]
     }
   }, [isReady, layers])
 
+  // Modular GPS follow: when user location resolves after view is ready, recenter like Google Maps
+  useEffect(() => {
+    if (!isReady || !userLocation) return
+    const view = viewRef.current
+    if (!view) return
+    void view.goTo({ center: userLocation, zoom: MAP_DEFAULTS.GPS_ZOOM } as unknown as never).catch(() => undefined)
+  }, [isReady, userLocation])
+
   useEffect(() => {
     const view = viewRef.current
     const focusLayer = focusLayerRef.current
+    const regionBoundaryLayer = regionBoundaryLayerRef.current
     if (!isReady || !data || !view || !focusLayer) return
 
     let active = true
     focusLayer.removeAll()
+
+    // Enterprise: zone param highlights only that region limit via Region FeatureLayer
+    if (focusZone && regionBoundaryLayer) {
+      const layer = regionBoundaryLayer as unknown as { definitionExpression?: string; queryExtent: (q: unknown) => Promise<{ extent: unknown }> }
+      const expression = `CODE = '${focusZone}'`
+      try {
+        layer.definitionExpression = expression
+      } catch {
+        // ignore
+      }
+      void layer
+        .queryExtent({ where: expression } as unknown as never)
+        .then((result: { extent: unknown }) => {
+          if (!active || !result.extent) return
+          void view.goTo(result.extent as unknown as never).catch(() => undefined)
+        })
+        .catch(() => {
+          const fallbackRegion = data.regions.find((candidate) => candidate.code === focusZone)
+          if (fallbackRegion) {
+            void view.goTo({ center: [fallbackRegion.longitude, fallbackRegion.latitude], zoom: MAP_DEFAULTS.GPS_ZOOM - 2 } as unknown as never).catch(() => undefined)
+          }
+        })
+      return () => {
+        active = false
+        if (regionBoundaryLayer) {
+          try {
+            ;(regionBoundaryLayer as unknown as { definitionExpression?: string }).definitionExpression = undefined
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } else if (regionBoundaryLayer) {
+      try {
+        ;(regionBoundaryLayer as unknown as { definitionExpression?: string }).definitionExpression = undefined
+      } catch {
+        // ignore
+      }
+    }
 
     const region = data.regions.find((candidate) => candidate.code === focusZone)
     const site = focusSite
@@ -467,7 +705,7 @@ export function NationalMap({
 
     const navigation = view.goTo({
       center: [focusPoint.lng, focusPoint.lat],
-      zoom: focused ? 12 : 8,
+      zoom: focused ? MAP_DEFAULTS.FOCUS_SITE_ZOOM : MAP_DEFAULTS.FOCUS_REGION_ZOOM,
     }) as Promise<void> & { cancel?: () => void }
     void navigation.catch(() => undefined)
 
@@ -681,6 +919,120 @@ function createRouteGraphics(trip: RouteTripView, _mapTheme: MapTheme) {
   ]
 }
 
+function createCheckpointGraphic(
+  checkpoint: { id: string; tournee_id: string; sequence: number; status: string; latitude: number | null; longitude: number | null; tourReference: string },
+  mapTheme: MapTheme
+) {
+  if (checkpoint.latitude === null || checkpoint.longitude === null) return null as unknown as Graphic
+  const statusColor: Record<string, [number, number, number, number]> = {
+    COMPLETED: [16, 185, 129, 0.95],
+    REACHED: [14, 165, 233, 0.95],
+    PENDING: [100, 116, 139, 0.85],
+    SKIPPED: [245, 158, 11, 0.95],
+  }
+  const color = statusColor[checkpoint.status] ?? [100, 116, 139, 0.9]
+  return new Graphic({
+    geometry: new Point({
+      longitude: checkpoint.longitude!,
+      latitude: checkpoint.latitude!,
+      spatialReference: { wkid: 4326 },
+    }),
+    symbol: {
+      type: 'simple-marker',
+      style: 'circle',
+      color,
+      size: 10,
+      outline: { color: getMarkerOutlineColor(mapTheme, false), width: 1.2 },
+    },
+    attributes: {
+      kind: 'checkpoint',
+      checkpointId: checkpoint.id,
+      tourId: checkpoint.tournee_id,
+      sequence: checkpoint.sequence,
+    },
+    popupTemplate: {
+      title: `Point #${checkpoint.sequence} — ${checkpoint.tourReference}`,
+      content: `
+        <div class="fleet-truck-popup" data-popup-theme="${mapTheme}">
+          ${popupLine('Tournée', checkpoint.tourReference)}
+          ${popupLine('Séquence', String(checkpoint.sequence))}
+          ${popupLine('Statut', checkpoint.status)}
+        </div>
+      `,
+    },
+  })
+}
+
+function buildSiteClusterGraphics(sites: readonly Site[], mapTheme: MapTheme): Graphic[] {
+  if (sites.length === 0) return []
+  const grid = new Map<string, Site[]>()
+  for (const s of sites) {
+    const key = `${Math.round(s.longitude * 2) / 2}_${Math.round(s.latitude * 2) / 2}`
+    const arr = grid.get(key) ?? []
+    arr.push(s)
+    grid.set(key, arr)
+  }
+  const graphics: Graphic[] = []
+  for (const bucket of grid.values()) {
+    if (bucket.length === 1) {
+      graphics.push(...createSiteGraphics(bucket[0]!, mapTheme))
+      continue
+    }
+    const lng = bucket.reduce((sum, s) => sum + s.longitude, 0) / bucket.length
+    const lat = bucket.reduce((sum, s) => sum + s.latitude, 0) / bucket.length
+    const counts = bucket.reduce(
+      (acc, s) => {
+        // count primary for cluster total, then each secondary role separately
+        acc[s.type] = (acc[s.type] ?? 0) + 1
+        for (const t of s.allTypes) {
+          if (t !== s.type) acc[t] = (acc[t] ?? 0) + 1
+        }
+        return acc
+      },
+      {} as Record<SiteType, number>,
+    )
+    const total = bucket.length
+    const multiCount = bucket.filter((s) => s.allTypes.length > 1).length
+    const size = Math.min(44, 30 + Math.log2(total) * 8)
+    const lines = (Object.entries(counts) as [SiteType, number][])
+      .filter(([, n]) => n > 0)
+      .map(([t, n]) => popupLine(siteTypeLabels[t], String(n)))
+      .join('')
+    const multiLine = multiCount > 0 ? popupLine('Sites multi-rôles', `${multiCount} (+ badge)`) : ''
+    const breakdown = (lines || popupLine('Sites', String(total))) + multiLine
+    graphics.push(
+      new Graphic({
+        geometry: new Point({ longitude: lng, latitude: lat, spatialReference: { wkid: 4326 } }),
+        symbol: {
+          type: 'simple-marker',
+          style: 'circle',
+          color: [99, 102, 241, 0.92],
+          size,
+          outline: { color: getMarkerOutlineColor(mapTheme, false), width: 1.6 },
+        },
+        attributes: { kind: 'site-cluster', count: total, gridKey: `${lng}_${lat}` },
+        popupTemplate: {
+          title: `Groupe ${total} sites`,
+          content: `<div class="fleet-truck-popup" data-popup-theme="${mapTheme}">${breakdown}${popupLine('Zoomer', 'Cliquez pour détailler')}</div>`,
+        },
+      }),
+      new Graphic({
+        geometry: new Point({ longitude: lng, latitude: lat, spatialReference: { wkid: 4326 } }),
+        symbol: {
+          type: 'text',
+          text: String(total),
+          color: [255, 255, 255, 1],
+          haloColor: [15, 23, 42, 0.8],
+          haloSize: 1,
+          font: { size: 11, weight: 'bold', family: 'Inter' },
+        } as unknown as never,
+        attributes: { kind: 'site-cluster-label', count: total },
+      }),
+    )
+  }
+  return graphics
+}
+
 function buildTruckPopupContent(
   truck: Truck,
   telemetry: ReturnType<typeof getTruckTelemetry>,
@@ -712,57 +1064,16 @@ function buildTruckPopupContent(
 function buildRoutePopupContent(trip: RouteTripView) {
   const origin = trip.originSite.name
   const destination = trip.destinationSite.name
+  const unit = (trip.truck as unknown as { type?: string }).type === 'VRAC' ? 'TM' : 'btl'
   return `
     <div class="fleet-truck-popup" data-popup-theme="light">
       ${popupLine('Référence', trip.reference)}
       ${popupLine('Itinéraire', `${origin} -> ${destination}`)}
-      ${popupLine('Chargé', `${trip.loadedQuantity} kg`)}
-      ${popupLine('Livré', `${trip.deliveredQuantity} kg`)}
-      ${popupLine('Restant', `${trip.remainingQuantity} kg`)}
+      ${popupLine('Chargé', `${trip.loadedQuantity} ${unit}`)}
+      ${popupLine('Livré', `${trip.deliveredQuantity} ${unit}`)}
+      ${popupLine('Restant', `${trip.remainingQuantity} ${unit}`)}
     </div>
   `
-}
-
-function buildSitePopupContent(site: {
-  name: string
-  type: SiteType
-  operator: string
-  city: string
-  region: string
-  status: SiteStatus
-}, mapTheme: MapTheme) {
-  return `
-    <div class="fleet-truck-popup" data-popup-theme="${mapTheme}">
-      ${popupLine('Type', siteTypeLabels[site.type])}
-      ${popupLine('Opérateur', site.operator)}
-      ${popupLine('Ville', site.city)}
-      ${popupLine('Région', site.region)}
-      ${popupLine('Statut', siteStatusLabels[site.status])}
-    </div>
-  `
-}
-
-function popupLine(label: string, value: string | number | undefined) {
-  return `
-    <p class="fleet-truck-popup__row">
-      <strong>${label}</strong>
-      <span>${escapePopupValue(String(value ?? '—'))}</span>
-    </p>
-  `
-}
-
-function escapePopupValue(value: string | undefined) {
-  return (value ?? '—').replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    }
-
-    return entities[character] ?? character
-  })
 }
 
 function selectionFromGraphic(
@@ -821,16 +1132,19 @@ function selectionFromGraphic(
         title: region?.name ?? (graphic.popupTemplate?.title as string) ?? 'Région',
       }
     }
-    case 'zone': {
-      const zone = data.zones.find((z) => z.code === attributes.zoneCode)
+    case 'checkpoint': {
       return {
-        kind: 'zone',
-        id: attributes.zoneCode as string,
-        title: zone?.name ?? (graphic.popupTemplate?.title as string) ?? 'Zone',
+        kind: 'checkpoint',
+        id: attributes.checkpointId as string,
+        title: (graphic.popupTemplate?.title as string) ?? 'Point de contrôle',
+        tourId: attributes.tourId as string,
+        sequence: Number(attributes.sequence ?? 0),
       }
     }
-    case 'vrac':
-      return { kind: 'vrac', id: 'vrac', title: LAYER_LABELS.vrac }
+    case 'site-cluster':
+    case 'site-cluster-label':
+    case 'site-badge':
+      return null
     default:
       return null
   }

@@ -22,9 +22,11 @@ import {
   getArcgisBasemap,
   getArcgisViewTheme,
   getMarkerOutlineColor,
-  getSiteOutlineColor,
-  getSiteIconUrl,
 } from '@/features/map/utils/map-theme'
+import {
+  getSiteIconUrl,
+  getSiteOutlineColor,
+} from '@/features/sites/utils/site-graphics'
 import type { MapTheme } from '@/features/map/utils/map-theme'
 import { LegendSiteIcon } from '@/features/map/utils/legend'
 import {
@@ -368,7 +370,7 @@ function createSiteGraphics(site: Site, mapTheme: MapTheme) {
     siteType: site.type,
   }
 
-  if (marker.iconKind === 'marker') {
+  if (marker.iconKind === 'factory' || marker.iconKind === 'house') {
     return [
       new Graphic({
         geometry: new Point({
@@ -378,13 +380,25 @@ function createSiteGraphics(site: Site, mapTheme: MapTheme) {
         }),
         symbol: {
           type: 'simple-marker',
-          style: marker.style,
-          color: marker.color,
-          size: marker.size,
-          outline: {
-            color: outlineColor,
-            width: 1.5,
-          },
+          style: 'circle',
+          color: marker.haloColor,
+          size: marker.haloSize ?? marker.size + 14,
+          outline: { color: outlineColor, width: 1.2 },
+        },
+        attributes: baseAttributes,
+        popupTemplate,
+      }),
+      new Graphic({
+        geometry: new Point({
+          longitude: site.longitude,
+          latitude: site.latitude,
+          spatialReference: { wkid: 4326 },
+        }),
+        symbol: {
+          type: 'picture-marker',
+          url: getSiteIconUrl(site.type, mapTheme),
+          width: marker.iconWidth ?? 22,
+          height: marker.iconHeight ?? 22,
         },
         attributes: baseAttributes,
         popupTemplate,

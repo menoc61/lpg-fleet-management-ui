@@ -81,7 +81,7 @@ export function OrganizationDetailsSheet({
                       </CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-3'>
-                      <DetailLine label='ID' value={org.id} />
+                      {/*<DetailLine label='ID' value={org.id} />*/}
                       <DetailLine label='Nom' value={org.name} />
                       <DetailLine label='Type' value={orgTypeLabel(org.type)} />
                       <DetailLine label='Région' value={org.region} />

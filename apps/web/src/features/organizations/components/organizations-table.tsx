@@ -8,9 +8,11 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getGroupedRowModel,
   type SortingState,
   type VisibilityState,
   useReactTable,
+  type GroupingState
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
@@ -54,10 +56,11 @@ export function OrganizationsTable({
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
+   const [grouping, setGrouping] = useState<GroupingState>([])
 
   const columns = useMemo<ColumnDef<Organization>[]>(
     () => [
-      {
+      /* {
         accessorKey: 'id',
         header: 'ID',
         cell: ({ row }: { row: { original: Organization } }) => (
@@ -66,7 +69,7 @@ export function OrganizationsTable({
         meta: { label: 'ID' },
         enableHiding: false,
         enableSorting: false,
-      },
+      },*/
       {
         accessorKey: 'name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Nom' />,
@@ -156,6 +159,7 @@ export function OrganizationsTable({
       rowSelection,
       columnFilters,
       columnVisibility,
+      grouping,
     },
     enableRowSelection: true,
     onPaginationChange,
@@ -163,6 +167,8 @@ export function OrganizationsTable({
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onGroupingChange: setGrouping,
+    getGroupedRowModel: getGroupedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -177,42 +183,57 @@ export function OrganizationsTable({
 
   return (
     <div className='flex flex-1 flex-col gap-4'>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Rechercher une organisation...'
-        searchKey='name'
-        filters={[
-          {
-            columnId: 'type',
-            title: 'Type',
-            options: [
-              { label: 'Régulateur', value: 'REGULATEUR' },
-              { label: 'Dépôt', value: 'DEPOT' },
-              { label: 'Marketeur', value: 'MARKETEUR' },
-              { label: 'Transporteur', value: 'TRANSPORTEUR' },
-              { label: 'Client', value: 'CLIENT' },
-            ],
-          },
-          {
-            columnId: 'status',
-            title: 'Statut',
-            options: [
-              { label: 'Non assigné', value: 'UNASSIGNED' },
-              { label: 'Assigné', value: 'ASSIGNED' },
-              { label: 'Actif', value: 'ACTIVE' },
-              { label: 'Vérifié', value: 'VERIFIED' },
-              { label: 'Suspendu', value: 'SUSPENDED' },
-              { label: 'Rejeté', value: 'REJECTED' },
-            ],
-          },
-          {
-            columnId: 'region',
-            title: 'Région',
-            options: orgRegionOptions,
-          },
-        ]}
-      />
-
+       <div className='flex flex-wrap items-center gap-3'>
+          <DataTableToolbar
+            table={table}
+            searchPlaceholder='Rechercher une organisation...'
+            searchKey='name'
+            filters={[
+              {
+                columnId: 'type',
+                title: 'Type',
+                options: [
+                  { label: 'Régulateur', value: 'REGULATEUR' },
+                  { label: 'Dépôt', value: 'DEPOT' },
+                  { label: 'Marketeur', value: 'MARKETEUR' },
+                  { label: 'Transporteur', value: 'TRANSPORTEUR' },
+                  { label: 'Client', value: 'CLIENT' },
+                ],
+              },
+              {
+                columnId: 'status',
+                title: 'Statut',
+                options: [
+                  { label: 'Non assigné', value: 'UNASSIGNED' },
+                  { label: 'Assigné', value: 'ASSIGNED' },
+                  { label: 'Actif', value: 'ACTIVE' },
+                  { label: 'Vérifié', value: 'VERIFIED' },
+                  { label: 'Suspendu', value: 'SUSPENDED' },
+                  { label: 'Rejeté', value: 'REJECTED' },
+                ],
+              },
+              {
+                columnId: 'region',
+                title: 'Région',
+                options: orgRegionOptions,
+              },
+            ]}
+          />
+ 
+        <div className='flex items-center gap-2'>
+          <span className='text-xs text-muted-foreground'>Grouper par</span>
+          <select
+            value={grouping[0] ?? ''}
+            onChange={(e) => setGrouping(e.target.value ? [e.target.value] : [])}
+            className='h-8 rounded-md border bg-background px-2 text-sm'
+          >
+            <option value=''>—</option>
+            <option value='region'>Région</option>
+            <option value='status'>Statut</option>
+            <option value='type'>Type</option>
+          </select>
+      </div>
+    </div>
       <div className='overflow-hidden rounded-md border'>
         <Table>
           <TableHeader>

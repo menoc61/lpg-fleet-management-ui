@@ -7,10 +7,11 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getGroupedRowModel,
   type SortingState,
   type VisibilityState,
+  type GroupingState, 
   useReactTable,
-  GroupingState,
 } from '@tanstack/react-table'
 import { cn } from '@/lib/utils'
 import { type NavigateFn, useTableUrlState } from '@/hooks/use-table-url-state'
@@ -79,6 +80,7 @@ export function MarketersTable({
       rowSelection,
       columnFilters,
       columnVisibility,
+      grouping,
     },
     enableRowSelection: true,
     onPaginationChange,
@@ -92,6 +94,8 @@ export function MarketersTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    onGroupingChange: setGrouping,
+    getGroupedRowModel: getGroupedRowModel(),
   })
 
   useEffect(() => {
@@ -133,7 +137,7 @@ export function MarketersTable({
             className="h-8 rounded-md border bg-background px-2 text-sm"
           >
             <option value="">-</option>
-            <option value="site">sites</option>
+            <option value="sites">sites</option>
           </select>
         </div>
       </div>
